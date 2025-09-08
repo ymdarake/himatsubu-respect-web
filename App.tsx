@@ -216,13 +216,25 @@ const App: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Log Panel */}
-                <div className="mt-2 flex-grow p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 overflow-y-auto">
-                    <div className="space-y-1 text-xs">
-                        {log.map((message, index) => (
-                            <p key={index} className="text-gray-300">{message}</p>
-                        ))}
+                {/* Log Panel Container */}
+                <div className="relative mt-2 flex-grow">
+                    {/* Scrollable log content */}
+                    <div className="absolute inset-0 p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 overflow-y-auto">
+                        <div className="space-y-1 text-xs">
+                            {log.map((message, index) => (
+                                <p key={index} className="text-gray-300">{message}</p>
+                            ))}
+                        </div>
                     </div>
+                    {/* Touch controls as an overlay on top of the log */}
+                    {gameState === GameState.PLAYING && (
+                        <TouchControls 
+                          onPointerDown={handlePointerDown} 
+                          onPointerUp={handlePointerUp}
+                          onAction={handleActionPress}
+                          actionVisible={shopPrompt || housePrompt}
+                        />
+                    )}
                 </div>
             </div>
 
@@ -276,14 +288,6 @@ const App: React.FC = () => {
               </div>
             </div>
           </div>
-        )}
-        {gameState === GameState.PLAYING && (
-            <TouchControls 
-              onPointerDown={handlePointerDown} 
-              onPointerUp={handlePointerUp}
-              onAction={handleActionPress}
-              actionVisible={shopPrompt || housePrompt}
-            />
         )}
       </div>
       {gameState === GameState.SHOPPING && shopData && (
