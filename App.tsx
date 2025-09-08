@@ -48,6 +48,8 @@ const App: React.FC = () => {
     gameViewRef,
     worldOffset,
     startGame,
+    continueGame,
+    hasSaveData,
     handleBuyItem,
     handleStatAllocation,
     onCloseShop,
@@ -136,10 +138,21 @@ const App: React.FC = () => {
              <div className="absolute inset-0 bg-black bg-opacity-70 flex flex-col items-center justify-center z-20 p-4 text-center">
                <h1 className="text-3xl sm:text-5xl font-bold text-white mb-2">サイドスクロールクエスト</h1>
                <p className="text-yellow-300 mb-2">どこまで進めるかな！</p>
-                <p className="text-white mb-8 text-base sm:text-lg"><kbd className="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">◀</kbd> や <kbd className="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">▶</kbd> を押して移動</p>
-               <button onClick={startGame} className="px-6 py-3 sm:px-8 sm:py-4 bg-green-500 text-white font-bold rounded hover:bg-green-600 transition-transform transform hover:scale-105 animate-bounce">
-                 ゲームスタート
-               </button>
+               <p className="text-white mb-8 text-base sm:text-lg"><kbd className="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">◀</kbd> や <kbd className="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">▶</kbd> を押して移動</p>
+                {hasSaveData ? (
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <button onClick={continueGame} className="px-6 py-3 sm:px-8 sm:py-4 bg-blue-500 text-white font-bold rounded hover:bg-blue-600 transition-transform transform hover:scale-105 animate-bounce">
+                        つづきから
+                    </button>
+                    <button onClick={startGame} className="px-6 py-3 sm:px-8 sm:py-4 bg-green-500 text-white font-bold rounded hover:bg-green-600 transition-transform transform hover:scale-105">
+                        はじめから
+                    </button>
+                  </div>
+                ) : (
+                  <button onClick={startGame} className="px-6 py-3 sm:px-8 sm:py-4 bg-green-500 text-white font-bold rounded hover:bg-green-600 transition-transform transform hover:scale-105 animate-bounce">
+                    ゲームスタート
+                  </button>
+                )}
              </div>
           )}
         </div>

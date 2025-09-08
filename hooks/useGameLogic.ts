@@ -14,6 +14,8 @@ const baseStatNames: Record<AllocatableStat, string> = {
   luck: '幸運',
 };
 
+const SAVE_KEY = 'sidescroll-quest-savegame';
+
 const addEquipmentToPlayer = (player: PlayerType, newItem: Equipment, trackEquipment: (item: Equipment) => void, logFn: (msg: string) => void): PlayerType => {
     const allPlayerItems = [
         ...player.inventory,
@@ -67,6 +69,7 @@ export const useGameLogic = () => {
   const [playStats, setPlayStats] = useState<PlayStats>(INITIAL_PLAY_STATS);
   const [goldDrops, setGoldDrops] = useState<{id: number, x: number}[]>([]);
   const [damageInstances, setDamageInstances] = useState<DamageInstance[]>([]);
+  const [hasSaveData, setHasSaveData] = useState(false);
 
   const nextEnemyId = useRef(0);
   const rightArrowPressed = useRef(false);
@@ -91,6 +94,50 @@ export const useGameLogic = () => {
   const currentAreaIndex = Math.floor(stageIndex / 10);
   const currentArea = AREAS[Math.min(currentAreaIndex, AREAS.length - 1)];
 
+  // Check for save data on mount
+  useEffect(() => {
+    const savedData = localStorage.getItem(SAVE_KEY);
+    if (savedData) {
+        try {
+            JSON.parse(savedData);
+            setHasSaveData(true);
+        } catch {
+            localStorage.removeItem(SAVE_KEY);
+        }
+    }
+  }, []);
+
+  // Autosave interval and save on unload
+  useEffect(() => {
+    if (gameState !== GameState.PLAYING) {
+        return;
+    }
+
+    const saveCurrentGame = () => {
+         try {
+            const saveData = {
+                player,
+                stageIndex,
+                playStats: {
+                    ...playStats,
+                    collectedEquipment: Array.from(playStats.collectedEquipment),
+                },
+            };
+            localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+         } catch (error) {
+             console.error("Failed to save game:", error);
+         }
+    };
+
+    const intervalId = setInterval(saveCurrentGame, 10000); // Save every 10 seconds
+    window.addEventListener('beforeunload', saveCurrentGame);
+
+    return () => {
+        clearInterval(intervalId);
+        window.removeEventListener('beforeunload', saveCurrentGame);
+    };
+  }, [gameState, player, stageIndex, playStats]);
+
   const loadStage = useCallback((index: number) => {
       if (index === 0) {
           nextEnemyId.current = 0;
@@ -110,7 +157,52 @@ export const useGameLogic = () => {
     }
   }, [stageIndex, loadStage]);
 
+  const continueGame = useCallback(() => {
+    const savedDataString = localStorage.getItem(SAVE_KEY);
+    if (!savedDataString) return;
+
+    try {
+        const savedData = JSON.parse(savedDataString);
+        let loadedPlayer: PlayerType = savedData.player;
+        const loadedStageIndex: number = savedData.stageIndex;
+        const loadedPlayStats: PlayStats = {
+            ...savedData.playStats,
+            collectedEquipment: new Set(savedData.playStats.collectedEquipment),
+            startTime: Date.now(), // Reset start time, continue with saved playTime
+        };
+        
+        // Reset player position to the start of the saved stage
+        const stageStartX = INITIAL_PLAYER.x + loadedStageIndex * STAGE_LENGTH * PIXELS_PER_METER;
+        loadedPlayer = {
+            ...loadedPlayer,
+            x: stageStartX,
+        };
+        
+        setPlayer(loadedPlayer);
+        setStageIndex(loadedStageIndex);
+        setPlayStats(loadedPlayStats);
+        
+        // Player is at the start of the stage, so distance within stage is 0.
+        setDistance(0);
+
+        addLog(`中断したところから再開しました。ステージ${loadedStageIndex + 1}の最初から始まります。`);
+
+        resumeAudioContext().then(() => {
+            stopBGM();
+            playBGM();
+            loadStage(loadedStageIndex); // Load stage without player position
+            setGameState(GameState.PLAYING);
+        });
+    } catch (error) {
+        console.error("Failed to load game:", error);
+        localStorage.removeItem(SAVE_KEY);
+        setHasSaveData(false);
+    }
+  }, [loadStage, addLog]);
+
   const startGame = useCallback(() => {
+    localStorage.removeItem(SAVE_KEY);
+    setHasSaveData(false);
     resumeAudioContext().then(() => {
         stopBGM();
         playBGM();
@@ -695,7 +787,7 @@ export const useGameLogic = () => {
       
       const currentStagePixelLength = STAGE_LENGTH * PIXELS_PER_METER;
       
-      // Use local variables to track changes within this game tick to prevent display flickering.
+      // Use local variables to track changes within this tick to prevent display flickering.
       let nextStageIndex = stageIndex;
       const currentStageStartX = INITIAL_PLAYER.x + nextStageIndex * currentStagePixelLength;
       
@@ -811,6 +903,8 @@ export const useGameLogic = () => {
     gameViewRef,
     worldOffset,
     startGame,
+    continueGame,
+    hasSaveData,
     handleBuyItem,
     handleStatAllocation,
     onCloseShop,

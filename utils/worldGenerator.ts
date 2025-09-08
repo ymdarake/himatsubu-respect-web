@@ -72,8 +72,8 @@ export const spawnEnemiesForStage = (
 
     const numberOfEnemies = 4 + Math.floor(Math.random() * 2); // 4-5 enemies per stage
 
-    const MIN_ENEMY_SEPARATION = 100; // An enemy is 80px wide, so this leaves a small gap
-    const MAX_SPAWN_ATTEMPTS = 10;
+    const MIN_ENEMY_SEPARATION = 100;
+    const MAX_SPAWN_ATTEMPTS = 20;
     const spawnPadding = 150;
     const spawnableWidth = stageEndX - stageStartX - (spawnPadding * 2);
 
@@ -83,16 +83,23 @@ export const spawnEnemiesForStage = (
         let attempts = 0;
 
         while (!positionIsSafe && attempts < MAX_SPAWN_ATTEMPTS) {
+            attempts++;
             spawnPosition = stageStartX + spawnPadding + Math.random() * spawnableWidth;
-            
-            positionIsSafe = true; // Assume safe
+
+            // Check for separation from other newly spawned enemies
+            let tooCloseToOtherEnemy = false;
             for (const existingEnemy of enemies) {
                 if (Math.abs(existingEnemy.x - spawnPosition) < MIN_ENEMY_SEPARATION) {
-                    positionIsSafe = false;
+                    tooCloseToOtherEnemy = true;
                     break;
                 }
             }
-            attempts++;
+            if (tooCloseToOtherEnemy) {
+                continue; // Position is unsafe, try again
+            }
+
+            // If all checks pass, the position is safe
+            positionIsSafe = true;
         }
 
         if (positionIsSafe) {
