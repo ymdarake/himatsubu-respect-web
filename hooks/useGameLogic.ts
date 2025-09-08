@@ -122,12 +122,21 @@ export const useGameLogic = () => {
     setHousePrompt(false);
   }, [addLog]);
 
+  const onCloseEquipmentChange = useCallback(() => {
+      setGameState(GameState.PLAYING);
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (gameState === GameState.SHOPPING && e.key === 'Escape') {
-        setGameState(GameState.PLAYING);
-        setShopData(null);
+      if (e.key === 'Escape') {
+        if (gameState === GameState.SHOPPING) {
+            setGameState(GameState.PLAYING);
+            setShopData(null);
+        } else if (gameState === GameState.EQUIPMENT_CHANGE) {
+            onCloseEquipmentChange();
+        }
       }
+
       if (gameState === GameState.PLAYING) {
         if (e.key === 'ArrowRight') rightArrowPressed.current = true;
         if (e.key === 'ArrowLeft') leftArrowPressed.current = true;
@@ -159,7 +168,7 @@ export const useGameLogic = () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [gameState, stageIndex, enterHouse]);
+  }, [gameState, stageIndex, enterHouse, onCloseEquipmentChange]);
   
   useEffect(() => {
     if (gameViewRef.current) {
@@ -647,10 +656,6 @@ export const useGameLogic = () => {
 
           return { ...p, equipment: newEquipment, inventory: newInventory };
       });
-  };
-
-  const onCloseEquipmentChange = () => {
-      setGameState(GameState.PLAYING);
   };
 
   return {
