@@ -237,6 +237,8 @@ export const useGameLogic = () => {
                     xpToNextLevel: prevPlayer.xpToNextLevel,
                     gold: prevPlayer.gold,
                     statPoints: prevPlayer.statPoints,
+                    lastStatAllocation: prevPlayer.lastStatAllocation,
+                    isStatAllocationLocked: prevPlayer.isStatAllocationLocked,
                 };
                 return {
                     ...preservedPlayer,
@@ -319,10 +321,18 @@ export const useGameLogic = () => {
             baseStats: newBaseStats,
             statPoints: 0,
             currentHp: p.currentHp + hpChange,
+            lastStatAllocation: allocatedStats,
         };
     });
     setGameState(GameState.PLAYING);
   };
+
+  const toggleStatAllocationLock = useCallback(() => {
+    setPlayer(p => ({
+      ...p,
+      isStatAllocationLocked: !p.isStatAllocationLocked,
+    }));
+  }, []);
 
   const gameLoop = useCallback(() => {
     if (gameState !== GameState.PLAYING) return;
@@ -588,10 +598,27 @@ export const useGameLogic = () => {
           playerUpdate.level += 1;
           addLog(`レベル ${playerUpdate.level} になった！`);
           playSound('levelUp');
-          playerUpdate.statPoints = (playerUpdate.statPoints || 0) + STAT_POINTS_PER_LEVEL;
           playerUpdate.xp = remainingXp;
           playerUpdate.xpToNextLevel = Math.floor(playerUpdate.xpToNextLevel * XP_FOR_NEXT_LEVEL_MULTIPLIER);
-          setGameState(GameState.LEVEL_UP);
+          
+          if (playerUpdate.isStatAllocationLocked && playerUpdate.lastStatAllocation) {
+              const newBaseStats: BaseStats = { ...playerUpdate.baseStats };
+              let hpChange = 10;
+              for (const [stat, value] of Object.entries(playerUpdate.lastStatAllocation)) {
+                  newBaseStats[stat as AllocatableStat] += value;
+              }
+
+              hpChange += (playerUpdate.lastStatAllocation.stamina || 0) * 10;
+              hpChange += (playerUpdate.lastStatAllocation.strength || 0) * 2;
+              
+              playerUpdate.baseStats = newBaseStats;
+              playerUpdate.currentHp += hpChange;
+              addLog('ステータスが自動的に割り振られました。');
+
+          } else {
+              playerUpdate.statPoints = (playerUpdate.statPoints || 0) + STAT_POINTS_PER_LEVEL;
+              setGameState(GameState.LEVEL_UP);
+          }
       }
 
       let dx = 0;
@@ -734,5 +761,6 @@ export const useGameLogic = () => {
     handleEquipItem,
     handleUnequipItem,
     onCloseEquipmentChange,
+    toggleStatAllocationLock,
   };
 };

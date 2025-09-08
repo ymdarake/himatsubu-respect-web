@@ -23,6 +23,8 @@ export const INITIAL_PLAYER: Player = {
     accessory: null,
   },
   inventory: [],
+  isStatAllocationLocked: false,
+  lastStatAllocation: null,
 };
 
 export const INITIAL_PLAY_STATS: PlayStats = {

@@ -53,6 +53,7 @@ const App: React.FC = () => {
     handleEquipItem,
     handleUnequipItem,
     onCloseEquipmentChange,
+    toggleStatAllocationLock,
   } = useGameLogic();
 
   return (
@@ -143,17 +144,32 @@ const App: React.FC = () => {
           <div className="mt-4 flex flex-col gap-4">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                 {/* Base Stats Panel */}
-                <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 h-full">
+                <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 h-full flex flex-col">
                     <div className="text-center mb-2 border-b border-gray-700 pb-1">
                         <span className="font-bold text-lg">レベル {player.level}</span>
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-1 flex-grow">
                         {Object.entries(player.baseStats).map(([stat, value]) => (
                             <div key={stat} className="flex justify-between">
                                 <span>{baseStatNames[stat as keyof typeof baseStatNames]}</span>
                                 <span className="font-bold">{value}</span>
                             </div>
                         ))}
+                    </div>
+                    <div className="mt-2 pt-2 border-t border-gray-700">
+                      <label 
+                          className="flex items-center space-x-2 cursor-pointer text-sm select-none"
+                          title={!player.lastStatAllocation ? "一度レベルアップしてステータスを割り振ると有効になります" : "ステータス割り振りを固定する"}
+                      >
+                          <input 
+                              type="checkbox"
+                              className="form-checkbox h-4 w-4 text-yellow-400 bg-gray-800 border-gray-600 rounded focus:ring-yellow-500 focus:ring-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                              checked={player.isStatAllocationLocked}
+                              onChange={toggleStatAllocationLock}
+                              disabled={!player.lastStatAllocation}
+                          />
+                          <span className={player.lastStatAllocation ? '' : 'text-gray-500'}>ステ振り固定</span>
+                      </label>
                     </div>
                 </div>
 

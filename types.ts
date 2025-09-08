@@ -83,6 +83,8 @@ export interface Player {
     accessory: Equipment | null;
   };
   inventory: Equipment[];
+  isStatAllocationLocked: boolean;
+  lastStatAllocation: Record<AllocatableStat, number> | null;
 }
 
 export interface Enemy {
