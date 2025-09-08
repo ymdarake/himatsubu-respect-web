@@ -1,0 +1,5 @@
+{
+  "name": "Side-Scroll Quest",
+  "description": "A simple side-scrolling game where you advance through short stages, defeating enemies along the way. Inspired by classic casual RPGs.",
+  "requestFramePermissions": []
+}
