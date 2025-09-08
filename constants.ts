@@ -14,7 +14,7 @@ export const INITIAL_PLAYER: Player = {
   isWalking: false,
   level: 1,
   xp: 0,
-  xpToNextLevel: 100,
+  xpToNextLevel: 70,
   gold: 0,
   statPoints: 0,
   equipment: {
