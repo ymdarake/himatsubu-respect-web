@@ -1,3 +1,4 @@
+
 let audioContext: AudioContext | null = null;
 let whiteNoiseBuffer: AudioBuffer | null = null;
 
@@ -25,7 +26,7 @@ export const resumeAudioContext = async () => {
 // Initialize on load, if in a browser environment
 createAudioContext();
 
-type SoundType = 'playerAttack' | 'enemyAttack' | 'playerHit' | 'enemyHit' | 'playerDeath';
+type SoundType = 'playerAttack' | 'enemyAttack' | 'playerHit' | 'enemyHit' | 'playerDeath' | 'levelUp';
 
 export const playSound = (type: SoundType) => {
   if (!audioContext || audioContext.state !== 'running') return;
@@ -96,6 +97,32 @@ export const playSound = (type: SoundType) => {
       oscEH.stop(now + 0.15);
       break;
     
+    case 'levelUp': {
+      const notes = [261.63, 329.63, 392.00, 523.25]; // C4, E4, G4, C5
+      const noteDuration = 0.2;
+      const noteDelay = 0.1;
+
+      notes.forEach((freq, index) => {
+        const osc = audioContext.createOscillator();
+        const oscGain = audioContext.createGain();
+        osc.connect(oscGain);
+        oscGain.connect(gainNode);
+
+        const startTime = now + index * noteDelay;
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, startTime);
+        
+        oscGain.gain.setValueAtTime(0, startTime);
+        oscGain.gain.linearRampToValueAtTime(0.12, startTime + 0.01);
+        oscGain.gain.exponentialRampToValueAtTime(0.0001, startTime + noteDuration);
+
+        osc.start(startTime);
+        osc.stop(startTime + noteDuration);
+      });
+      break;
+    }
+      
     case 'playerDeath':
       const oscPD = audioContext.createOscillator();
       oscPD.connect(gainNode);
