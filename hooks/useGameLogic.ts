@@ -23,6 +23,7 @@ export const useGameLogic = () => {
   const [distance, setDistance] = useState(0);
   const [stageIndex, setStageIndex] = useState(0);
   const [playerAction, setPlayerAction] = useState<'attack' | 'hit' | undefined>(undefined);
+  const [playerAttackDirection, setPlayerAttackDirection] = useState<'left' | 'right'>('right');
   const [enemyHits, setEnemyHits] = useState<Record<number, boolean>>({});
   const [log, setLog] = useState<string[]>([]);
   const [shopData, setShopData] = useState<{type: ShopType, items: Equipment[]} | null>(null);
@@ -356,7 +357,19 @@ export const useGameLogic = () => {
           engagedEnemyCooldown = Math.max(200, playerCooldown / speedRatio);
       }
       
-      const enemyToAttack = currentEngagedEnemy && Math.abs(currentEngagedEnemy.x - playerUpdate.x) <= ATTACK_RANGE ? currentEngagedEnemy : undefined;
+      let enemyToAttack: Enemy | undefined = undefined;
+      if (currentEngagedEnemy) {
+        const playerWidth = 64; // from Player.tsx w-16
+        const enemyWidth = 80;  // from Enemy.tsx w-20
+        const playerCenter = playerUpdate.x + playerWidth / 2;
+        const enemyCenter = currentEngagedEnemy.x + enemyWidth / 2;
+        const distanceBetweenCenters = Math.abs(playerCenter - enemyCenter);
+        const combinedHalfWidths = (playerWidth / 2) + (enemyWidth / 2);
+
+        if (distanceBetweenCenters <= combinedHalfWidths + ATTACK_RANGE) {
+          enemyToAttack = currentEngagedEnemy;
+        }
+      }
       
       if (enemyToAttack && playerAttackReady.current) {
           playerAttackReady.current = false;
@@ -364,6 +377,8 @@ export const useGameLogic = () => {
           
           playSound('playerAttack');
           
+          const attackDirection = enemyToAttack.x > playerUpdate.x ? 'right' : 'left';
+          setPlayerAttackDirection(attackDirection);
           setPlayerAction('attack');
           setTimeout(() => setPlayerAction(undefined), 300);
 
@@ -458,7 +473,15 @@ export const useGameLogic = () => {
           
           if (enemy.attackState === 'preparing' && now >= enemy.attackStateTimer) {
               playSound('enemyAttack');
-              if (Math.abs(enemy.x - playerUpdate.x) <= ATTACK_RANGE) {
+              
+              const playerWidth = 64;
+              const enemyWidth = 80;
+              const playerCenter = playerUpdate.x + playerWidth / 2;
+              const enemyCenter = enemy.x + enemyWidth / 2;
+              const distanceBetweenCenters = Math.abs(playerCenter - enemyCenter);
+              const combinedHalfWidths = (playerWidth / 2) + (enemyWidth / 2);
+
+              if (distanceBetweenCenters <= combinedHalfWidths + ATTACK_RANGE) {
                    const isMagicalAttack = enemy.magicalAttack > enemy.physicalAttack;
                    let damage: number;
                    let damageColor = '#FFFFFF';
@@ -516,15 +539,29 @@ export const useGameLogic = () => {
       }
 
       let dx = 0;
-      if (rightArrowPressed.current || leftArrowPressed.current) {
-        if (rightArrowPressed.current) dx += GAME_SPEED;
-        if (leftArrowPressed.current) dx -= GAME_SPEED;
+      if (rightArrowPressed.current) dx += GAME_SPEED;
+      if (leftArrowPressed.current) dx -= GAME_SPEED;
+
+      // Collision detection with engaged enemy, considering character widths
+      if (currentEngagedEnemy) {
+        const playerWidth = 64; // from Player.tsx w-16
+        const enemyWidth = 80;  // from Enemy.tsx w-20
+        const playerFutureX = playerUpdate.x + dx;
+
+        // Player is moving right and is about to collide/pass the enemy
+        if (dx > 0 && (playerUpdate.x + playerWidth) <= currentEngagedEnemy.x && (playerFutureX + playerWidth) > currentEngagedEnemy.x) {
+            // Adjust dx to stop the player exactly at the enemy's edge
+            dx = currentEngagedEnemy.x - (playerUpdate.x + playerWidth);
+        }
+        // Player is moving left and is about to collide/pass the enemy
+        else if (dx < 0 && playerUpdate.x >= (currentEngagedEnemy.x + enemyWidth) && playerFutureX < (currentEngagedEnemy.x + enemyWidth)) {
+            // Adjust dx to stop the player exactly at the enemy's edge
+            dx = (currentEngagedEnemy.x + enemyWidth) - playerUpdate.x;
+        }
       }
-      
-      const isRetreating = dx < 0;
-      if (enemyToAttack && dx > 0 && !isRetreating) dx = 0;
 
       if (playerUpdate.x + dx < INITIAL_PLAYER.x) dx = INITIAL_PLAYER.x - playerUpdate.x;
+      
       playerUpdate.x += dx;
       playerUpdate.isWalking = dx !== 0;
 
@@ -629,6 +666,7 @@ export const useGameLogic = () => {
     goldDrops,
     damageInstances,
     playerAction,
+    playerAttackDirection,
     enemyHits,
     calculatedStats,
     totalDistance,

@@ -9,6 +9,12 @@ interface EquipmentChangeModalProps {
   onClose: () => void;
 }
 
+const typeNames: Record<EquipmentType, string> = {
+    weapon: '武器',
+    armor: '防具',
+    accessory: 'アクセサリー'
+};
+
 const StatDisplay: React.FC<{ item: Equipment }> = ({ item }) => (
   <div className="text-sm">
     {item.elementalDamages && Object.entries(item.elementalDamages).map(([el, pow]) => (
@@ -38,7 +44,7 @@ const EquipmentChangeModal: React.FC<EquipmentChangeModalProps> = ({ player, onE
               const item = player.equipment[type];
               return (
                 <div key={type} className="bg-gray-900 p-4 rounded-lg border border-gray-700">
-                  <h4 className="capitalize text-lg text-gray-400 mb-2">{type}</h4>
+                  <h4 className="text-lg text-gray-400 mb-2">{typeNames[type]}</h4>
                   {item ? (
                     <div className="flex justify-between items-center">
                       <div>
@@ -68,7 +74,7 @@ const EquipmentChangeModal: React.FC<EquipmentChangeModalProps> = ({ player, onE
                 player.inventory.map(item => (
                   <div key={item.id} className="bg-black bg-opacity-40 p-3 rounded flex justify-between items-center">
                     <div>
-                      <p className="font-bold text-lg">{item.name} <span className="text-xs text-gray-400">({item.type})</span></p>
+                      <p className="font-bold text-lg">{item.name} <span className="text-xs text-gray-400">({typeNames[item.type]})</span></p>
                       <StatDisplay item={item} />
                     </div>
                     <button

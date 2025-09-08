@@ -6,13 +6,14 @@ interface PlayerProps {
   isWalking: boolean;
   isDead: boolean;
   x: number;
+  attackDirection: 'left' | 'right';
 }
 
-const Player: React.FC<PlayerProps> = ({ isAttacking, isHit, isWalking, isDead, x }) => {
+const Player: React.FC<PlayerProps> = ({ isAttacking, isHit, isWalking, isDead, x, attackDirection }) => {
   const animationClasses = isDead
     ? 'animate-dead'
     : isAttacking
-    ? 'animate-attack-player'
+    ? (attackDirection === 'right' ? 'animate-attack-player-right' : 'animate-attack-player-left')
     : isHit
     ? 'animate-hit'
     : isWalking
@@ -22,11 +23,17 @@ const Player: React.FC<PlayerProps> = ({ isAttacking, isHit, isWalking, isDead, 
   return (
     <>
       <style>{`
-        @keyframes attack-player {
+        @keyframes attack-player-right {
           0%, 100% { transform: translateX(0); }
           50% { transform: translateX(20px); }
         }
-        .animate-attack-player { animation: attack-player 0.3s ease-in-out; }
+        .animate-attack-player-right { animation: attack-player-right 0.3s ease-in-out; }
+        
+        @keyframes attack-player-left {
+          0%, 100% { transform: translateX(0); }
+          50% { transform: translateX(-20px); }
+        }
+        .animate-attack-player-left { animation: attack-player-left 0.3s ease-in-out; }
 
         @keyframes hit {
           0%, 100% { transform: translateX(0); opacity: 1; }
@@ -94,7 +101,7 @@ const Player: React.FC<PlayerProps> = ({ isAttacking, isHit, isWalking, isDead, 
 
           {/* Sword for attack animation */}
           {isAttacking && (
-            <g transform="translate(15 5) rotate(45)">
+            <g transform={attackDirection === 'right' ? "translate(15 5) rotate(45)" : "translate(1 5) rotate(-45)"}>
               {/* Hilt */}
               <rect x="-2" y="7" width="4" height="1" fill="#806040" />
               <rect x="-1" y="6" width="2" height="3" fill="#806040" />

@@ -49,7 +49,7 @@ export const BASE_EQUIPMENT_NAMES = [
 ];
 
 export const GAME_SPEED = 10;
-export const ATTACK_RANGE = 70; // in pixels
+export const ATTACK_RANGE = 25; // in pixels
 export const STAGE_LENGTH = 10; // in meters
 export const PIXELS_PER_METER = 100;
 export const HEALING_HOUSE_RANGE = 40;

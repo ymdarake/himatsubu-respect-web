@@ -37,6 +37,7 @@ const App: React.FC = () => {
     goldDrops,
     damageInstances,
     playerAction,
+    playerAttackDirection,
     enemyHits,
     calculatedStats,
     totalDistance,
@@ -88,7 +89,14 @@ const App: React.FC = () => {
           <div className="absolute top-0 left-0 h-full w-full" style={{ transform: `translateX(${worldOffset}px)` }}>
             {scenery.map(s => <Scenery key={s.id} scenery={s} />)}
             { gameState !== GameState.START && 
-                <Player isAttacking={playerAction === 'attack'} isHit={playerAction === 'hit'} isWalking={player.isWalking} isDead={gameState === GameState.PLAYER_DEAD} x={player.x} />
+                <Player 
+                  isAttacking={playerAction === 'attack'} 
+                  isHit={playerAction === 'hit'} 
+                  isWalking={player.isWalking} 
+                  isDead={gameState === GameState.PLAYER_DEAD} 
+                  x={player.x}
+                  attackDirection={playerAttackDirection}
+                />
             }
             {structures.map(structure => (
               structure.type === 'house' 

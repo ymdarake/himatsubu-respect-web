@@ -20,6 +20,12 @@ const shopTitles: Record<ShopType, string> = {
   accessory_shop: 'アクセサリー屋',
 };
 
+const typeNames: Record<EquipmentType, string> = {
+    weapon: '武器',
+    armor: '防具',
+    accessory: 'アクセサリー'
+};
+
 const StatDisplay: React.FC<{ item: Equipment }> = ({ item }) => (
   <div className="text-sm">
     {item.elementalDamages && Object.entries(item.elementalDamages).map(([el, pow]) => (
@@ -88,7 +94,7 @@ const Shop: React.FC<ShopProps> = ({ shopData, player, onBuy, onClose, onEquip, 
                   const item = player.equipment[type];
                   return (
                     <div key={type} className="bg-black bg-opacity-30 p-3 rounded-lg border border-yellow-800">
-                      <h4 className="capitalize text-base text-gray-400 mb-1">{type}</h4>
+                      <h4 className="text-base text-gray-400 mb-1">{typeNames[type]}</h4>
                       {item ? (
                         <div className="flex justify-between items-center">
                           <div>
@@ -110,7 +116,7 @@ const Shop: React.FC<ShopProps> = ({ shopData, player, onBuy, onClose, onEquip, 
                     player.inventory.map(item => (
                       <div key={item.id} className="bg-black bg-opacity-40 p-3 rounded flex justify-between items-center">
                         <div>
-                          <p className="font-bold text-base">{item.name} <span className="text-xs text-gray-400">({item.type})</span></p>
+                          <p className="font-bold text-base">{item.name} <span className="text-xs text-gray-400">({typeNames[item.type]})</span></p>
                           <StatDisplay item={item} />
                         </div>
                         <button onClick={() => onEquip(item)} className="px-3 py-1 bg-green-600 font-bold rounded hover:bg-green-500 transition-colors text-sm">装備</button>
