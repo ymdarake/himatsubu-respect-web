@@ -22,6 +22,7 @@ export const INITIAL_PLAYER: Player = {
     armor: null,
     accessory: null,
   },
+  inventory: [],
 };
 
 export const INITIAL_PLAY_STATS: PlayStats = {

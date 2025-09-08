@@ -4,6 +4,7 @@ export enum GameState {
   PLAYER_DEAD,
   SHOPPING,
   LEVEL_UP,
+  EQUIPMENT_CHANGE,
 }
 
 export type EquipmentType = 'weapon' | 'armor' | 'accessory';
@@ -64,6 +65,7 @@ export interface Player {
     armor: Equipment | null;
     accessory: Equipment | null;
   };
+  inventory: Equipment[];
 }
 
 export interface Enemy {

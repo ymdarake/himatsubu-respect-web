@@ -13,6 +13,7 @@ import Scenery from './components/Scenery';
 import EnemyStatusPanel from './components/EnemyStatusPanel';
 import PlayStatsPanel from './components/PlayStatsPanel';
 import DamageTextComponent from './components/DamageText';
+import EquipmentChangeModal from './components/EquipmentChangeModal';
 
 const baseStatNames: Record<AllocatableStat, string> = {
   strength: '腕力',
@@ -32,6 +33,7 @@ const App: React.FC = () => {
     log,
     shopData,
     shopPrompt,
+    housePrompt,
     goldDrops,
     damageInstances,
     playerAction,
@@ -47,6 +49,9 @@ const App: React.FC = () => {
     handleBuyItem,
     handleStatAllocation,
     onCloseShop,
+    handleEquipItem,
+    handleUnequipItem,
+    onCloseEquipmentChange,
   } = useGameLogic();
 
   return (
@@ -106,6 +111,11 @@ const App: React.FC = () => {
            {shopPrompt && gameState === GameState.PLAYING && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20">
               <p className="text-white text-lg font-bold animate-pulse p-3 bg-gray-800 rounded-lg border-2 border-yellow-400 shadow-lg">スペースキーでお店に入る</p>
+            </div>
+          )}
+          {housePrompt && gameState === GameState.PLAYING && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20">
+                <p className="text-white text-lg font-bold animate-pulse p-3 bg-gray-800 rounded-lg border-2 border-green-400 shadow-lg">スペースキーで家に入る</p>
             </div>
           )}
             
@@ -179,6 +189,14 @@ const App: React.FC = () => {
       )}
       {gameState === GameState.LEVEL_UP && (
         <LevelUpModal player={player} onConfirm={handleStatAllocation} />
+      )}
+      {gameState === GameState.EQUIPMENT_CHANGE && (
+        <EquipmentChangeModal
+            player={player}
+            onEquip={handleEquipItem}
+            onUnequip={handleUnequipItem}
+            onClose={onCloseEquipmentChange}
+        />
       )}
     </div>
   );

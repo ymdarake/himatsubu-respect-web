@@ -27,6 +27,7 @@ export const useGameLogic = () => {
   const [log, setLog] = useState<string[]>([]);
   const [shopData, setShopData] = useState<{type: ShopType, items: Equipment[]} | null>(null);
   const [shopPrompt, setShopPrompt] = useState<boolean>(false);
+  const [housePrompt, setHousePrompt] = useState<boolean>(false);
   const [engagedEnemyId, setEngagedEnemyId] = useState<number | null>(null);
   const [displayedEnemyId, setDisplayedEnemyId] = useState<number | null>(null);
   const [playStats, setPlayStats] = useState<PlayStats>(INITIAL_PLAY_STATS);
@@ -40,6 +41,7 @@ export const useGameLogic = () => {
   const [gameViewWidth, setGameViewWidth] = useState(0);
   const justHealed = useRef(false);
   const shopTarget = useRef<Structure | null>(null);
+  const houseTarget = useRef<Structure | null>(null);
   const nextSceneryId = useRef(0);
   const nextGoldDropId = useRef(0);
   const nextDamageInstanceId = useRef(0);
@@ -117,14 +119,20 @@ export const useGameLogic = () => {
       if (gameState === GameState.PLAYING) {
         if (e.key === 'ArrowRight') rightArrowPressed.current = true;
         if (e.key === 'ArrowLeft') leftArrowPressed.current = true;
-        if (e.code === 'Space' && shopTarget.current) {
-            e.preventDefault();
-            const shopType = shopTarget.current.type as ShopType;
-            const areaIndex = Math.floor(stageIndex / 10);
-            const items = generateShopItems(shopType, areaIndex);
-            setShopData({ type: shopType, items });
-            setGameState(GameState.SHOPPING);
-            setShopPrompt(false);
+        if (e.code === 'Space') {
+            if (shopTarget.current) {
+                e.preventDefault();
+                const shopType = shopTarget.current.type as ShopType;
+                const areaIndex = Math.floor(stageIndex / 10);
+                const items = generateShopItems(shopType, areaIndex);
+                setShopData({ type: shopType, items });
+                setGameState(GameState.SHOPPING);
+                setShopPrompt(false);
+            } else if (houseTarget.current) {
+                e.preventDefault();
+                setGameState(GameState.EQUIPMENT_CHANGE);
+                setHousePrompt(false);
+            }
         }
       }
     };
@@ -170,6 +178,7 @@ export const useGameLogic = () => {
                     ...INITIAL_PLAYER,
                     baseStats: {...prevPlayer.baseStats},
                     equipment: {...prevPlayer.equipment},
+                    inventory: [...prevPlayer.inventory],
                     level: prevPlayer.level,
                     xp: prevPlayer.xp,
                     xpToNextLevel: prevPlayer.xpToNextLevel,
@@ -212,13 +221,14 @@ export const useGameLogic = () => {
       setPlayer(p => ({
         ...p,
         gold: p.gold - item.price,
-        equipment: { ...p.equipment, [item.type]: item },
+        inventory: [...p.inventory, item],
       }));
+      addLog(`「${item.name}」を購入し、持ち物に追加した。`);
       trackEquipmentCollection(item.name);
       setGameState(GameState.PLAYING);
       setShopData(null);
     }
-  }, [player.gold, trackEquipmentCollection]);
+  }, [player.gold, trackEquipmentCollection, addLog]);
 
   const handleStatAllocation = (allocatedStats: Record<AllocatableStat, number>) => {
     setPlayer(p => {
@@ -253,6 +263,8 @@ export const useGameLogic = () => {
       const now = Date.now();
 
       const houseToUse = structures.find(s => s.type === 'house' && Math.abs(s.x - playerUpdate.x) < HEALING_HOUSE_RANGE);
+      houseTarget.current = houseToUse || null;
+      setHousePrompt(!!houseTarget.current);
       if (houseToUse) {
         if (playerUpdate.currentHp < currentCalculatedStats.maxHp) {
           playerUpdate.currentHp = currentCalculatedStats.maxHp;
@@ -401,24 +413,13 @@ export const useGameLogic = () => {
                               const gem: Gem = { name: `Gem of ${randomStat}`, stat: randomStat, value: 1 };
                               addLog(`✨ ${baseStatNames[gem.stat]}のジェムを見つけた！ ${baseStatNames[gem.stat]}が ${gem.value} 上がった！`);
                               playerUpdate.baseStats[gem.stat] += gem.value;
-                              setPlayStats(prev => ({ ...prev, gemCollection: { ...prev.gemCollection, [gem.stat]: (prev.gemCollection[gem.stat] || 0) + gem.value }}));
+                              setPlayStats(prev => ({ ...prev, gemCollection: { ...prev.gemCollection, [gem.stat]: (prev.gemCollection[gem.stat] || 0) + 1 }}));
                           } else {
                               const areaIndex = Math.floor(stageIndex / 10);
                               const droppedItem = generateRandomEquipment(areaIndex);
                               trackEquipmentCollection(droppedItem.name);
-                              const currentItem = playerUpdate.equipment[droppedItem.type];
-                              let isUpgrade = !currentItem;
-                              if (currentItem) {
-                                  const currentPower = Object.values(currentItem.stats).reduce((a, b) => a + (b || 0), 0);
-                                  const droppedPower = Object.values(droppedItem.stats).reduce((a, b) => a + (b || 0), 0);
-                                  if (droppedPower > currentPower) isUpgrade = true;
-                              }
-                              if (isUpgrade) {
-                                  addLog(`✨ ${droppedItem.name}を見つけて装備した！`);
-                                  playerUpdate.equipment[droppedItem.type] = droppedItem;
-                              } else {
-                                  addLog(`${droppedItem.name}を見つけたが、今の装備より弱かった。`);
-                              }
+                              playerUpdate.inventory.push(droppedItem);
+                              addLog(`✨ ${droppedItem.name}を見つけて持ち物に追加した！`);
                           }
                       }
                       targetIsDefeated = true;
@@ -563,6 +564,45 @@ export const useGameLogic = () => {
     setShopData(null);
   }
 
+  const handleEquipItem = (itemToEquip: Equipment) => {
+    setPlayer(p => {
+        const newInventory = [...p.inventory];
+        const newEquipment = { ...p.equipment };
+        const currentlyEquipped = p.equipment[itemToEquip.type];
+
+        // Find and remove item from inventory
+        const itemIndex = newInventory.findIndex(invItem => invItem.id === itemToEquip.id);
+        if (itemIndex > -1) {
+            newInventory.splice(itemIndex, 1);
+        }
+
+        // Add previously equipped item back to inventory
+        if (currentlyEquipped) {
+            newInventory.push(currentlyEquipped);
+        }
+
+        // Equip the new item
+        newEquipment[itemToEquip.type] = itemToEquip;
+
+        return { ...p, equipment: newEquipment, inventory: newInventory };
+    });
+  };
+
+  const handleUnequipItem = (itemToUnequip: Equipment) => {
+      setPlayer(p => {
+          const newInventory = [...p.inventory, itemToUnequip];
+          const newEquipment = { ...p.equipment };
+
+          newEquipment[itemToUnequip.type] = null;
+
+          return { ...p, equipment: newEquipment, inventory: newInventory };
+      });
+  };
+
+  const onCloseEquipmentChange = () => {
+      setGameState(GameState.PLAYING);
+  };
+
   return {
     gameState,
     player,
@@ -572,6 +612,7 @@ export const useGameLogic = () => {
     log,
     shopData,
     shopPrompt,
+    housePrompt,
     goldDrops,
     damageInstances,
     playerAction,
@@ -586,6 +627,9 @@ export const useGameLogic = () => {
     startGame,
     handleBuyItem,
     handleStatAllocation,
-    onCloseShop
+    onCloseShop,
+    handleEquipItem,
+    handleUnequipItem,
+    onCloseEquipmentChange,
   };
 };
