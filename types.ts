@@ -40,14 +40,31 @@ export interface Gem {
   value: number;
 }
 
-export interface Equipment {
-  id: string;
+export interface EquipmentMaster {
+  masterId: string;
   name: string;
+  type: EquipmentType;
+  baseStats: Partial<Record<DerivedStat, number>>;
+  basePrice: number;
+  statGrowth: Partial<Record<DerivedStat, number>>;
+  priceGrowth: number;
+  elementalDamages?: Partial<Record<Element, number>>;
+  elementalDamageGrowth?: Partial<Record<Element, number>>;
+}
+
+export interface Equipment {
+  instanceId: string; // Unique ID for this specific item instance
+  masterId: string;   // Reference to the master data
+  level: number;
+  
+  // Calculated properties, stored for convenience
+  name: string; // e.g., "ショートソード+3"
   type: EquipmentType;
   stats: Partial<Record<DerivedStat, number>>;
   price: number;
   elementalDamages?: Partial<Record<Element, number>>;
 }
+
 
 export interface Player {
   name: string;
@@ -127,7 +144,7 @@ export interface PlayStats {
   farthestDistance: number;
   totalDistanceTraveled: number;
   totalXpGained: number;
-  collectedEquipment: Set<string>;
+  collectedEquipment: Set<string>; // Stores masterId
   gemCollection: Record<AllocatableStat, number>;
 }
 

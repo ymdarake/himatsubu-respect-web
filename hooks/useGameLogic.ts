@@ -1,7 +1,6 @@
-
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { GameState, Enemy, Player as PlayerType, Structure, ShopType, Equipment, AllocatableStat, BaseStats, Gem, SceneryObject, PlayStats, Element, DamageInstance, DamageInfo } from '../types';
-import { AREAS, INITIAL_PLAYER, GAME_SPEED, ATTACK_RANGE, STAGE_LENGTH, XP_FOR_NEXT_LEVEL_MULTIPLIER, HEALING_HOUSE_RANGE, PIXELS_PER_METER, LUCK_TO_GOLD_MULTIPLIER, SHOP_RANGE, STAT_POINTS_PER_LEVEL, BASE_DROP_CHANCE, LUCK_TO_DROP_CHANCE_MULTIPLIER, INITIAL_PLAY_STATS, BASE_EQUIPMENT_NAMES, ELEMENTAL_AFFINITY, ELEMENT_HEX_COLORS, ATTACK_SPEED_LEVELS, ENEMY_PANEL_DISPLAY_RANGE } from '../constants';
+import { AREAS, INITIAL_PLAYER, GAME_SPEED, ATTACK_RANGE, STAGE_LENGTH, XP_FOR_NEXT_LEVEL_MULTIPLIER, HEALING_HOUSE_RANGE, PIXELS_PER_METER, LUCK_TO_GOLD_MULTIPLIER, SHOP_RANGE, STAT_POINTS_PER_LEVEL, BASE_DROP_CHANCE, LUCK_TO_DROP_CHANCE_MULTIPLIER, INITIAL_PLAY_STATS, ELEMENTAL_AFFINITY, ELEMENT_HEX_COLORS, ATTACK_SPEED_LEVELS, ENEMY_PANEL_DISPLAY_RANGE } from '../constants';
 import { playSound, resumeAudioContext, playBGM, stopBGM } from '../utils/audio';
 import { calculateDerivedStats } from '../utils/statCalculations';
 import { generateRandomEquipment, generateShopItems } from '../utils/itemGenerator';
@@ -225,16 +224,16 @@ export const useGameLogic = () => {
     }
   }, [gameState]);
 
-  const trackEquipmentCollection = useCallback((itemName: string) => {
-      const baseName = BASE_EQUIPMENT_NAMES.find(base => itemName.includes(base));
-      if (baseName && !playStats.collectedEquipment.has(baseName)) {
-          setPlayStats(prev => {
-              const newSet = new Set(prev.collectedEquipment);
-              newSet.add(baseName);
-              return { ...prev, collectedEquipment: newSet };
-          });
-      }
-  }, [playStats.collectedEquipment]);
+  const trackEquipmentCollection = useCallback((item: Equipment) => {
+      setPlayStats(prev => {
+          if (prev.collectedEquipment.has(item.masterId)) {
+              return prev;
+          }
+          const newSet = new Set(prev.collectedEquipment);
+          newSet.add(item.masterId);
+          return { ...prev, collectedEquipment: newSet };
+      });
+  }, []);
     
   const handleBuyItem = useCallback((itemToBuy: Equipment) => {
     if (player.gold >= itemToBuy.price) {
@@ -258,9 +257,9 @@ export const useGameLogic = () => {
         };
       });
       addLog(`「${itemToBuy.name}」を購入して装備した。`);
-      trackEquipmentCollection(itemToBuy.name);
+      trackEquipmentCollection(itemToBuy);
     }
-  }, [player.gold, player.equipment, player.inventory, addLog, trackEquipmentCollection]);
+  }, [player.gold, addLog, trackEquipmentCollection]);
 
   const handleStatAllocation = (allocatedStats: Record<AllocatableStat, number>) => {
     setPlayer(p => {
@@ -456,7 +455,7 @@ export const useGameLogic = () => {
                           } else {
                               const areaIndex = Math.floor(stageIndex / 10);
                               const droppedItem = generateRandomEquipment(areaIndex);
-                              trackEquipmentCollection(droppedItem.name);
+                              trackEquipmentCollection(droppedItem);
                               playerUpdate.inventory.push(droppedItem);
                               addLog(`✨ ${droppedItem.name}を見つけて持ち物に追加した！`);
                           }
@@ -638,7 +637,7 @@ export const useGameLogic = () => {
         const currentlyEquipped = p.equipment[itemToEquip.type];
 
         // Find and remove item from inventory
-        const itemIndex = newInventory.findIndex(invItem => invItem.id === itemToEquip.id);
+        const itemIndex = newInventory.findIndex(invItem => invItem.instanceId === itemToEquip.instanceId);
         if (itemIndex > -1) {
             newInventory.splice(itemIndex, 1);
         }

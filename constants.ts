@@ -42,12 +42,6 @@ export const INITIAL_PLAY_STATS: PlayStats = {
   },
 };
 
-export const BASE_EQUIPMENT_NAMES = [
-    'ブレード', 'ソード', 'アックス', 'スピア',
-    'ガード', 'メイル', 'プレート', 'ヘルム',
-    'トーテム', 'リング', 'アミュレット', 'チャーム'
-];
-
 export const GAME_SPEED = 10;
 export const ATTACK_RANGE = 25; // in pixels
 export const STAGE_LENGTH = 10; // in meters

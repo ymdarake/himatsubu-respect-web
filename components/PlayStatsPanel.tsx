@@ -1,6 +1,7 @@
 import React from 'react';
 import { PlayStats, Player, AllocatableStat } from '../types';
-import { BASE_EQUIPMENT_NAMES, GEM_COLORS } from '../constants';
+import { GEM_COLORS } from '../constants';
+import { EQUIPMENT_MASTER_DATA } from '../data/equipmentMaster';
 
 interface PlayStatsPanelProps {
   playStats: PlayStats;
@@ -32,7 +33,7 @@ const PlayStatsPanel: React.FC<PlayStatsPanelProps> = ({ playStats, player }) =>
                 <div className="flex justify-between"><span>総移動距離</span><span className="font-bold">{Math.floor(playStats.totalDistanceTraveled)}m</span></div>
                 <div className="flex justify-between"><span>総獲得XP</span><span className="font-bold">{playStats.totalXpGained} XP</span></div>
                 <div className="flex justify-between"><span>次のレベルまで</span><span className="font-bold">{player.xpToNextLevel - player.xp} XP</span></div>
-                <div className="flex justify-between"><span>装備収集率</span><span className="font-bold">{((playStats.collectedEquipment.size / BASE_EQUIPMENT_NAMES.length) * 100).toFixed(1)}%</span></div>
+                <div className="flex justify-between"><span>装備収集率</span><span className="font-bold">{((playStats.collectedEquipment.size / EQUIPMENT_MASTER_DATA.length) * 100).toFixed(1)}%</span></div>
                 <div className="flex justify-between"><span>所持ゴールド</span><span className="font-bold text-yellow-400">{player.gold} G</span></div>
                 <div className="pt-2 mt-2 border-t border-gray-700">
                     <span className="text-xs text-gray-400">ジェム</span>

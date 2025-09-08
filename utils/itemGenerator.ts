@@ -1,105 +1,94 @@
-import { Equipment, ShopType, EquipmentType, Element } from '../types';
-import { ELEMENTAL_PREFIXES } from '../constants';
+import { Equipment, ShopType, EquipmentMaster } from '../types';
+import { EQUIPMENT_MASTER_DATA } from '../data/equipmentMaster';
+import { equipmentFactory } from './equipmentFactory';
+
+
+// Define which items are available in which area tier
+const ITEM_POOL_BY_AREA_TIER: Record<number, { masterId: string }[]> = {
+    0: [
+        { masterId: 'wpn_short_sword' },
+        { masterId: 'arm_leather_vest' },
+        { masterId: 'acc_speed_ring' },
+    ],
+    1: [
+        { masterId: 'wpn_short_sword' },
+        { masterId: 'wpn_fire_rod' },
+        { masterId: 'arm_iron_plate' },
+        { masterId: 'acc_speed_ring' },
+    ],
+    2: [
+        { masterId: 'wpn_long_sword' },
+        { masterId: 'wpn_fire_rod' },
+        { masterId: 'arm_iron_plate' },
+        { masterId: 'acc_power_glove' },
+    ],
+    3: [
+        { masterId: 'wpn_long_sword' },
+        { masterId: 'wpn_ice_brand' },
+        { masterId: 'arm_steel_armor' },
+        { masterId: 'acc_power_glove' },
+    ],
+};
+
+
+const getAvailableItemsForArea = (areaIndex: number, type: ShopType | 'any'): EquipmentMaster[] => {
+    const tier = Math.min(areaIndex, Object.keys(ITEM_POOL_BY_AREA_TIER).length - 1);
+    const pool = ITEM_POOL_BY_AREA_TIER[tier] || ITEM_POOL_BY_AREA_TIER[0];
+    
+    let equipmentTypeFilter: string = '';
+    if (type === 'weapon_shop') equipmentTypeFilter = 'weapon';
+    if (type === 'armor_shop') equipmentTypeFilter = 'armor';
+    if (type === 'accessory_shop') equipmentTypeFilter = 'accessory';
+    
+    const masterItems = pool
+        .map(item => EQUIPMENT_MASTER_DATA.find(master => master.masterId === item.masterId))
+        .filter((item): item is EquipmentMaster => !!item);
+
+    if (equipmentTypeFilter) {
+        return masterItems.filter(item => item.type === equipmentTypeFilter);
+    }
+    return masterItems;
+};
 
 export const generateRandomEquipment = (areaIndex: number): Equipment => {
-    const tier = areaIndex;
-    const prefixes = ["頑丈な", "上等な", "見事な", "きらめく", "古代の"];
-    const prefix = prefixes[Math.min(tier, prefixes.length - 1)];
-
-    const shopTypes: ShopType[] = ['weapon_shop', 'armor_shop', 'accessory_shop'];
-    const shopType = shopTypes[Math.floor(Math.random() * shopTypes.length)];
-    
-    let name = "";
-    let stats: Equipment['stats'] = {};
-    let type: EquipmentType = 'weapon';
-    const elementalDamages: Partial<Record<Element, number>> = {};
-    let elementalPrefix = '';
-    
-    const qualityMultiplier = 1 + (Math.random() * 0.4 - 0.1); // -10% to +30% quality variation
-
-    if (shopType === 'weapon_shop') {
-      type = 'weapon';
-      stats.physicalAttack = Math.ceil((5 + tier * 4) * qualityMultiplier);
-      if (Math.random() < 0.8) {
-          let elements: Element[] = ['火', '水', '風', '土', '光', '闇'];
-          const numElements = 1 + (tier > 1 && Math.random() < 0.2 ? 1 : 0); // Chance for 2nd element
-          for (let i = 0; i < numElements && elements.length > 0; i++) {
-              const randomElement = elements.splice(Math.floor(Math.random() * elements.length), 1)[0];
-              elementalDamages[randomElement] = Math.ceil((8 + tier * 3) * qualityMultiplier * (numElements > 1 ? 0.7 : 1));
-          }
-      }
-      const elementsInWeapon = Object.keys(elementalDamages) as Element[];
-      if (elementsInWeapon.length > 0) {
-          elementalPrefix = ELEMENTAL_PREFIXES[elementsInWeapon[0]] + '・';
-      }
-      name = `${prefix}${elementalPrefix}ブレード`;
-    } else if (shopType === 'armor_shop') {
-      type = 'armor';
-      name = `${prefix}ガード`;
-      stats.physicalDefense = Math.ceil((3 + tier * 2) * qualityMultiplier);
-      stats.maxHp = Math.ceil((10 + tier * 5) * qualityMultiplier);
-    } else { // accessory_shop
-      type = 'accessory';
-      name = `${prefix}トーテム`;
-      stats.speed = Math.ceil((2 + tier * 1) * qualityMultiplier);
-      stats.luckValue = Math.ceil((2 + tier * 1) * qualityMultiplier);
+    const availableItems = getAvailableItemsForArea(areaIndex, 'any');
+    if (availableItems.length === 0) {
+        return equipmentFactory('wpn_short_sword', 0)!;
     }
+    const randomMasterItem = availableItems[Math.floor(Math.random() * availableItems.length)];
     
-    const elementalPowerSum = Object.values(elementalDamages).reduce((a, b) => a + (b || 0), 0);
-    const price = Math.floor((Object.values(stats).reduce((a, b) => a + (b || 0), 0) + elementalPowerSum) * 8);
+    // Level can be +/- 1 from the area index
+    const level = Math.max(0, areaIndex + Math.floor(Math.random() * 3) - 1);
 
-    return { id: `drop-${Date.now()}`, name, type, stats, price, elementalDamages };
+    const newItem = equipmentFactory(randomMasterItem.masterId, level);
+    
+    // Fallback in case factory fails
+    return newItem || equipmentFactory('wpn_short_sword', 0)!;
 };
 
 export const generateShopItems = (shopType: ShopType, areaIndex: number): Equipment[] => {
     const items: Equipment[] = [];
-    const tier = areaIndex;
-    const prefixes = ["頑丈な", "上等な", "見事な", "きらめく", "古代の"];
-    const prefix = prefixes[Math.min(tier, prefixes.length - 1)];
+    const availableMasterItems = getAvailableItemsForArea(areaIndex, shopType);
 
-    for (let i = 0; i < 3; i++) {
-      const qualityMultiplier = 1 + (i * 0.3);
-      let name = "";
-      let stats: Equipment['stats'] = {};
-      let type: EquipmentType = 'weapon';
-      const elementalDamages: Partial<Record<Element, number>> = {};
-      let elementalPrefix = '';
-
-      if (shopType === 'weapon_shop') {
-        type = 'weapon';
-        stats.physicalAttack = Math.ceil((5 + tier * 4) * qualityMultiplier);
-        if (Math.random() < 0.8) {
-            let elements: Element[] = ['火', '水', '風', '土', '光', '闇'];
-            const numElements = 1 + (tier > 1 && Math.random() < 0.2 ? 1 : 0);
-            for (let j = 0; j < numElements && elements.length > 0; j++) {
-                const randomElement = elements.splice(Math.floor(Math.random() * elements.length), 1)[0];
-                elementalDamages[randomElement] = Math.ceil((8 + tier * 3) * qualityMultiplier * (numElements > 1 ? 0.7 : 1));
-            }
+    // Ensure we have some items to show, even if the pool is small for the type
+    const itemsToGenerate = availableMasterItems.length > 0 ? availableMasterItems.slice(0, 3) : [];
+    
+    for (const masterItem of itemsToGenerate) {
+        // Generate items with slightly varying levels for the shop
+        const baseLevel = areaIndex;
+        const level = Math.max(0, baseLevel + Math.floor(Math.random() * 3) - 1);
+        const newItem = equipmentFactory(masterItem.masterId, level);
+        if (newItem) {
+            items.push(newItem);
         }
-        const elementsInWeapon = Object.keys(elementalDamages) as Element[];
-        if (elementsInWeapon.length > 0) {
-            elementalPrefix = ELEMENTAL_PREFIXES[elementsInWeapon[0]] + '・';
-        }
-        name = `${prefix}${elementalPrefix}ソード`;
-      } else if (shopType === 'armor_shop') {
-        type = 'armor';
-        name = `${prefix}メイル`;
-        stats.physicalDefense = Math.ceil((3 + tier * 2) * qualityMultiplier);
-        stats.maxHp = Math.ceil((10 + tier * 5) * qualityMultiplier);
-      } else { // accessory_shop
-        type = 'accessory';
-        name = `${prefix}リング`;
-        stats.speed = Math.ceil((2 + tier * 1) * qualityMultiplier);
-        stats.luckValue = Math.ceil((2 + tier * 1) * qualityMultiplier);
-      }
-      
-      if (i === 1) name = name.replace("ソード", "アックス").replace("メイル", "プレート").replace("リング", "アミュレット");
-      if (i === 2) name = name.replace("ソード", "スピア").replace("メイル", "ヘルム").replace("リング", "チャーム");
-
-      const elementalPowerSum = Object.values(elementalDamages).reduce((a, b) => a + (b || 0), 0);
-      const price = Math.floor((Object.values(stats).reduce((a, b) => a + (b || 0), 0) + elementalPowerSum) * 8 * (1 + tier * 0.5));
-
-      items.push({ id: `${shopType}-${tier}-${i}`, name, type, stats, price, elementalDamages });
     }
+    
+    // If shop is empty, add a default item to ensure it's not blank
+    if (items.length === 0) {
+        const defaultMasterId = shopType === 'weapon_shop' ? 'wpn_short_sword' : shopType === 'armor_shop' ? 'arm_leather_vest' : 'acc_speed_ring';
+        const fallbackItem = equipmentFactory(defaultMasterId, areaIndex);
+        if (fallbackItem) items.push(fallbackItem);
+    }
+
     return items;
 };

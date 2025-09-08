@@ -72,7 +72,7 @@ const EquipmentChangeModal: React.FC<EquipmentChangeModalProps> = ({ player, onE
             <div className="flex-grow bg-gray-900 p-4 rounded-lg border border-gray-700 overflow-y-auto space-y-3">
               {player.inventory.length > 0 ? (
                 player.inventory.map(item => (
-                  <div key={item.id} className="bg-black bg-opacity-40 p-3 rounded flex justify-between items-center">
+                  <div key={item.instanceId} className="bg-black bg-opacity-40 p-3 rounded flex justify-between items-center">
                     <div>
                       <p className="font-bold text-lg">{item.name} <span className="text-xs text-gray-400">({typeNames[item.type]})</span></p>
                       <StatDisplay item={item} />

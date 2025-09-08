@@ -41,11 +41,6 @@ const StatDisplay: React.FC<{ item: Equipment }> = ({ item }) => (
 
 
 const Shop: React.FC<ShopProps> = ({ shopData, player, onBuy, onClose, onEquip, onUnequip }) => {
-  const allOwnedItemIds = new Set([
-      ...Object.values(player.equipment).filter(Boolean).map(e => e!.id),
-      ...player.inventory.map(i => i.id)
-  ]);
-
   return (
     <div className="absolute inset-0 bg-black bg-opacity-80 flex items-center justify-center z-30 p-4 font-mono">
       <div className="w-full max-w-5xl h-[90vh] bg-yellow-900 border-4 border-yellow-700 rounded-lg p-6 text-white shadow-lg flex flex-col">
@@ -59,7 +54,7 @@ const Shop: React.FC<ShopProps> = ({ shopData, player, onBuy, onClose, onEquip, 
             <h3 className="text-xl font-bold text-center">商品</h3>
             <div className="flex-grow bg-black bg-opacity-30 p-4 rounded-lg border border-yellow-800 overflow-y-auto space-y-3">
               {shopData.items.map(item => (
-                 <div key={item.id} className="grid grid-cols-3 gap-4 items-center bg-black bg-opacity-40 p-3 rounded">
+                 <div key={item.instanceId} className="grid grid-cols-3 gap-4 items-center bg-black bg-opacity-40 p-3 rounded">
                     <div className="col-span-1">
                       <p className="font-bold text-lg">{item.name}</p>
                       <p className="text-yellow-400 text-xl">{item.price} G</p>
@@ -68,9 +63,6 @@ const Shop: React.FC<ShopProps> = ({ shopData, player, onBuy, onClose, onEquip, 
                         <StatDisplay item={item} />
                     </div>
                     <div className="col-span-1 text-right">
-                      {allOwnedItemIds.has(item.id) ? (
-                        <span className="px-4 py-2 bg-gray-700 text-gray-400 font-bold rounded">購入済み</span>
-                      ) : (
                         <button
                           onClick={() => onBuy(item)}
                           disabled={player.gold < item.price}
@@ -78,7 +70,6 @@ const Shop: React.FC<ShopProps> = ({ shopData, player, onBuy, onClose, onEquip, 
                         >
                           買う
                         </button>
-                      )}
                     </div>
                  </div>
               ))}
@@ -114,7 +105,7 @@ const Shop: React.FC<ShopProps> = ({ shopData, player, onBuy, onClose, onEquip, 
                 <div className="flex-grow bg-black bg-opacity-30 p-4 rounded-lg border border-yellow-800 overflow-y-auto space-y-3">
                   {player.inventory.length > 0 ? (
                     player.inventory.map(item => (
-                      <div key={item.id} className="bg-black bg-opacity-40 p-3 rounded flex justify-between items-center">
+                      <div key={item.instanceId} className="bg-black bg-opacity-40 p-3 rounded flex justify-between items-center">
                         <div>
                           <p className="font-bold text-base">{item.name} <span className="text-xs text-gray-400">({typeNames[item.type]})</span></p>
                           <StatDisplay item={item} />
