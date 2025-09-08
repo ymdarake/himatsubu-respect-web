@@ -14,6 +14,7 @@ import EnemyStatusPanel from './components/EnemyStatusPanel';
 import PlayStatsPanel from './components/PlayStatsPanel';
 import DamageTextComponent from './components/DamageText';
 import EquipmentChangeModal from './components/EquipmentChangeModal';
+import TouchControls from './components/TouchControls';
 
 const baseStatNames: Record<AllocatableStat, string> = {
   strength: '腕力',
@@ -54,10 +55,13 @@ const App: React.FC = () => {
     handleUnequipItem,
     onCloseEquipmentChange,
     toggleStatAllocationLock,
+    handlePointerDown,
+    handlePointerUp,
+    handleActionPress,
   } = useGameLogic();
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen font-mono text-white p-4 overflow-hidden bg-gray-900">
+    <div className="flex flex-col items-center justify-center min-h-screen font-mono text-white p-2 sm:p-4 overflow-hidden bg-gray-900">
       <style>{`
         @keyframes gold-drop {
             0% { transform: translateY(0) scale(0.8); opacity: 1; }
@@ -65,12 +69,12 @@ const App: React.FC = () => {
         }
         .animate-gold-drop { animation: gold-drop 1s ease-out forwards; }
       `}</style>
-      <div className="w-full max-w-5xl border-4 border-gray-700 bg-gray-800 rounded-lg shadow-2xl p-4 relative flex flex-col">
-        <div ref={gameViewRef} className="relative w-full h-80 rounded overflow-hidden">
+      <div className="w-full max-w-5xl border-4 border-gray-700 bg-gray-800 rounded-lg shadow-2xl p-2 sm:p-4 relative flex flex-col">
+        <div ref={gameViewRef} className="relative w-full h-64 sm:h-80 rounded overflow-hidden">
           
           {gameState !== GameState.START && (
             <>
-              <div className="absolute top-4 left-4 z-10 w-64">
+              <div className="absolute top-4 left-4 z-10 w-48 sm:w-64">
                 <div className="flex justify-between text-xs mb-1 text-white" style={{textShadow: '1px 1px 2px black'}}>
                     <span>HP</span>
                     <span>{player.currentHp} / {calculatedStats.maxHp}</span>
@@ -78,8 +82,8 @@ const App: React.FC = () => {
                 <HealthBar current={player.currentHp} max={calculatedStats.maxHp} />
               </div>
 
-              <div className="absolute top-4 right-4 z-10 p-3 bg-black bg-opacity-60 rounded-lg border-2 border-gray-600">
-                  <p className="text-3xl font-bold">{totalDistance}m</p>
+              <div className="absolute top-4 right-4 z-10 p-2 sm:p-3 bg-black bg-opacity-60 rounded-lg border-2 border-gray-600">
+                  <p className="text-xl sm:text-3xl font-bold">{totalDistance}m</p>
               </div>
             </>
           )}
@@ -119,30 +123,38 @@ const App: React.FC = () => {
 
            {shopPrompt && gameState === GameState.PLAYING && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20">
-              <p className="text-white text-lg font-bold animate-pulse p-3 bg-gray-800 rounded-lg border-2 border-yellow-400 shadow-lg">スペースキーでお店に入る</p>
+              <p className="text-white text-sm sm:text-lg font-bold animate-pulse p-2 sm:p-3 bg-gray-800 rounded-lg border-2 border-yellow-400 shadow-lg">スペースキーまたはアクションボタンでお店に入る</p>
             </div>
           )}
           {housePrompt && gameState === GameState.PLAYING && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20">
-                <p className="text-white text-lg font-bold animate-pulse p-3 bg-gray-800 rounded-lg border-2 border-green-400 shadow-lg">スペースキーで家に入る</p>
+                <p className="text-white text-sm sm:text-lg font-bold animate-pulse p-2 sm:p-3 bg-gray-800 rounded-lg border-2 border-green-400 shadow-lg">スペースキーまたはアクションボタンで家に入る</p>
             </div>
           )}
             
            {gameState === GameState.START && (
-             <div className="absolute inset-0 bg-black bg-opacity-70 flex flex-col items-center justify-center z-20">
-               <h1 className="text-5xl font-bold text-white mb-2">サイドスクロールクエスト</h1>
+             <div className="absolute inset-0 bg-black bg-opacity-70 flex flex-col items-center justify-center z-20 p-4 text-center">
+               <h1 className="text-3xl sm:text-5xl font-bold text-white mb-2">サイドスクロールクエスト</h1>
                <p className="text-yellow-300 mb-2">どこまで進めるかな！</p>
-                <p className="text-white mb-8 text-lg"><kbd className="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">◀</kbd> や <kbd className="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">▶</kbd> を押して移動</p>
-               <button onClick={startGame} className="px-8 py-4 bg-green-500 text-white font-bold rounded hover:bg-green-600 transition-transform transform hover:scale-105 animate-bounce">
+                <p className="text-white mb-8 text-base sm:text-lg"><kbd className="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">◀</kbd> や <kbd className="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">▶</kbd> を押して移動</p>
+               <button onClick={startGame} className="px-6 py-3 sm:px-8 sm:py-4 bg-green-500 text-white font-bold rounded hover:bg-green-600 transition-transform transform hover:scale-105 animate-bounce">
                  ゲームスタート
                </button>
              </div>
+          )}
+          {gameState === GameState.PLAYING && (
+              <TouchControls 
+                onPointerDown={handlePointerDown} 
+                onPointerUp={handlePointerUp}
+                onAction={handleActionPress}
+                actionVisible={shopPrompt || housePrompt}
+              />
           )}
         </div>
         
         {gameState !== GameState.START && (
           <div className="mt-4 flex flex-col gap-4">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                 {/* Base Stats Panel */}
                 <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 h-full flex flex-col">
                     <div className="text-center mb-2 border-b border-gray-700 pb-1">
@@ -198,7 +210,7 @@ const App: React.FC = () => {
                 )}
             </div>
             {/* Log Panel */}
-            <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 h-40 overflow-y-auto">
+            <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 h-24 sm:h-40 overflow-y-auto">
                  <div className="space-y-1 text-xs">
                     {log.map((message, index) => (
                         <p key={index} className="text-gray-300">{message}</p>

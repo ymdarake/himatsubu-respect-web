@@ -159,6 +159,19 @@ export const useGameLogic = () => {
       setGameState(GameState.PLAYING);
   }, []);
 
+  const triggerAction = useCallback(() => {
+    if (shopTarget.current) {
+        const shopType = shopTarget.current.type as ShopType;
+        const areaIndex = Math.floor(stageIndex / 10);
+        const items = generateShopItems(shopType, areaIndex);
+        setShopData({ type: shopType, items });
+        setGameState(GameState.SHOPPING);
+        setShopPrompt(false);
+    } else if (houseTarget.current) {
+        enterHouse();
+    }
+  }, [stageIndex, enterHouse]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -174,18 +187,8 @@ export const useGameLogic = () => {
         if (e.key === 'ArrowRight') rightArrowPressed.current = true;
         if (e.key === 'ArrowLeft') leftArrowPressed.current = true;
         if (e.code === 'Space') {
-            if (shopTarget.current) {
-                e.preventDefault();
-                const shopType = shopTarget.current.type as ShopType;
-                const areaIndex = Math.floor(stageIndex / 10);
-                const items = generateShopItems(shopType, areaIndex);
-                setShopData({ type: shopType, items });
-                setGameState(GameState.SHOPPING);
-                setShopPrompt(false);
-            } else if (houseTarget.current) {
-                e.preventDefault();
-                enterHouse();
-            }
+            e.preventDefault();
+            triggerAction();
         }
       }
     };
@@ -201,7 +204,7 @@ export const useGameLogic = () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [gameState, stageIndex, enterHouse, onCloseEquipmentChange]);
+  }, [gameState, triggerAction, onCloseEquipmentChange]);
   
   useEffect(() => {
     if (gameViewRef.current) {
@@ -769,6 +772,21 @@ export const useGameLogic = () => {
           return { ...p, equipment: newEquipment, inventory: newInventory };
       });
   };
+  
+  const handlePointerDown = (direction: 'left' | 'right') => {
+    if (direction === 'left') leftArrowPressed.current = true;
+    if (direction === 'right') rightArrowPressed.current = true;
+  };
+
+  const handlePointerUp = () => {
+    leftArrowPressed.current = false;
+    rightArrowPressed.current = false;
+  };
+  
+  const handleActionPress = () => {
+    triggerAction();
+  };
+
 
   return {
     gameState,
@@ -800,5 +818,8 @@ export const useGameLogic = () => {
     handleUnequipItem,
     onCloseEquipmentChange,
     toggleStatAllocationLock,
+    handlePointerDown,
+    handlePointerUp,
+    handleActionPress,
   };
 };
