@@ -91,7 +91,7 @@ const App: React.FC = () => {
                 : <ShopStructure key={`${structure.id}-${structure.type}`} structure={structure} />
             ))}
             {enemies.map(enemy => (
-                <EnemyComponent key={enemy.id} enemy={enemy} isHit={enemyHits[enemy.id] || false} />
+                <EnemyComponent key={enemy.id} enemy={enemy} isHit={enemyHits[enemy.id] || false} playerX={player.x} />
             ))}
             {goldDrops.map(drop => (
               <div key={drop.id} className="absolute text-yellow-400 font-bold animate-gold-drop text-lg" style={{ left: `${drop.x}px`, bottom: '60px', zIndex: 25 }}>

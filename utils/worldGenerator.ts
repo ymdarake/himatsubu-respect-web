@@ -63,43 +63,63 @@ export const spawnEnemiesForStage = (
 
     const numberOfEnemies = 2 + Math.floor(Math.random() * 3); // 2-4 enemies per stage
 
+    const MIN_ENEMY_SEPARATION = 100; // An enemy is 80px wide, so this leaves a small gap
+    const MAX_SPAWN_ATTEMPTS = 10;
+    const spawnPadding = 150;
+    const spawnableWidth = stageEndX - stageStartX - (spawnPadding * 2);
+
     for(let i = 0; i < numberOfEnemies; i++) {
-        const spawnPadding = 150;
-        const spawnableWidth = stageEndX - stageStartX - (spawnPadding * 2);
-        const spawnPosition = stageStartX + spawnPadding + Math.random() * spawnableWidth;
+        let spawnPosition = 0;
+        let positionIsSafe = false;
+        let attempts = 0;
 
-        const availableEnemyNames = currentArea.enemyTypes;
-        const randomEnemyName = availableEnemyNames[Math.floor(Math.random() * availableEnemyNames.length)];
-        const enemyData = ENEMY_DATA[randomEnemyName];
-        
-        const enemyLevel = 1 + stageIndex;
-        const { scaledBaseStats, derivedStats } = calculateEnemyStats(enemyData, enemyLevel);
+        while (!positionIsSafe && attempts < MAX_SPAWN_ATTEMPTS) {
+            spawnPosition = stageStartX + spawnPadding + Math.random() * spawnableWidth;
+            
+            positionIsSafe = true; // Assume safe
+            for (const existingEnemy of enemies) {
+                if (Math.abs(existingEnemy.x - spawnPosition) < MIN_ENEMY_SEPARATION) {
+                    positionIsSafe = false;
+                    break;
+                }
+            }
+            attempts++;
+        }
 
-        const newEnemy: Enemy = {
-            id: nextEnemyId.current++,
-            name: enemyData.name,
-            level: enemyLevel,
-            baseStats: scaledBaseStats,
-            maxHp: derivedStats.maxHp,
-            currentHp: derivedStats.maxHp,
-            physicalAttack: derivedStats.physicalAttack,
-            physicalDefense: derivedStats.physicalDefense,
-            magicalAttack: derivedStats.magicalAttack,
-            magicalDefense: derivedStats.magicalDefense,
-            speed: derivedStats.speed,
-            luckValue: derivedStats.luckValue,
-            element: enemyData.element,
-            x: spawnPosition,
-            attackState: 'idle',
-            attackStateTimer: 0,
-            color: enemyData.color,
-            shape: enemyData.shape,
-            xpValue: enemyData.xpValue,
-            goldValue: enemyData.goldValue,
-            attackPrepareTime: enemyData.attackPrepareTime,
-            attackAnimationTime: enemyData.attackAnimationTime,
-        };
-        enemies.push(newEnemy);
+        if (positionIsSafe) {
+            const availableEnemyNames = currentArea.enemyTypes;
+            const randomEnemyName = availableEnemyNames[Math.floor(Math.random() * availableEnemyNames.length)];
+            const enemyData = ENEMY_DATA[randomEnemyName];
+            
+            const enemyLevel = 1 + stageIndex;
+            const { scaledBaseStats, derivedStats } = calculateEnemyStats(enemyData, enemyLevel);
+
+            const newEnemy: Enemy = {
+                id: nextEnemyId.current++,
+                name: enemyData.name,
+                level: enemyLevel,
+                baseStats: scaledBaseStats,
+                maxHp: derivedStats.maxHp,
+                currentHp: derivedStats.maxHp,
+                physicalAttack: derivedStats.physicalAttack,
+                physicalDefense: derivedStats.physicalDefense,
+                magicalAttack: derivedStats.magicalAttack,
+                magicalDefense: derivedStats.magicalDefense,
+                speed: derivedStats.speed,
+                luckValue: derivedStats.luckValue,
+                element: enemyData.element,
+                x: spawnPosition,
+                attackState: 'idle',
+                attackStateTimer: 0,
+                color: enemyData.color,
+                shape: enemyData.shape,
+                xpValue: enemyData.xpValue,
+                goldValue: enemyData.goldValue,
+                attackPrepareTime: enemyData.attackPrepareTime,
+                attackAnimationTime: enemyData.attackAnimationTime,
+            };
+            enemies.push(newEnemy);
+        }
     }
     return enemies.sort((a,b) => a.x - b.x);
 };

@@ -5,16 +5,19 @@ import HealthBar from './HealthBar';
 interface EnemyProps {
   enemy: Enemy;
   isHit: boolean;
+  playerX: number;
 }
 
-const EnemyComponent: React.FC<EnemyProps> = ({ enemy, isHit }) => {
+const EnemyComponent: React.FC<EnemyProps> = ({ enemy, isHit, playerX }) => {
    const isPreparing = enemy.attackState === 'preparing';
    const isAttacking = enemy.attackState === 'attacking';
 
    const hitAnimationClass = isHit ? 'animate-hit-enemy' : '';
    const shapeClass = enemy.shape === 'circle' ? 'rounded-full' : 'rounded-lg';
    const preparingClass = isPreparing ? 'animate-prepare-attack' : '';
-   const attackingClass = isAttacking ? 'animate-attack-enemy' : '';
+   
+   const attackDirection = playerX < enemy.x ? 'left' : 'right';
+   const attackingClass = isAttacking ? `animate-attack-enemy-${attackDirection}` : '';
 
 
   return (
@@ -38,11 +41,17 @@ const EnemyComponent: React.FC<EnemyProps> = ({ enemy, isHit }) => {
         }
         .animate-prepare-attack { animation: prepare-attack ${enemy.attackPrepareTime / 1000}s ease-in-out infinite; }
 
-        @keyframes attack-enemy {
-            0%, 100% { transform: translateX(0) translateY(0); } /* Added translateY to override float */
+        @keyframes attack-enemy-left {
+            0%, 100% { transform: translateX(0) translateY(0); }
             50% { transform: translateX(-30px) translateY(0); }
         }
-        .animate-attack-enemy { animation: attack-enemy ${enemy.attackAnimationTime / 1000}s ease-in-out; }
+        .animate-attack-enemy-left { animation: attack-enemy-left ${enemy.attackAnimationTime / 1000}s ease-in-out; }
+
+        @keyframes attack-enemy-right {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            50% { transform: translateX(30px) translateY(0); }
+        }
+        .animate-attack-enemy-right { animation: attack-enemy-right ${enemy.attackAnimationTime / 1000}s ease-in-out; }
       `}</style>
       
       {enemy.currentHp < enemy.maxHp && (
