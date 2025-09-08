@@ -4,7 +4,7 @@ import { AREAS, INITIAL_PLAYER, GAME_SPEED, ATTACK_RANGE, STAGE_LENGTH, XP_FOR_N
 import { playSound, resumeAudioContext, playBGM, stopBGM } from '../utils/audio';
 import { calculateDerivedStats } from '../utils/statCalculations';
 import { generateRandomEquipment, generateShopItems } from '../utils/itemGenerator';
-import { spawnStructure as utilSpawnStructure, spawnScenery as utilSpawnScenery, spawnEnemy as utilSpawnEnemy } from '../utils/worldGenerator';
+import { spawnStructuresForStage, spawnSceneryForStage, spawnEnemiesForStage } from '../utils/worldGenerator';
 
 const baseStatNames: Record<AllocatableStat, string> = {
   strength: '腕力',
@@ -33,7 +33,6 @@ export const useGameLogic = () => {
   const [damageInstances, setDamageInstances] = useState<DamageInstance[]>([]);
 
   const nextEnemyId = useRef(0);
-  const lastSpawnPosition = useRef(0);
   const rightArrowPressed = useRef(false);
   const leftArrowPressed = useRef(false);
   const gameViewRef = useRef<HTMLDivElement>(null);
@@ -41,7 +40,6 @@ export const useGameLogic = () => {
   const justHealed = useRef(false);
   const shopTarget = useRef<Structure | null>(null);
   const nextSceneryId = useRef(0);
-  const lastScenerySpawnX = useRef(0);
   const nextGoldDropId = useRef(0);
   const nextDamageInstanceId = useRef(0);
   const playerAttackReady = useRef(true);
@@ -57,13 +55,23 @@ export const useGameLogic = () => {
   const currentAreaIndex = Math.floor(stageIndex / 10);
   const currentArea = AREAS[Math.min(currentAreaIndex, AREAS.length - 1)];
 
-  const spawnScenery = useCallback((fromX: number, toX: number) => {
-    return utilSpawnScenery(fromX, toX, currentArea.name, nextSceneryId);
-  }, [currentArea.name]);
-
-  const spawnStructure = useCallback((targetStageIndex: number) => {
-    return utilSpawnStructure(targetStageIndex);
+  const loadStage = useCallback((index: number) => {
+      if (index === 0) {
+          nextEnemyId.current = 0;
+          nextSceneryId.current = 0;
+      }
+      setEnemies(spawnEnemiesForStage(index, nextEnemyId));
+      setScenery(spawnSceneryForStage(index, nextSceneryId));
+      setStructures(spawnStructuresForStage(index));
+      setEngagedEnemyId(null);
   }, []);
+
+  useEffect(() => {
+    // This hook now only triggers when the stageIndex changes, preventing reloads on gameState changes (like exiting a shop).
+    if (gameState === GameState.PLAYING) {
+      loadStage(stageIndex);
+    }
+  }, [stageIndex, loadStage]);
 
   const startGame = useCallback(() => {
     resumeAudioContext().then(() => {
@@ -75,30 +83,14 @@ export const useGameLogic = () => {
         };
         setLog([]);
         setPlayer(initialPlayerState);
-        setEnemies([]);
         setPlayStats({ ...INITIAL_PLAY_STATS, startTime: Date.now(), collectedEquipment: new Set() });
-        const initialScenery = spawnScenery(0, 2000);
-        setScenery(initialScenery);
-        setStructures([spawnStructure(1)].filter(Boolean) as Structure[]);
         setDistance(0);
-        setStageIndex(0);
-        nextEnemyId.current = 0;
-        nextSceneryId.current = initialScenery.length;
-        lastSpawnPosition.current = INITIAL_PLAYER.x;
-        lastScenerySpawnX.current = 2000;
         justHealed.current = false;
+        
+        // Setting stageIndex and gameState will trigger the useEffect to load the stage
+        setStageIndex(0);
         setGameState(GameState.PLAYING);
     });
-  }, [spawnStructure, spawnScenery]);
-
-  const spawnEnemy = useCallback((playerPositionX: number, currentStageIndex: number, viewWidth: number) => {
-    return utilSpawnEnemy(
-      playerPositionX,
-      currentStageIndex,
-      viewWidth,
-      lastSpawnPosition.current,
-      nextEnemyId
-    );
   }, []);
   
   useEffect(() => {
@@ -187,25 +179,20 @@ export const useGameLogic = () => {
                     currentHp: calculateDerivedStats(preservedPlayer).maxHp,
                 }
             });
-            setStageIndex(0);
             setDistance(0);
-            setEnemies([]);
-            const initialScenery = spawnScenery(0, 2000);
-            setScenery(initialScenery);
-            setStructures([spawnStructure(1)].filter(Boolean) as Structure[]);
-            lastSpawnPosition.current = INITIAL_PLAYER.x;
-            lastScenerySpawnX.current = 2000;
             justHealed.current = false;
             
             resumeAudioContext().then(() => {
                 playBGM();
+                // Setting stageIndex to 0 and gameState to PLAYING will trigger the loading useEffect.
+                setStageIndex(0);
                 setGameState(GameState.PLAYING);
             });
         }, 2000);
 
         return () => clearTimeout(timer);
     }
-  }, [gameState, spawnStructure, spawnScenery]);
+  }, [gameState]);
 
   const trackEquipmentCollection = useCallback((itemName: string) => {
       const baseName = BASE_EQUIPMENT_NAMES.find(base => itemName.includes(base));
@@ -255,12 +242,11 @@ export const useGameLogic = () => {
   const gameLoop = useCallback(() => {
     if (gameState !== GameState.PLAYING) return;
     
+    let newEnemies = [...enemies]; // Create a mutable copy for this frame
+    
     setPlayer(prevPlayer => {
       let playerUpdate = { ...prevPlayer };
       const currentCalculatedStats = calculatedStats;
-      let newEnemies = [...enemies];
-      let structuresUpdate = [...structures];
-      let newScenery = [...scenery];
       let totalPlayerDamageThisFrame = 0;
       const now = Date.now();
 
@@ -276,30 +262,45 @@ export const useGameLogic = () => {
       
       const shopToVisit = structures.find(s => s.type.includes('_shop') && Math.abs(s.x - playerUpdate.x) < SHOP_RANGE);
       shopTarget.current = shopToVisit || null;
-      if (shopTarget.current) {
-        if (!shopPrompt) setShopPrompt(true);
-      } else {
-        if (shopPrompt) setShopPrompt(false);
-      }
+      setShopPrompt(!!shopTarget.current);
 
       const activeEnemies = newEnemies.filter(e => e.currentHp > 0);
-      let currentEngagedEnemy = activeEnemies.find(e => e.id === engagedEnemyId);
+      let newEngagedEnemyId = engagedEnemyId;
 
-      if (currentEngagedEnemy && Math.abs(currentEngagedEnemy.x - playerUpdate.x) > gameViewWidth) {
-        setEngagedEnemyId(null);
-        currentEngagedEnemy = undefined;
-      }
-
-      if (!currentEngagedEnemy) {
-        const closestEnemyInFront = activeEnemies
-            .filter(e => e.x > playerUpdate.x)
-            .sort((a,b) => a.x - b.x)[0];
+      if (activeEnemies.length > 0) {
+        const enemiesByDistance = activeEnemies
+          .map(enemy => ({ enemy, distance: Math.abs(enemy.x - playerUpdate.x) }))
+          .sort((a, b) => a.distance - b.distance);
         
-        if (closestEnemyInFront && closestEnemyInFront.x - playerUpdate.x < ATTACK_RANGE + 50) {
-            setEngagedEnemyId(closestEnemyInFront.id);
-            currentEngagedEnemy = closestEnemyInFront;
+        const closestEnemyData = enemiesByDistance[0];
+        const currentEngagedEnemyInLoop = activeEnemies.find(e => e.id === engagedEnemyId);
+
+        if (!currentEngagedEnemyInLoop) {
+          // If no enemy is engaged, target the closest one.
+          newEngagedEnemyId = closestEnemyData.enemy.id;
+        } else {
+          const currentEngagedDistance = Math.abs(currentEngagedEnemyInLoop.x - playerUpdate.x);
+          const SWITCH_TARGET_THRESHOLD = 50; // px
+
+          // Switch target if a new enemy is significantly closer.
+          if (
+            closestEnemyData.enemy.id !== currentEngagedEnemyInLoop.id &&
+            currentEngagedDistance > closestEnemyData.distance + SWITCH_TARGET_THRESHOLD
+          ) {
+            newEngagedEnemyId = closestEnemyData.enemy.id;
+          }
         }
+      } else {
+        // No enemies on screen, so no one to engage.
+        newEngagedEnemyId = null;
       }
+      
+      // Update state if the engaged enemy has changed.
+      if (newEngagedEnemyId !== engagedEnemyId) {
+        setEngagedEnemyId(newEngagedEnemyId);
+      }
+
+      const currentEngagedEnemy = activeEnemies.find(e => e.id === newEngagedEnemyId);
 
       let playerCooldown = 500;
       let engagedEnemyCooldown = 2000;
@@ -410,6 +411,7 @@ export const useGameLogic = () => {
               }
               return e;
           });
+          setEnemies(newEnemies.filter(e => e.currentHp > 0));
 
           if(!targetIsDefeated) {
               setEnemyHits(prev => ({...prev, [enemyToAttack.id]: true}));
@@ -451,7 +453,7 @@ export const useGameLogic = () => {
               enemy.attackState = 'idle';
           }
 
-          if (enemy.id === engagedEnemyId && enemy.attackState === 'idle' && Math.abs(enemy.x - playerUpdate.x) <= ATTACK_RANGE) {
+          if (enemy.id === engagedEnemyId && enemy.attackState === 'idle') {
               const lastAttackTime = enemyAttackTimers.current[enemy.id] || 0;
               if (now - lastAttackTime > engagedEnemyCooldown) {
                   enemy.attackState = 'preparing';
@@ -501,58 +503,30 @@ export const useGameLogic = () => {
       }
       
       const currentStagePixelLength = STAGE_LENGTH * PIXELS_PER_METER;
-      let newStageIndex = stageIndex;
-      const currentStageStartX = INITIAL_PLAYER.x + stageIndex * currentStagePixelLength;
+      
+      // Use local variables to track changes within this game tick to prevent display flickering.
+      let nextStageIndex = stageIndex;
+      const currentStageStartX = INITIAL_PLAYER.x + nextStageIndex * currentStagePixelLength;
       
       if (playerUpdate.x > currentStageStartX + currentStagePixelLength) {
-          newStageIndex = stageIndex + 1;
-          playerUpdate.x = INITIAL_PLAYER.x + newStageIndex * currentStagePixelLength;
-          newEnemies = [];
-          lastSpawnPosition.current = playerUpdate.x;
-      } else if (playerUpdate.x < currentStageStartX && stageIndex > 0) {
-          newStageIndex = stageIndex - 1;
-          playerUpdate.x = INITIAL_PLAYER.x + newStageIndex * currentStagePixelLength + currentStagePixelLength - 64;
-          newEnemies = [];
-          lastSpawnPosition.current = playerUpdate.x - gameViewWidth;
+          nextStageIndex++;
+          setStageIndex(nextStageIndex);
+          playerUpdate.x = INITIAL_PLAYER.x + nextStageIndex * currentStagePixelLength;
+      } else if (playerUpdate.x < currentStageStartX && nextStageIndex > 0) {
+          nextStageIndex--;
+          setStageIndex(nextStageIndex);
+          playerUpdate.x = INITIAL_PLAYER.x + nextStageIndex * currentStagePixelLength + currentStagePixelLength - 64;
       }
       
-      const totalPixelsInCurrentStage = Math.max(0, playerUpdate.x - (INITIAL_PLAYER.x + newStageIndex * currentStagePixelLength));
+      // Always calculate distance based on the new, correct stage index for this tick.
+      const totalPixelsInCurrentStage = Math.max(0, playerUpdate.x - (INITIAL_PLAYER.x + nextStageIndex * currentStagePixelLength));
       const distanceInStage = Math.min(STAGE_LENGTH, Math.floor(totalPixelsInCurrentStage / PIXELS_PER_METER));
-
-      if (newStageIndex !== stageIndex) {
-        setStageIndex(newStageIndex);
-        setEngagedEnemyId(null);
-        const newStructure = spawnStructure(newStageIndex);
-        if (newStructure) {
-          const areaIndex = Math.floor(newStageIndex / 10);
-          if (!structures.some(s => s.id === areaIndex && s.type === newStructure.type)) {
-            structuresUpdate.push(newStructure);
-          }
-        }
-      }
       setDistance(distanceInStage);
-      
-      if (dx > 0 && playerUpdate.x + gameViewWidth > lastScenerySpawnX.current) {
-        const newSceneryObjects = spawnScenery(lastScenerySpawnX.current, playerUpdate.x + gameViewWidth + 200);
-        newScenery.push(...newSceneryObjects);
-        lastScenerySpawnX.current = playerUpdate.x + gameViewWidth + 200;
-      }
 
-      if (dx > 0) {
-          const newEnemy = spawnEnemy(playerUpdate.x, newStageIndex, gameViewWidth);
-          if (newEnemy) { 
-            newEnemies.push(newEnemy);
-            lastSpawnPosition.current = newEnemy.x;
-          }
-      }
-      
-      setEnemies(newEnemies.filter(e => e.currentHp > 0 && Math.abs(e.x - playerUpdate.x) < gameViewWidth * 2));
-      setStructures(structuresUpdate);
-      setScenery(newScenery.filter(s => Math.abs(s.x - playerUpdate.x) < gameViewWidth * 2));
       return playerUpdate;
     });
 
-  }, [gameState, enemies, structures, scenery, spawnEnemy, stageIndex, gameViewWidth, addLog, calculatedStats, shopPrompt, engagedEnemyId, generateRandomEquipment, spawnScenery, trackEquipmentCollection]);
+  }, [gameState, enemies, structures, stageIndex, distance, addLog, calculatedStats, engagedEnemyId, trackEquipmentCollection]);
 
   useEffect(() => {
     if (gameState === GameState.PLAYING) {

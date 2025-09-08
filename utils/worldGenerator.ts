@@ -3,7 +3,7 @@ import { Structure, ShopType, SceneryObject, Enemy } from '../types';
 import { AREAS, ENEMY_DATA, INITIAL_PLAYER, PIXELS_PER_METER, SCENERY_CONFIG, SHOP_TYPES, STAGE_LENGTH } from '../constants';
 import { calculateEnemyStats } from './statCalculations';
 
-export const spawnStructure = (targetStageIndex: number): Structure | null => {
+const createStructureForStage = (targetStageIndex: number): Structure | null => {
     const stageStartX = INITIAL_PLAYER.x + (targetStageIndex * STAGE_LENGTH * PIXELS_PER_METER);
     const positionX = stageStartX + (STAGE_LENGTH * PIXELS_PER_METER / 2) + (Math.random() - 0.5) * 200;
     const areaIndex = Math.floor(targetStageIndex / 10);
@@ -20,11 +20,21 @@ export const spawnStructure = (targetStageIndex: number): Structure | null => {
     return null;
 };
 
-export const spawnScenery = (fromX: number, toX: number, currentAreaName: string, nextSceneryId: React.MutableRefObject<number>): SceneryObject[] => {
+export const spawnStructuresForStage = (targetStageIndex: number): Structure[] => {
+    const structure = createStructureForStage(targetStageIndex);
+    return structure ? [structure] : [];
+};
+
+export const spawnSceneryForStage = (stageIndex: number, nextSceneryId: React.MutableRefObject<number>): SceneryObject[] => {
+    const stageStartX = INITIAL_PLAYER.x + (stageIndex * STAGE_LENGTH * PIXELS_PER_METER);
+    const stageEndX = stageStartX + (STAGE_LENGTH * PIXELS_PER_METER);
+    const areaIndex = Math.floor(stageIndex / 10);
+    const currentAreaName = AREAS[Math.min(areaIndex, AREAS.length - 1)].name;
+
     const newScenery: SceneryObject[] = [];
     const sceneryTypes = SCENERY_CONFIG[currentAreaName] || [];
     
-    for (let x = fromX; x < toX; x += 50) { // Check every 50 pixels
+    for (let x = stageStartX; x < stageEndX; x += 50) { // Check every 50 pixels
         for (const type of sceneryTypes) {
             if (Math.random() < type.density / 10) { // Density is per 500px, so divide by 10
                 const variant = type.variants[Math.floor(Math.random() * type.variants.length)];
@@ -40,34 +50,29 @@ export const spawnScenery = (fromX: number, toX: number, currentAreaName: string
     return newScenery;
 };
 
-export const spawnEnemy = (
-    playerPositionX: number,
-    currentStageIndex: number,
-    viewWidth: number,
-    lastSpawnPosition: number,
+export const spawnEnemiesForStage = (
+    stageIndex: number,
     nextEnemyId: React.MutableRefObject<number>
-): Enemy | null => {
-    const spawnAheadDistance = viewWidth;
-    if (!viewWidth) return null;
+): Enemy[] => {
+    const enemies: Enemy[] = [];
+    const stageStartX = INITIAL_PLAYER.x + (stageIndex * STAGE_LENGTH * PIXELS_PER_METER);
+    const stageEndX = stageStartX + (STAGE_LENGTH * PIXELS_PER_METER);
 
-    const currentStagePixelLength = STAGE_LENGTH * PIXELS_PER_METER;
-    const currentStageEndX = INITIAL_PLAYER.x + (currentStageIndex * currentStagePixelLength) + currentStagePixelLength;
-    
-    const currentAreaIndex = Math.floor(currentStageIndex / 10);
+    const currentAreaIndex = Math.floor(stageIndex / 10);
     const currentArea = AREAS[Math.min(currentAreaIndex, AREAS.length - 1)];
 
-    if (playerPositionX + spawnAheadDistance > lastSpawnPosition) {
-        const spawnPosition = lastSpawnPosition + 250 + Math.random() * 200;
+    const numberOfEnemies = 2 + Math.floor(Math.random() * 3); // 2-4 enemies per stage
 
-        if (spawnPosition >= currentStageEndX - 80) {
-            return null;
-        }
+    for(let i = 0; i < numberOfEnemies; i++) {
+        const spawnPadding = 150;
+        const spawnableWidth = stageEndX - stageStartX - (spawnPadding * 2);
+        const spawnPosition = stageStartX + spawnPadding + Math.random() * spawnableWidth;
 
         const availableEnemyNames = currentArea.enemyTypes;
         const randomEnemyName = availableEnemyNames[Math.floor(Math.random() * availableEnemyNames.length)];
         const enemyData = ENEMY_DATA[randomEnemyName];
         
-        const enemyLevel = 1 + currentStageIndex;
+        const enemyLevel = 1 + stageIndex;
         const { scaledBaseStats, derivedStats } = calculateEnemyStats(enemyData, enemyLevel);
 
         const newEnemy: Enemy = {
@@ -94,7 +99,7 @@ export const spawnEnemy = (
             attackPrepareTime: enemyData.attackPrepareTime,
             attackAnimationTime: enemyData.attackAnimationTime,
         };
-        return newEnemy;
+        enemies.push(newEnemy);
     }
-    return null;
+    return enemies.sort((a,b) => a.x - b.x);
 };
