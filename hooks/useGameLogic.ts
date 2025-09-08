@@ -14,6 +14,39 @@ const baseStatNames: Record<AllocatableStat, string> = {
   luck: '幸運',
 };
 
+const addEquipmentToPlayer = (player: PlayerType, newItem: Equipment, trackEquipment: (item: Equipment) => void, logFn: (msg: string) => void): PlayerType => {
+    const allPlayerItems = [
+        ...player.inventory,
+        ...Object.values(player.equipment).filter((e): e is Equipment => e !== null)
+    ];
+
+    const existingVersions = allPlayerItems.filter(i => i.masterId === newItem.masterId);
+    const maxExistingLevel = existingVersions.reduce((max, item) => Math.max(max, item.level), -1);
+
+    if (newItem.level <= maxExistingLevel) {
+        logFn(`${newItem.name}はすでに同等以上のものを持っているため、処分した。`);
+        return player;
+    }
+    
+    trackEquipment(newItem);
+    const newPlayerState = { ...player };
+
+    newPlayerState.inventory = player.inventory.filter(i => i.masterId !== newItem.masterId);
+
+    const equippedSlot = (Object.keys(player.equipment) as Array<keyof typeof player.equipment>)
+        .find(slot => player.equipment[slot]?.masterId === newItem.masterId);
+    
+    if (equippedSlot) {
+        newPlayerState.equipment = { ...player.equipment, [equippedSlot]: newItem };
+        logFn(`✨ ${newItem.name}を入手し、古いものと交換して装備した！`);
+    } else {
+        newPlayerState.inventory.push(newItem);
+        logFn(`✨ ${newItem.name}を見つけて持ち物に追加した！`);
+    }
+    
+    return newPlayerState;
+};
+
 export const useGameLogic = () => {
   const [gameState, setGameState] = useState<GameState>(GameState.START);
   const [player, setPlayer] = useState<PlayerType>(INITIAL_PLAYER);
@@ -236,30 +269,39 @@ export const useGameLogic = () => {
   }, []);
     
   const handleBuyItem = useCallback((itemToBuy: Equipment) => {
-    if (player.gold >= itemToBuy.price) {
-      setPlayer(p => {
-        const currentlyEquipped = p.equipment[itemToBuy.type];
-        const newInventory = [...p.inventory];
-
-        // If an item is already equipped, move it to inventory
-        if (currentlyEquipped) {
-          newInventory.push(currentlyEquipped);
+    setPlayer(p => {
+        if (p.gold < itemToBuy.price) {
+            return p;
         }
 
-        return {
-          ...p,
-          gold: p.gold - itemToBuy.price,
-          equipment: {
-            ...p.equipment,
-            [itemToBuy.type]: itemToBuy,
-          },
-          inventory: newInventory,
-        };
-      });
-      addLog(`「${itemToBuy.name}」を購入して装備した。`);
-      trackEquipmentCollection(itemToBuy);
-    }
-  }, [player.gold, addLog, trackEquipmentCollection]);
+        const allPlayerItems = [...p.inventory, ...Object.values(p.equipment).filter((e): e is Equipment => e !== null)];
+        const maxExistingLevel = allPlayerItems
+            .filter(i => i.masterId === itemToBuy.masterId)
+            .reduce((max, item) => Math.max(max, item.level), -1);
+
+        if (itemToBuy.level <= maxExistingLevel) {
+            addLog(`すでに「${itemToBuy.name}」の同等以上のものを持っています。`);
+            return p; 
+        }
+
+        trackEquipmentCollection(itemToBuy);
+        addLog(`「${itemToBuy.name}」を購入して装備した。`);
+
+        const playerAfterPurchase = { ...p, gold: p.gold - itemToBuy.price };
+        
+        let newInventory = playerAfterPurchase.inventory.filter(i => i.masterId !== itemToBuy.masterId);
+        
+        const previouslyEquipped = playerAfterPurchase.equipment[itemToBuy.type];
+        
+        if (previouslyEquipped && previouslyEquipped.masterId !== itemToBuy.masterId) {
+            newInventory.push(previouslyEquipped);
+        }
+
+        const newEquipment = { ...playerAfterPurchase.equipment, [itemToBuy.type]: itemToBuy };
+
+        return { ...playerAfterPurchase, inventory: newInventory, equipment: newEquipment };
+    });
+  }, [addLog, trackEquipmentCollection]);
 
   const handleStatAllocation = (allocatedStats: Record<AllocatableStat, number>) => {
     setPlayer(p => {
@@ -455,9 +497,7 @@ export const useGameLogic = () => {
                           } else {
                               const areaIndex = Math.floor(stageIndex / 10);
                               const droppedItem = generateRandomEquipment(areaIndex);
-                              trackEquipmentCollection(droppedItem);
-                              playerUpdate.inventory.push(droppedItem);
-                              addLog(`✨ ${droppedItem.name}を見つけて持ち物に追加した！`);
+                              playerUpdate = addEquipmentToPlayer(playerUpdate, droppedItem, trackEquipmentCollection, addLog);
                           }
                       }
                       targetIsDefeated = true;
