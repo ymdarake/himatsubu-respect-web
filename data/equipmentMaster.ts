@@ -10,8 +10,6 @@ export const EQUIPMENT_MASTER_DATA: EquipmentMaster[] = [
     basePrice: 50,
     statGrowth: { physicalAttack: 3 },
     priceGrowth: 25,
-    elementalDamages: { '無': 2 },
-    elementalDamageGrowth: { '無': 1 },
   },
   {
     masterId: 'wpn_fire_rod',
@@ -33,8 +31,6 @@ export const EQUIPMENT_MASTER_DATA: EquipmentMaster[] = [
     basePrice: 250,
     statGrowth: { physicalAttack: 6 },
     priceGrowth: 80,
-    elementalDamages: { '無': 5 },
-    elementalDamageGrowth: { '無': 2 },
   },
   {
     masterId: 'wpn_ice_brand',
