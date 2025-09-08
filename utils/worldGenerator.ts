@@ -61,7 +61,7 @@ export const spawnEnemiesForStage = (
     const currentAreaIndex = Math.floor(stageIndex / 10);
     const currentArea = AREAS[Math.min(currentAreaIndex, AREAS.length - 1)];
 
-    const numberOfEnemies = 2 + Math.floor(Math.random() * 3); // 2-4 enemies per stage
+    const numberOfEnemies = 4 + Math.floor(Math.random() * 2); // 4-5 enemies per stage
 
     const MIN_ENEMY_SEPARATION = 100; // An enemy is 80px wide, so this leaves a small gap
     const MAX_SPAWN_ATTEMPTS = 10;
