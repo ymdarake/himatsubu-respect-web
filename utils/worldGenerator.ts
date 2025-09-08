@@ -1,6 +1,6 @@
 import React from 'react';
 import { Structure, ShopType, SceneryObject, Enemy } from '../types';
-import { AREAS, ENEMY_DATA, INITIAL_PLAYER, PIXELS_PER_METER, SCENERY_CONFIG, SHOP_TYPES, STAGE_LENGTH } from '../constants';
+import { AREAS, ENEMY_DATA, INITIAL_PLAYER, PIXELS_PER_METER, SCENERY_CONFIG, SHOP_TYPES, STAGE_LENGTH, GEM_SLIME_SPAWN_CHANCE } from '../constants';
 import { calculateEnemyStats } from './statCalculations';
 
 const createStructureForStage = (targetStageIndex: number): Structure | null => {
@@ -98,7 +98,7 @@ export const spawnEnemiesForStage = (
         if (positionIsSafe) {
             let randomEnemyName: string;
             // 5% chance to spawn a Gem Slime, otherwise spawn a regular enemy for the area
-            if (Math.random() < 0.05) {
+            if (Math.random() < GEM_SLIME_SPAWN_CHANCE) {
                 randomEnemyName = 'ジェムスライム';
             } else {
                 const availableEnemyNames = currentArea.enemyTypes;

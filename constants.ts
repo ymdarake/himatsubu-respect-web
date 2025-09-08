@@ -54,9 +54,10 @@ export const ENEMY_PANEL_DISPLAY_RANGE = 200; // pixels
 export const LUCK_TO_GOLD_MULTIPLIER = 0.05; // 5% bonus gold per luck point
 export const STAT_POINTS_PER_LEVEL = 5;
 
-// New constants for item drops
+// Item and enemy spawn rates
 export const BASE_DROP_CHANCE = 0.02; // 2% base chance
 export const LUCK_TO_DROP_CHANCE_MULTIPLIER = 0.001; // 0.1% increased chance per luck point
+export const GEM_SLIME_SPAWN_CHANCE = 0.05; // 5% chance for a Gem Slime to spawn
 
 export const GEM_COLORS: Record<AllocatableStat, string> = {
     strength: 'bg-red-500',
