@@ -291,6 +291,7 @@ export const useGameLogic = () => {
       let playerUpdate = { ...prevPlayer };
       const currentCalculatedStats = calculatedStats;
       let totalPlayerDamageThisFrame = 0;
+      let lastAttackingEnemy: Enemy | null = null;
       const now = Date.now();
 
       const houseToUse = structures.find(s => s.type === 'house' && Math.abs(s.x - playerUpdate.x) < HEALING_HOUSE_RANGE);
@@ -505,6 +506,7 @@ export const useGameLogic = () => {
                        damage = Math.max(1, rawDamage - currentCalculatedStats.physicalDefense);
                    }
                    totalPlayerDamageThisFrame += damage;
+                   lastAttackingEnemy = enemy;
                    const damageInstance: DamageInstance = { id: nextDamageInstanceId.current++, x: playerUpdate.x + 16, damages: [{ text: `${damage}`, color: damageColor }] };
                    setDamageInstances(prev => [...prev, damageInstance]);
                    setTimeout(() => setDamageInstances(prev => prev.filter(di => di.id !== damageInstance.id)), 1200);
@@ -532,7 +534,11 @@ export const useGameLogic = () => {
           setTimeout(() => setPlayerAction(undefined), 300);
           if (playerUpdate.currentHp === 0) {
               playSound('playerDeath');
-              addLog('力尽きた...');
+              if (lastAttackingEnemy) {
+                addLog(`${lastAttackingEnemy.name} Lv.${lastAttackingEnemy.level}にやられた…`);
+              } else {
+                addLog('力尽きた…');
+              }
               setGameState(GameState.PLAYER_DEAD);
           }
       }
