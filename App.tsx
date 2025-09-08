@@ -155,9 +155,9 @@ const App: React.FC = () => {
         {gameState !== GameState.START && (
           <div className="mt-4 flex flex-col gap-4">
             {/* Mobile Grid View */}
-            <div className="sm:hidden grid grid-cols-2 gap-2 text-sm">
+            <div className="sm:hidden grid grid-cols-5 gap-2 text-sm">
                 {/* Left Column */}
-                <div className="col-span-1 flex flex-col gap-2">
+                <div className="col-span-2 flex flex-col gap-2">
                     <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 flex flex-col">
                         <div className="text-center mb-2 border-b border-gray-700 pb-1">
                             <span className="font-bold text-base">レベル {player.level}</span>
@@ -178,7 +178,7 @@ const App: React.FC = () => {
                         </div>
                     </div>
                     <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600">
-                        <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs">
+                        <div className="space-y-1 text-xs">
                         {Object.entries(calculatedStats).map(([stat, value]) => (
                             <div key={stat} className="flex justify-between">
                             <span>{DERIVED_STAT_NAMES[stat as keyof typeof DERIVED_STAT_NAMES]}</span>
@@ -190,19 +190,40 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Right Column */}
-                <div className="col-span-1 flex flex-col gap-2">
-                    {displayedEnemy ? (
-                        <EnemyStatusPanel enemy={displayedEnemy} />
-                    ) : (
-                        <PlayStatsPanel playStats={playStats} player={player} />
-                    )}
+                <div className="col-span-3 flex flex-col gap-2">
+                    <div className="flex-grow h-36">
+                        {displayedEnemy ? (
+                            <EnemyStatusPanel enemy={displayedEnemy} />
+                        ) : (
+                            <PlayStatsPanel playStats={playStats} player={player} />
+                        )}
+                    </div>
                     <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600">
-                      <EquipmentPanel equipment={player.equipment} />
+                      <div className="space-y-1 text-xs">
+                        <div className="flex justify-between items-center gap-2">
+                          <span className="text-gray-400">武器</span>
+                          <span className="font-bold truncate text-right">
+                            {player.equipment.weapon ? player.equipment.weapon.name : '-- 無し --'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center gap-2">
+                          <span className="text-gray-400">防具</span>
+                          <span className="font-bold truncate text-right">
+                            {player.equipment.armor ? player.equipment.armor.name : '-- 無し --'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center gap-2">
+                          <span className="text-gray-400">アクセ</span>
+                          <span className="font-bold truncate text-right">
+                            {player.equipment.accessory ? player.equipment.accessory.name : '-- 無し --'}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                 </div>
 
                 {/* Log Panel */}
-                <div className="col-span-2 p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 h-20 overflow-y-auto">
+                <div className="col-span-5 p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 h-20 overflow-y-auto">
                     <div className="space-y-1 text-xs">
                         {log.map((message, index) => (
                             <p key={index} className="text-gray-300">{message}</p>

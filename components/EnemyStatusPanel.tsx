@@ -21,7 +21,7 @@ const EnemyStatusPanel: React.FC<EnemyStatusPanelProps> = ({ enemy }) => {
           </div>
           <HealthBar current={enemy.currentHp} max={enemy.maxHp} barColor="bg-red-500" />
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-1 gap-x-2 gap-y-1 mt-2 text-sm">
+        <div className="space-y-1 mt-2 text-sm">
           <div className="flex justify-between">
             <span className="text-gray-400">属性</span>
             <span className={`font-bold ${ELEMENT_COLORS[enemy.element]}`}>{enemy.element}</span>
