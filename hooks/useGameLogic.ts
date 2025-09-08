@@ -87,11 +87,11 @@ export const useGameLogic = () => {
         setDistance(0);
         justHealed.current = false;
         
-        // Setting stageIndex and gameState will trigger the useEffect to load the stage
         setStageIndex(0);
+        loadStage(0); // Explicitly load stage 0 on game start
         setGameState(GameState.PLAYING);
     });
-  }, []);
+  }, [loadStage]);
   
   useEffect(() => {
     let timer: number;
