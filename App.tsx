@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { GameState, AllocatableStat, DerivedStat, DERIVED_STAT_NAMES } from './types';
 import { useGameLogic } from './hooks/useGameLogic';
 import Player from './components/Player';
@@ -59,6 +59,14 @@ const App: React.FC = () => {
     handlePointerUp,
     handleActionPress,
   } = useGameLogic();
+
+  const [activeTab, setActiveTab] = useState<'stats' | 'equipment' | 'log' | 'info'>('stats');
+
+  useEffect(() => {
+    if (displayedEnemy) {
+      setActiveTab('info');
+    }
+  }, [displayedEnemy]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen font-mono text-white p-2 sm:p-4 overflow-hidden bg-gray-900">
@@ -154,68 +162,124 @@ const App: React.FC = () => {
         
         {gameState !== GameState.START && (
           <div className="mt-4 flex flex-col gap-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
-                {/* Base Stats Panel */}
-                <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 h-full flex flex-col">
-                    <div className="text-center mb-2 border-b border-gray-700 pb-1">
+            {/* Mobile Tab View */}
+            <div className="sm:hidden">
+              <div className="flex border-b border-gray-600 text-sm -mx-2 sm:-mx-4 px-2 sm:px-4">
+                <button onClick={() => setActiveTab('stats')} className={`px-3 py-2 font-semibold ${activeTab === 'stats' ? 'border-b-2 border-yellow-400 text-yellow-400' : 'text-gray-400'}`}>ステータス</button>
+                <button onClick={() => setActiveTab('equipment')} className={`px-3 py-2 font-semibold ${activeTab === 'equipment' ? 'border-b-2 border-yellow-400 text-yellow-400' : 'text-gray-400'}`}>装備</button>
+                <button onClick={() => setActiveTab('log')} className={`px-3 py-2 font-semibold ${activeTab === 'log' ? 'border-b-2 border-yellow-400 text-yellow-400' : 'text-gray-400'}`}>ログ</button>
+                <button onClick={() => setActiveTab('info')} className={`px-3 py-2 font-semibold ${activeTab === 'info' ? 'border-b-2 border-yellow-400 text-yellow-400' : 'text-gray-400'}`}>
+                  {displayedEnemy ? '敵情報' : 'プレイ記録'}
+                </button>
+              </div>
+              <div className="pt-3 text-sm h-52">
+                {activeTab === 'stats' && (
+                  <div className="grid grid-cols-1 gap-3 h-full overflow-y-auto">
+                    <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 h-full flex flex-col">
+                      <div className="text-center mb-2 border-b border-gray-700 pb-1">
                         <span className="font-bold text-lg">レベル {player.level}</span>
-                    </div>
-                    <div className="space-y-1 flex-grow">
+                      </div>
+                      <div className="space-y-1 flex-grow">
                         {Object.entries(player.baseStats).map(([stat, value]) => (
-                            <div key={stat} className="flex justify-between">
-                                <span>{baseStatNames[stat as keyof typeof baseStatNames]}</span>
-                                <span className="font-bold">{value}</span>
-                            </div>
+                          <div key={stat} className="flex justify-between">
+                            <span>{baseStatNames[stat as keyof typeof baseStatNames]}</span>
+                            <span className="font-bold">{value}</span>
+                          </div>
                         ))}
-                    </div>
-                    <div className="mt-2 pt-2 border-t border-gray-700">
-                      <label 
-                          className="flex items-center space-x-2 cursor-pointer text-sm select-none"
-                          title={!player.lastStatAllocation ? "一度レベルアップしてステータスを割り振ると有効になります" : "ステータス割り振りを固定する"}
-                      >
-                          <input 
-                              type="checkbox"
-                              className="form-checkbox h-4 w-4 text-yellow-400 bg-gray-800 border-gray-600 rounded focus:ring-yellow-500 focus:ring-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
-                              checked={player.isStatAllocationLocked}
-                              onChange={toggleStatAllocationLock}
-                              disabled={!player.lastStatAllocation}
-                          />
+                      </div>
+                      <div className="mt-2 pt-2 border-t border-gray-700">
+                        <label className="flex items-center space-x-2 cursor-pointer text-sm select-none" title={!player.lastStatAllocation ? "一度レベルアップしてステータスを割り振ると有効になります" : "ステータス割り振りを固定する"}>
+                          <input type="checkbox" className="form-checkbox h-4 w-4 text-yellow-400 bg-gray-800 border-gray-600 rounded focus:ring-yellow-500 focus:ring-offset-0 disabled:opacity-50 disabled:cursor-not-allowed" checked={player.isStatAllocationLocked} onChange={toggleStatAllocationLock} disabled={!player.lastStatAllocation} />
                           <span className={player.lastStatAllocation ? '' : 'text-gray-500'}>ステ振り固定</span>
-                      </label>
+                        </label>
+                      </div>
                     </div>
-                </div>
-
-                {/* Derived Stats Panel */}
-                <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 h-full">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1">
+                    <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 h-full">
+                      <div className="grid grid-cols-2 gap-x-3 gap-y-1">
                         {Object.entries(calculatedStats).map(([stat, value]) => (
-                        <div key={stat} className="flex justify-between">
+                          <div key={stat} className="flex justify-between">
                             <span>{DERIVED_STAT_NAMES[stat as keyof typeof DERIVED_STAT_NAMES]}</span>
                             <span className="font-bold">{Math.floor(value)}</span>
-                        </div>
+                          </div>
                         ))}
+                      </div>
                     </div>
-                </div>
-
-                {/* Equipment Panel */}
-                <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 h-full">
-                    <EquipmentPanel equipment={player.equipment} />
-                </div>
-
-                {/* Conditional Panel: Enemy or Play Stats */}
-                { displayedEnemy ? (
-                    <EnemyStatusPanel enemy={displayedEnemy} />
-                ) : (
-                    <PlayStatsPanel playStats={playStats} player={player} />
+                  </div>
                 )}
-            </div>
-            {/* Log Panel */}
-            <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 h-24 sm:h-40 overflow-y-auto">
-                 <div className="space-y-1 text-xs">
-                    {log.map((message, index) => (
+                {activeTab === 'equipment' && (
+                  <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 h-full overflow-y-auto">
+                    <EquipmentPanel equipment={player.equipment} />
+                  </div>
+                )}
+                {activeTab === 'log' && (
+                  <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 h-full overflow-y-auto">
+                    <div className="space-y-1 text-xs">
+                      {log.map((message, index) => (
                         <p key={index} className="text-gray-300">{message}</p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {activeTab === 'info' && (
+                  <div className="h-full overflow-y-auto">
+                    {displayedEnemy ? (
+                      <EnemyStatusPanel enemy={displayedEnemy} />
+                    ) : (
+                      <PlayStatsPanel playStats={playStats} player={player} />
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Desktop Grid View */}
+            <div className="hidden sm:flex flex-col gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 h-full flex flex-col">
+                  <div className="text-center mb-2 border-b border-gray-700 pb-1">
+                    <span className="font-bold text-lg">レベル {player.level}</span>
+                  </div>
+                  <div className="space-y-1 flex-grow">
+                    {Object.entries(player.baseStats).map(([stat, value]) => (
+                      <div key={stat} className="flex justify-between">
+                        <span>{baseStatNames[stat as keyof typeof baseStatNames]}</span>
+                        <span className="font-bold">{value}</span>
+                      </div>
                     ))}
-                 </div>
+                  </div>
+                  <div className="mt-2 pt-2 border-t border-gray-700">
+                    <label className="flex items-center space-x-2 cursor-pointer text-sm select-none" title={!player.lastStatAllocation ? "一度レベルアップしてステータスを割り振ると有効になります" : "ステータス割り振りを固定する"}>
+                      <input type="checkbox" className="form-checkbox h-4 w-4 text-yellow-400 bg-gray-800 border-gray-600 rounded focus:ring-yellow-500 focus:ring-offset-0 disabled:opacity-50 disabled:cursor-not-allowed" checked={player.isStatAllocationLocked} onChange={toggleStatAllocationLock} disabled={!player.lastStatAllocation} />
+                      <span className={player.lastStatAllocation ? '' : 'text-gray-500'}>ステ振り固定</span>
+                    </label>
+                  </div>
+                </div>
+                <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 h-full">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1">
+                    {Object.entries(calculatedStats).map(([stat, value]) => (
+                      <div key={stat} className="flex justify-between">
+                        <span>{DERIVED_STAT_NAMES[stat as keyof typeof DERIVED_STAT_NAMES]}</span>
+                        <span className="font-bold">{Math.floor(value)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 h-full">
+                  <EquipmentPanel equipment={player.equipment} />
+                </div>
+                {displayedEnemy ? (
+                  <EnemyStatusPanel enemy={displayedEnemy} />
+                ) : (
+                  <PlayStatsPanel playStats={playStats} player={player} />
+                )}
+              </div>
+              <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 h-24 sm:h-40 overflow-y-auto">
+                <div className="space-y-1 text-xs">
+                  {log.map((message, index) => (
+                    <p key={index} className="text-gray-300">{message}</p>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         )}
