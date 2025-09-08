@@ -39,7 +39,7 @@ const App: React.FC = () => {
     calculatedStats,
     totalDistance,
     currentArea,
-    engagedEnemy,
+    displayedEnemy,
     playStats,
     gameViewRef,
     worldOffset,
@@ -157,8 +157,8 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Conditional Panel: Enemy or Play Stats */}
-                { engagedEnemy ? (
-                    <EnemyStatusPanel enemy={engagedEnemy} />
+                { displayedEnemy ? (
+                    <EnemyStatusPanel enemy={displayedEnemy} />
                 ) : (
                     <PlayStatsPanel playStats={playStats} player={player} />
                 )}

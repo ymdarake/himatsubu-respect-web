@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { GameState, Enemy, Player as PlayerType, Structure, ShopType, Equipment, AllocatableStat, BaseStats, Gem, SceneryObject, PlayStats, Element, DamageInstance, DamageInfo } from '../types';
-import { AREAS, INITIAL_PLAYER, GAME_SPEED, ATTACK_RANGE, STAGE_LENGTH, XP_FOR_NEXT_LEVEL_MULTIPLIER, HEALING_HOUSE_RANGE, PIXELS_PER_METER, LUCK_TO_GOLD_MULTIPLIER, SHOP_RANGE, STAT_POINTS_PER_LEVEL, BASE_DROP_CHANCE, LUCK_TO_DROP_CHANCE_MULTIPLIER, INITIAL_PLAY_STATS, BASE_EQUIPMENT_NAMES, ELEMENTAL_AFFINITY, ELEMENT_HEX_COLORS, ATTACK_SPEED_LEVELS } from '../constants';
+import { AREAS, INITIAL_PLAYER, GAME_SPEED, ATTACK_RANGE, STAGE_LENGTH, XP_FOR_NEXT_LEVEL_MULTIPLIER, HEALING_HOUSE_RANGE, PIXELS_PER_METER, LUCK_TO_GOLD_MULTIPLIER, SHOP_RANGE, STAT_POINTS_PER_LEVEL, BASE_DROP_CHANCE, LUCK_TO_DROP_CHANCE_MULTIPLIER, INITIAL_PLAY_STATS, BASE_EQUIPMENT_NAMES, ELEMENTAL_AFFINITY, ELEMENT_HEX_COLORS, ATTACK_SPEED_LEVELS, ENEMY_PANEL_DISPLAY_RANGE } from '../constants';
 import { playSound, resumeAudioContext, playBGM, stopBGM } from '../utils/audio';
 import { calculateDerivedStats } from '../utils/statCalculations';
 import { generateRandomEquipment, generateShopItems } from '../utils/itemGenerator';
@@ -28,6 +28,7 @@ export const useGameLogic = () => {
   const [shopData, setShopData] = useState<{type: ShopType, items: Equipment[]} | null>(null);
   const [shopPrompt, setShopPrompt] = useState<boolean>(false);
   const [engagedEnemyId, setEngagedEnemyId] = useState<number | null>(null);
+  const [displayedEnemyId, setDisplayedEnemyId] = useState<number | null>(null);
   const [playStats, setPlayStats] = useState<PlayStats>(INITIAL_PLAY_STATS);
   const [goldDrops, setGoldDrops] = useState<{id: number, x: number}[]>([]);
   const [damageInstances, setDamageInstances] = useState<DamageInstance[]>([]);
@@ -51,7 +52,7 @@ export const useGameLogic = () => {
 
   const calculatedStats = useMemo(() => calculateDerivedStats(player), [player]);
   
-  const engagedEnemy = useMemo(() => enemies.find(e => e.id === engagedEnemyId), [enemies, engagedEnemyId]);
+  const displayedEnemy = useMemo(() => enemies.find(e => e.id === displayedEnemyId), [enemies, displayedEnemyId]);
   const currentAreaIndex = Math.floor(stageIndex / 10);
   const currentArea = AREAS[Math.min(currentAreaIndex, AREAS.length - 1)];
 
@@ -64,6 +65,7 @@ export const useGameLogic = () => {
       setScenery(spawnSceneryForStage(index, nextSceneryId));
       setStructures(spawnStructuresForStage(index));
       setEngagedEnemyId(null);
+      setDisplayedEnemyId(null);
   }, []);
 
   useEffect(() => {
@@ -265,6 +267,19 @@ export const useGameLogic = () => {
       setShopPrompt(!!shopTarget.current);
 
       const activeEnemies = newEnemies.filter(e => e.currentHp > 0);
+      
+      // Display Panel Logic
+      if (displayedEnemyId === null) {
+          const closestEnemyInRange = activeEnemies
+              .map(enemy => ({ enemy, distance: Math.abs(enemy.x - playerUpdate.x) }))
+              .filter(data => data.distance <= ENEMY_PANEL_DISPLAY_RANGE)
+              .sort((a, b) => a.distance - b.distance)[0];
+          
+          if (closestEnemyInRange) {
+              setDisplayedEnemyId(closestEnemyInRange.enemy.id);
+          }
+      }
+
       let newEngagedEnemyId = engagedEnemyId;
 
       if (activeEnemies.length > 0) {
@@ -363,6 +378,7 @@ export const useGameLogic = () => {
                   if (newHp === 0) {
                       setPlayStats(prev => ({ ...prev, enemiesDefeated: prev.enemiesDefeated + 1 }));
                       if (e.id === engagedEnemyId) setEngagedEnemyId(null);
+                      if (e.id === displayedEnemyId) setDisplayedEnemyId(null);
                       const xpGained = Math.floor(e.xpValue * (1 + stageIndex * 0.05));
                       playerUpdate.xp += xpGained;
                       setPlayStats(prev => ({ ...prev, totalXpGained: prev.totalXpGained + xpGained }));
@@ -526,7 +542,7 @@ export const useGameLogic = () => {
       return playerUpdate;
     });
 
-  }, [gameState, enemies, structures, stageIndex, distance, addLog, calculatedStats, engagedEnemyId, trackEquipmentCollection]);
+  }, [gameState, enemies, structures, stageIndex, distance, addLog, calculatedStats, engagedEnemyId, trackEquipmentCollection, displayedEnemyId]);
 
   useEffect(() => {
     if (gameState === GameState.PLAYING) {
@@ -563,7 +579,7 @@ export const useGameLogic = () => {
     calculatedStats,
     totalDistance,
     currentArea,
-    engagedEnemy,
+    displayedEnemy,
     playStats,
     gameViewRef,
     worldOffset,
