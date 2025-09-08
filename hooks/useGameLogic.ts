@@ -451,19 +451,32 @@ export const useGameLogic = () => {
           totalDamage += physicalDamage;
           damageInfos.push({ text: `${physicalDamage}`, color: '#FFFFFF' });
           
-          const weapon = playerUpdate.equipment.weapon;
-          if (weapon && weapon.elementalDamages) {
-            for (const [element, power] of Object.entries(weapon.elementalDamages)) {
-              if(power){
-                const affinityMultiplier = ELEMENTAL_AFFINITY[element as Element][enemyToAttack.element];
-                const baseMagicalDamage = power * (1 + currentCalculatedStats.magicalAttack * 0.04);
-                const rawMagicalDamage = Math.floor(baseMagicalDamage * (0.9 + Math.random() * 0.2));
-                const effectiveMagicalDamage = rawMagicalDamage * affinityMultiplier;
-                const finalMagicalDamage = Math.max(1, Math.floor(effectiveMagicalDamage) - enemyToAttack.magicalDefense);
-                totalDamage += finalMagicalDamage;
-                damageInfos.push({ text: `${finalMagicalDamage}`, color: ELEMENT_HEX_COLORS[element as Element] });
+          const allElementalDamages: Partial<Record<Element, number>> = {};
+          const equipmentList = [playerUpdate.equipment.weapon, playerUpdate.equipment.armor, playerUpdate.equipment.accessory];
+          
+          for (const item of equipmentList) {
+              if (item && item.elementalDamages) {
+                  for (const [element, power] of Object.entries(item.elementalDamages)) {
+                      if (power) {
+                          const elemKey = element as Element;
+                          allElementalDamages[elemKey] = (allElementalDamages[elemKey] || 0) + power;
+                      }
+                  }
               }
-            }
+          }
+
+          if (Object.keys(allElementalDamages).length > 0) {
+              for (const [element, power] of Object.entries(allElementalDamages)) {
+                  if(power){
+                    const affinityMultiplier = ELEMENTAL_AFFINITY[element as Element][enemyToAttack.element];
+                    const baseMagicalDamage = power * (1 + currentCalculatedStats.magicalAttack * 0.04);
+                    const rawMagicalDamage = Math.floor(baseMagicalDamage * (0.9 + Math.random() * 0.2));
+                    const effectiveMagicalDamage = rawMagicalDamage * affinityMultiplier;
+                    const finalMagicalDamage = Math.max(1, Math.floor(effectiveMagicalDamage) - enemyToAttack.magicalDefense);
+                    totalDamage += finalMagicalDamage;
+                    damageInfos.push({ text: `${finalMagicalDamage}`, color: ELEMENT_HEX_COLORS[element as Element] });
+                  }
+              }
           }
 
           if (damageInfos.length > 0) {
