@@ -5,18 +5,27 @@ import { calculateEnemyStats } from './statCalculations';
 
 const createStructureForStage = (targetStageIndex: number): Structure | null => {
     const stageStartX = INITIAL_PLAYER.x + (targetStageIndex * STAGE_LENGTH * PIXELS_PER_METER);
+    // Center the structure with some randomness
     const positionX = stageStartX + (STAGE_LENGTH * PIXELS_PER_METER / 2) + (Math.random() - 0.5) * 200;
-    const areaIndex = Math.floor(targetStageIndex / 10);
     
-    // Stage 2 of an area (index 1)
-    if (targetStageIndex % 10 === 1) {
-      return { id: areaIndex, type: 'house', x: positionX };
+    const areaIndex = Math.floor(targetStageIndex / 10);
+    // 0-indexed stage number within the area (0-9)
+    const stageInArea = targetStageIndex % 10;
+
+    // Rule: House on the 7th stage (index 6)
+    if (stageInArea === 6) { 
+        return { id: targetStageIndex, type: 'house', x: positionX };
     }
-    // Stage 6 of an area (index 5)
-    if (targetStageIndex % 10 === 5) {
-      const shopType = SHOP_TYPES[areaIndex % SHOP_TYPES.length];
-      return { id: areaIndex, type: shopType, x: positionX };
+
+    // Rule: Shops on the 3rd (index 2) and 6th (index 5) stages
+    if (stageInArea === 2 || stageInArea === 5) {
+        // Calculate the global sequence index for the shop to cycle through types
+        const shopSequenceIndex = areaIndex * 2 + (stageInArea === 5 ? 1 : 0);
+        const shopType = SHOP_TYPES[shopSequenceIndex % SHOP_TYPES.length];
+        return { id: targetStageIndex, type: shopType, x: positionX };
     }
+
+    // No structure for this stage
     return null;
 };
 
