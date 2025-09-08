@@ -61,7 +61,7 @@ const App: React.FC = () => {
   } = useGameLogic();
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen font-mono text-white p-2 sm:p-4 overflow-hidden bg-gray-900">
+    <div className="flex flex-col items-center justify-center h-dvh font-mono text-white p-2 sm:p-4 overflow-hidden bg-gray-900">
       <style>{`
         @keyframes gold-drop {
             0% { transform: translateY(0) scale(0.8); opacity: 1; }
@@ -69,8 +69,8 @@ const App: React.FC = () => {
         }
         .animate-gold-drop { animation: gold-drop 1s ease-out forwards; }
       `}</style>
-      <div className="w-full max-w-5xl border-4 border-gray-700 bg-gray-800 rounded-lg shadow-2xl p-2 sm:p-4 relative flex flex-col">
-        <div ref={gameViewRef} className="relative w-full h-64 sm:h-80 rounded overflow-hidden">
+      <div className="w-full max-w-5xl border-4 border-gray-700 bg-gray-800 rounded-lg shadow-2xl p-2 sm:p-4 relative flex flex-col h-full">
+        <div ref={gameViewRef} className="relative w-full h-64 sm:h-80 rounded overflow-hidden flex-shrink-0">
           
           {gameState !== GameState.START && (
             <>
@@ -142,88 +142,82 @@ const App: React.FC = () => {
                </button>
              </div>
           )}
-          {gameState === GameState.PLAYING && (
-              <TouchControls 
-                onPointerDown={handlePointerDown} 
-                onPointerUp={handlePointerUp}
-                onAction={handleActionPress}
-                actionVisible={shopPrompt || housePrompt}
-              />
-          )}
         </div>
         
         {gameState !== GameState.START && (
-          <div className="mt-4 flex flex-col gap-4">
-            {/* Mobile Grid View */}
-            <div className="sm:hidden grid grid-cols-5 gap-2 text-sm">
-                {/* Left Column */}
-                <div className="col-span-2 flex flex-col gap-2">
-                    <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 flex flex-col">
-                        <div className="text-center mb-2 border-b border-gray-700 pb-1">
-                            <span className="font-bold text-base">レベル {player.level}</span>
-                        </div>
-                        <div className="space-y-1 flex-grow text-xs">
-                            {Object.entries(player.baseStats).map(([stat, value]) => (
-                            <div key={stat} className="flex justify-between">
-                                <span>{baseStatNames[stat as keyof typeof baseStatNames]}</span>
-                                <span className="font-bold">{value}</span>
+          <div className="mt-4 flex flex-col flex-grow overflow-hidden">
+            {/* Mobile View */}
+            <div className="sm:hidden flex flex-col h-full text-sm">
+                <div className="grid grid-cols-5 gap-2 flex-shrink-0">
+                    {/* Left Column */}
+                    <div className="col-span-2 flex flex-col gap-2">
+                        <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 flex flex-col">
+                            <div className="text-center mb-2 border-b border-gray-700 pb-1">
+                                <span className="font-bold text-base">レベル {player.level}</span>
                             </div>
+                            <div className="space-y-1 flex-grow text-xs">
+                                {Object.entries(player.baseStats).map(([stat, value]) => (
+                                <div key={stat} className="flex justify-between">
+                                    <span>{baseStatNames[stat as keyof typeof baseStatNames]}</span>
+                                    <span className="font-bold">{value}</span>
+                                </div>
+                                ))}
+                            </div>
+                            <div className="mt-2 pt-2 border-t border-gray-700">
+                                <label className="flex items-center space-x-2 cursor-pointer text-xs select-none" title={!player.lastStatAllocation ? "一度レベルアップしてステータスを割り振ると有効になります" : "ステータス割り振りを固定する"}>
+                                <input type="checkbox" className="form-checkbox h-3 w-3 text-yellow-400 bg-gray-800 border-gray-600 rounded focus:ring-yellow-500 focus:ring-offset-0 disabled:opacity-50 disabled:cursor-not-allowed" checked={player.isStatAllocationLocked} onChange={toggleStatAllocationLock} disabled={!player.lastStatAllocation} />
+                                <span className={player.lastStatAllocation ? '' : 'text-gray-500'}>ステ振り固定</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600">
+                            <div className="space-y-1 text-xs">
+                            {Object.entries(calculatedStats).map(([stat, value]) => (
+                                <div key={stat} className="flex justify-between">
+                                <span>{DERIVED_STAT_NAMES[stat as keyof typeof DERIVED_STAT_NAMES]}</span>
+                                <span className="font-bold">{Math.floor(value)}</span>
+                                </div>
                             ))}
-                        </div>
-                        <div className="mt-2 pt-2 border-t border-gray-700">
-                            <label className="flex items-center space-x-2 cursor-pointer text-xs select-none" title={!player.lastStatAllocation ? "一度レベルアップしてステータスを割り振ると有効になります" : "ステータス割り振りを固定する"}>
-                            <input type="checkbox" className="form-checkbox h-3 w-3 text-yellow-400 bg-gray-800 border-gray-600 rounded focus:ring-yellow-500 focus:ring-offset-0 disabled:opacity-50 disabled:cursor-not-allowed" checked={player.isStatAllocationLocked} onChange={toggleStatAllocationLock} disabled={!player.lastStatAllocation} />
-                            <span className={player.lastStatAllocation ? '' : 'text-gray-500'}>ステ振り固定</span>
-                            </label>
-                        </div>
-                    </div>
-                    <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600">
-                        <div className="space-y-1 text-xs">
-                        {Object.entries(calculatedStats).map(([stat, value]) => (
-                            <div key={stat} className="flex justify-between">
-                            <span>{DERIVED_STAT_NAMES[stat as keyof typeof DERIVED_STAT_NAMES]}</span>
-                            <span className="font-bold">{Math.floor(value)}</span>
                             </div>
-                        ))}
                         </div>
                     </div>
-                </div>
 
-                {/* Right Column */}
-                <div className="col-span-3 flex flex-col gap-2">
-                    <div className="flex-grow h-36">
-                        {displayedEnemy ? (
-                            <EnemyStatusPanel enemy={displayedEnemy} />
-                        ) : (
-                            <PlayStatsPanel playStats={playStats} player={player} />
-                        )}
-                    </div>
-                    <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600">
-                      <div className="space-y-1 text-xs">
-                        <div className="flex justify-between items-center gap-2">
-                          <span className="text-gray-400">武器</span>
-                          <span className="font-bold truncate text-right">
-                            {player.equipment.weapon ? player.equipment.weapon.name : '-- 無し --'}
-                          </span>
+                    {/* Right Column */}
+                    <div className="col-span-3 flex flex-col gap-2">
+                        <div className="flex-grow h-36">
+                            {displayedEnemy ? (
+                                <EnemyStatusPanel enemy={displayedEnemy} />
+                            ) : (
+                                <PlayStatsPanel playStats={playStats} player={player} />
+                            )}
                         </div>
-                        <div className="flex justify-between items-center gap-2">
-                          <span className="text-gray-400">防具</span>
-                          <span className="font-bold truncate text-right">
-                            {player.equipment.armor ? player.equipment.armor.name : '-- 無し --'}
-                          </span>
+                        <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600">
+                        <div className="space-y-1 text-xs">
+                            <div className="flex justify-between items-center gap-2">
+                            <span className="text-gray-400">武器</span>
+                            <span className="font-bold truncate text-right">
+                                {player.equipment.weapon ? player.equipment.weapon.name : '-- 無し --'}
+                            </span>
+                            </div>
+                            <div className="flex justify-between items-center gap-2">
+                            <span className="text-gray-400">防具</span>
+                            <span className="font-bold truncate text-right">
+                                {player.equipment.armor ? player.equipment.armor.name : '-- 無し --'}
+                            </span>
+                            </div>
+                            <div className="flex justify-between items-center gap-2">
+                            <span className="text-gray-400">アクセ</span>
+                            <span className="font-bold truncate text-right">
+                                {player.equipment.accessory ? player.equipment.accessory.name : '-- 無し --'}
+                            </span>
+                            </div>
                         </div>
-                        <div className="flex justify-between items-center gap-2">
-                          <span className="text-gray-400">アクセ</span>
-                          <span className="font-bold truncate text-right">
-                            {player.equipment.accessory ? player.equipment.accessory.name : '-- 無し --'}
-                          </span>
                         </div>
-                      </div>
                     </div>
                 </div>
 
                 {/* Log Panel */}
-                <div className="col-span-5 p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 h-20 overflow-y-auto">
+                <div className="mt-2 flex-grow p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 overflow-y-auto">
                     <div className="space-y-1 text-xs">
                         {log.map((message, index) => (
                             <p key={index} className="text-gray-300">{message}</p>
@@ -232,9 +226,9 @@ const App: React.FC = () => {
                 </div>
             </div>
 
-            {/* Desktop Grid View */}
-            <div className="hidden sm:flex flex-col gap-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+            {/* Desktop View */}
+            <div className="hidden sm:flex flex-col gap-4 h-full">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm flex-shrink-0">
                 <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 h-full flex flex-col">
                   <div className="text-center mb-2 border-b border-gray-700 pb-1">
                     <span className="font-bold text-lg">レベル {player.level}</span>
@@ -273,7 +267,7 @@ const App: React.FC = () => {
                   <PlayStatsPanel playStats={playStats} player={player} />
                 )}
               </div>
-              <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 h-24 sm:h-40 overflow-y-auto">
+              <div className="flex-grow p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 overflow-y-auto">
                 <div className="space-y-1 text-xs">
                   {log.map((message, index) => (
                     <p key={index} className="text-gray-300">{message}</p>
@@ -282,6 +276,14 @@ const App: React.FC = () => {
               </div>
             </div>
           </div>
+        )}
+        {gameState === GameState.PLAYING && (
+            <TouchControls 
+              onPointerDown={handlePointerDown} 
+              onPointerUp={handlePointerUp}
+              onAction={handleActionPress}
+              actionVisible={shopPrompt || housePrompt}
+            />
         )}
       </div>
       {gameState === GameState.SHOPPING && shopData && (

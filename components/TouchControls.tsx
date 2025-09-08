@@ -11,6 +11,7 @@ const TouchControls: React.FC<TouchControlsProps> = ({ onPointerDown, onPointerU
   const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   useEffect(() => {
+    // Check if the device supports touch events
     const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     setIsTouchDevice(hasTouch);
   }, []);
@@ -27,41 +28,38 @@ const TouchControls: React.FC<TouchControlsProps> = ({ onPointerDown, onPointerU
     onPointerUp();
   };
 
-  const buttonStyle = "w-16 h-16 bg-gray-600 bg-opacity-50 rounded-full flex items-center justify-center text-white text-3xl font-bold active:bg-opacity-75 select-none";
-
   if (!isTouchDevice) {
     return null;
   }
 
   return (
-    <div>
-      {/* Movement Controls */}
-      <div className="absolute bottom-5 left-5 z-20 flex gap-4">
-        <button
-          className={buttonStyle}
-          onPointerDown={(e) => handlePointerDown(e, 'left')}
-          onPointerUp={handlePointerUp}
-          onPointerCancel={handlePointerUp} // Handle cases where touch is interrupted
-          aria-label="Move Left"
-        >
-          &larr;
-        </button>
-        <button
-          className={buttonStyle}
-          onPointerDown={(e) => handlePointerDown(e, 'right')}
-          onPointerUp={handlePointerUp}
-          onPointerCancel={handlePointerUp}
-          aria-label="Move Right"
-        >
-          &rarr;
-        </button>
+    // The main container covers the entire parent (game view area)
+    <div className="absolute inset-0 z-20">
+      {/* Movement touch area */}
+      <div className="absolute inset-0 flex">
+        {/* Left half for moving left */}
+        <button 
+            className="w-1/2 h-full"
+            onPointerDown={(e) => handlePointerDown(e, 'left')}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerUp}
+            aria-label="Move Left"
+        />
+        {/* Right half for moving right */}
+        <button 
+            className="w-1/2 h-full"
+            onPointerDown={(e) => handlePointerDown(e, 'right')}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerUp}
+            aria-label="Move Right"
+        />
       </div>
 
       {/* Action Control */}
       {actionVisible && (
-        <div className="absolute bottom-5 right-5 z-20">
+        <div className="absolute bottom-5 right-5">
           <button
-            className={`${buttonStyle} w-20 h-20 bg-yellow-500`}
+            className="w-20 h-20 bg-yellow-500 bg-opacity-70 rounded-full flex items-center justify-center text-white text-3xl font-bold active:bg-opacity-90 select-none"
             onClick={onAction}
             aria-label="Action"
           >
