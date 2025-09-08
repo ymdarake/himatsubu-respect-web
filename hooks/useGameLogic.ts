@@ -39,7 +39,6 @@ export const useGameLogic = () => {
   const leftArrowPressed = useRef(false);
   const gameViewRef = useRef<HTMLDivElement>(null);
   const [gameViewWidth, setGameViewWidth] = useState(0);
-  const justHealed = useRef(false);
   const shopTarget = useRef<Structure | null>(null);
   const houseTarget = useRef<Structure | null>(null);
   const nextSceneryId = useRef(0);
@@ -89,7 +88,6 @@ export const useGameLogic = () => {
         setPlayer(initialPlayerState);
         setPlayStats({ ...INITIAL_PLAY_STATS, startTime: Date.now(), collectedEquipment: new Set() });
         setDistance(0);
-        justHealed.current = false;
         
         setStageIndex(0);
         loadStage(0); // Explicitly load stage 0 on game start
@@ -109,6 +107,19 @@ export const useGameLogic = () => {
     }
     return () => clearInterval(timer);
   }, [gameState]);
+  
+  const enterHouse = useCallback(() => {
+    setPlayer(p => {
+        const stats = calculateDerivedStats(p);
+        if (p.currentHp < stats.maxHp) {
+            addLog('家で休んで体力が全回復した！');
+            return { ...p, currentHp: stats.maxHp };
+        }
+        return p;
+    });
+    setGameState(GameState.EQUIPMENT_CHANGE);
+    setHousePrompt(false);
+  }, [addLog]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -130,8 +141,7 @@ export const useGameLogic = () => {
                 setShopPrompt(false);
             } else if (houseTarget.current) {
                 e.preventDefault();
-                setGameState(GameState.EQUIPMENT_CHANGE);
-                setHousePrompt(false);
+                enterHouse();
             }
         }
       }
@@ -148,7 +158,7 @@ export const useGameLogic = () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [gameState, stageIndex]);
+  }, [gameState, stageIndex, enterHouse]);
   
   useEffect(() => {
     if (gameViewRef.current) {
@@ -191,7 +201,6 @@ export const useGameLogic = () => {
                 }
             });
             setDistance(0);
-            justHealed.current = false;
             
             resumeAudioContext().then(() => {
                 playBGM();
@@ -216,19 +225,31 @@ export const useGameLogic = () => {
       }
   }, [playStats.collectedEquipment]);
     
-  const handleBuyItem = useCallback((item: Equipment) => {
-    if (player.gold >= item.price) {
-      setPlayer(p => ({
-        ...p,
-        gold: p.gold - item.price,
-        inventory: [...p.inventory, item],
-      }));
-      addLog(`「${item.name}」を購入し、持ち物に追加した。`);
-      trackEquipmentCollection(item.name);
-      setGameState(GameState.PLAYING);
-      setShopData(null);
+  const handleBuyItem = useCallback((itemToBuy: Equipment) => {
+    if (player.gold >= itemToBuy.price) {
+      setPlayer(p => {
+        const currentlyEquipped = p.equipment[itemToBuy.type];
+        const newInventory = [...p.inventory];
+
+        // If an item is already equipped, move it to inventory
+        if (currentlyEquipped) {
+          newInventory.push(currentlyEquipped);
+        }
+
+        return {
+          ...p,
+          gold: p.gold - itemToBuy.price,
+          equipment: {
+            ...p.equipment,
+            [itemToBuy.type]: itemToBuy,
+          },
+          inventory: newInventory,
+        };
+      });
+      addLog(`「${itemToBuy.name}」を購入して装備した。`);
+      trackEquipmentCollection(itemToBuy.name);
     }
-  }, [player.gold, trackEquipmentCollection, addLog]);
+  }, [player.gold, player.equipment, player.inventory, addLog, trackEquipmentCollection]);
 
   const handleStatAllocation = (allocatedStats: Record<AllocatableStat, number>) => {
     setPlayer(p => {
@@ -265,14 +286,6 @@ export const useGameLogic = () => {
       const houseToUse = structures.find(s => s.type === 'house' && Math.abs(s.x - playerUpdate.x) < HEALING_HOUSE_RANGE);
       houseTarget.current = houseToUse || null;
       setHousePrompt(!!houseTarget.current);
-      if (houseToUse) {
-        if (playerUpdate.currentHp < currentCalculatedStats.maxHp) {
-          playerUpdate.currentHp = currentCalculatedStats.maxHp;
-          if (!justHealed.current) { justHealed.current = true; }
-        }
-      } else {
-        if (justHealed.current) { justHealed.current = false; }
-      }
       
       const shopToVisit = structures.find(s => s.type.includes('_shop') && Math.abs(s.x - playerUpdate.x) < SHOP_RANGE);
       shopTarget.current = shopToVisit || null;

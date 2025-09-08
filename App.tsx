@@ -185,7 +185,14 @@ const App: React.FC = () => {
         )}
       </div>
       {gameState === GameState.SHOPPING && shopData && (
-        <Shop shopData={shopData} playerData={{ gold: player.gold }} equipment={player.equipment} onBuy={handleBuyItem} onClose={onCloseShop} />
+        <Shop
+          shopData={shopData}
+          player={player}
+          onBuy={handleBuyItem}
+          onClose={onCloseShop}
+          onEquip={handleEquipItem}
+          onUnequip={handleUnequipItem}
+        />
       )}
       {gameState === GameState.LEVEL_UP && (
         <LevelUpModal player={player} onConfirm={handleStatAllocation} />
