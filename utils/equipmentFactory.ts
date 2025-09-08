@@ -21,7 +21,18 @@ export const equipmentFactory = (masterId: string, level: number): Equipment | n
     for (const [element, baseValue] of Object.entries(masterData.elementalDamages)) {
       if (baseValue !== undefined) {
         const growthValue = masterData.elementalDamageGrowth?.[element as Element] || 0;
-        calculatedElementalDamages[element as Element] = baseValue + (growthValue * level);
+        const rawValue = baseValue + (growthValue * level);
+        
+        // Round to the nearest multiple of 5
+        const roundedValue = Math.round(rawValue / 5) * 5;
+
+        // If the value is positive after rounding, enforce a minimum of 10.
+        // This makes elemental damage more meaningful and avoids trivially small values.
+        const finalValue = roundedValue > 0 ? Math.max(10, roundedValue) : 0;
+        
+        if (finalValue > 0) {
+            calculatedElementalDamages[element as Element] = finalValue;
+        }
       }
     }
   }
