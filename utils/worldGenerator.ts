@@ -96,8 +96,15 @@ export const spawnEnemiesForStage = (
         }
 
         if (positionIsSafe) {
-            const availableEnemyNames = currentArea.enemyTypes;
-            const randomEnemyName = availableEnemyNames[Math.floor(Math.random() * availableEnemyNames.length)];
+            let randomEnemyName: string;
+            // 5% chance to spawn a Gem Slime, otherwise spawn a regular enemy for the area
+            if (Math.random() < 0.05) {
+                randomEnemyName = 'ジェムスライム';
+            } else {
+                const availableEnemyNames = currentArea.enemyTypes;
+                randomEnemyName = availableEnemyNames[Math.floor(Math.random() * availableEnemyNames.length)];
+            }
+            
             const enemyData = ENEMY_DATA[randomEnemyName];
             
             const enemyLevel = 1 + stageIndex;

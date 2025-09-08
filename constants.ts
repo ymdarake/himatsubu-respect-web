@@ -145,6 +145,7 @@ export const ENEMY_DATA: Record<string, EnemyBaseData> = {
   'ゴーレム': { name: 'ゴーレム', baseStats: { strength: 8, stamina: 15, intelligence: 1, speedAgility: 2, luck: 1 }, element: '土', color: 'bg-stone-500', shape: 'square', xpValue: 46, goldValue: 90, attackPrepareTime: 2000, attackAnimationTime: 600 },
   'ファイア・エレメンタル': { name: 'ファイア・エレメンタル', baseStats: { strength: 10, stamina: 8, intelligence: 10, speedAgility: 12, luck: 7 }, element: '火', color: 'bg-orange-500', shape: 'circle', xpValue: 69, goldValue: 120, attackPrepareTime: 1400, attackAnimationTime: 400 },
   'ドラゴン': { name: 'ドラゴン', baseStats: { strength: 15, stamina: 15, intelligence: 8, speedAgility: 9, luck: 5 }, element: '闇', color: 'bg-red-900', shape: 'circle', xpValue: 115, goldValue: 300, attackPrepareTime: 1800, attackAnimationTime: 500 },
+  'ジェムスライム': { name: 'ジェムスライム', baseStats: { strength: 4, stamina: 2, intelligence: 1, speedAgility: 3, luck: 2 }, element: '光', color: 'bg-fuchsia-500', shape: 'circle', xpValue: 50, goldValue: 100, attackPrepareTime: 1200, attackAnimationTime: 400 },
 };
 
 

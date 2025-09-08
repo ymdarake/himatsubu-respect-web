@@ -507,21 +507,46 @@ export const useGameLogic = () => {
 
                       addLog(`${e.name} レベル${e.level}を倒した！ +${goldDropped}G, +${xpGained}XP`);
                       
-                      const dropChance = BASE_DROP_CHANCE + currentCalculatedStats.luckValue * LUCK_TO_DROP_CHANCE_MULTIPLIER;
-                      if (Math.random() < dropChance) {
-                          const isGemDrop = Math.random() < 0.3;
-                          if (isGemDrop) {
-                              const stats: AllocatableStat[] = ['strength', 'stamina', 'intelligence', 'speedAgility', 'luck'];
+                      if (e.name === 'ジェムスライム') {
+                          const gemDrops: Record<AllocatableStat, number> = { strength: 0, stamina: 0, intelligence: 0, speedAgility: 0, luck: 0 };
+                          const gemDropCount = 3 + Math.floor(Math.random() * 3); // 3, 4, or 5
+                          const stats: AllocatableStat[] = ['strength', 'stamina', 'intelligence', 'speedAgility', 'luck'];
+
+                          for (let i = 0; i < gemDropCount; i++) {
                               const randomStat = stats[Math.floor(Math.random() * stats.length)];
-                              const gem: Gem = { name: `Gem of ${randomStat}`, stat: randomStat, value: 1 };
-                              addLog(`✨ ${baseStatNames[gem.stat]}のジェムを見つけた！ ${baseStatNames[gem.stat]}が ${gem.value} 上がった！`);
-                              playerUpdate.baseStats[gem.stat] += gem.value;
-                              setPlayStats(prev => ({ ...prev, gemCollection: { ...prev.gemCollection, [gem.stat]: (prev.gemCollection[gem.stat] || 0) + 1 }}));
-                          } else {
-                              const areaIndex = Math.floor(stageIndex / 10);
-                              const droppedItem = generateRandomEquipment(areaIndex);
-                              playerUpdate = addEquipmentToPlayer(playerUpdate, droppedItem, trackEquipmentCollection, addLog);
+                              gemDrops[randomStat]++;
                           }
+
+                          const logParts: string[] = [];
+                          for (const [stat, count] of Object.entries(gemDrops)) {
+                              if (count > 0) {
+                                  const statKey = stat as AllocatableStat;
+                                  playerUpdate.baseStats[statKey] += count;
+                                  setPlayStats(prev => ({ ...prev, gemCollection: { ...prev.gemCollection, [statKey]: (prev.gemCollection[statKey] || 0) + count }}));
+                                  logParts.push(`${baseStatNames[statKey]} +${count}`);
+                              }
+                          }
+
+                          if (logParts.length > 0) {
+                              addLog(`💎 ジェムスライムはジェムを落とした！ (${logParts.join(', ')})`);
+                          }
+                      } else {
+                        const dropChance = BASE_DROP_CHANCE + currentCalculatedStats.luckValue * LUCK_TO_DROP_CHANCE_MULTIPLIER;
+                        if (Math.random() < dropChance) {
+                            const isGemDrop = Math.random() < 0.3;
+                            if (isGemDrop) {
+                                const stats: AllocatableStat[] = ['strength', 'stamina', 'intelligence', 'speedAgility', 'luck'];
+                                const randomStat = stats[Math.floor(Math.random() * stats.length)];
+                                const gem: Gem = { name: `Gem of ${randomStat}`, stat: randomStat, value: 1 };
+                                addLog(`✨ ${baseStatNames[gem.stat]}のジェムを見つけた！ ${baseStatNames[gem.stat]}が ${gem.value} 上がった！`);
+                                playerUpdate.baseStats[gem.stat] += gem.value;
+                                setPlayStats(prev => ({ ...prev, gemCollection: { ...prev.gemCollection, [gem.stat]: (prev.gemCollection[gem.stat] || 0) + 1 }}));
+                            } else {
+                                const areaIndex = Math.floor(stageIndex / 10);
+                                const droppedItem = generateRandomEquipment(areaIndex);
+                                playerUpdate = addEquipmentToPlayer(playerUpdate, droppedItem, trackEquipmentCollection, addLog);
+                            }
+                        }
                       }
                       targetIsDefeated = true;
                   }
