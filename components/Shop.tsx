@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Equipment, ShopType, DERIVED_STAT_NAMES, Player, Element, EquipmentType } from '../types';
 import { ELEMENT_COLORS } from '../constants';
 
@@ -41,6 +41,18 @@ const StatDisplay: React.FC<{ item: Equipment }> = ({ item }) => (
 
 
 const Shop: React.FC<ShopProps> = ({ shopData, player, onBuy, onClose, onEquip, onUnequip }) => {
+  const allPlayerItems = useMemo(() => [
+    ...player.inventory,
+    ...Object.values(player.equipment).filter((e): e is Equipment => e !== null)
+  ], [player.inventory, player.equipment]);
+
+  const hasBetterOrEqual = (shopItem: Equipment): boolean => {
+    const maxExistingLevel = allPlayerItems
+      .filter(i => i.masterId === shopItem.masterId)
+      .reduce((max, item) => Math.max(max, item.level), -1);
+    return shopItem.level <= maxExistingLevel;
+  };
+  
   return (
     <div className="absolute inset-0 bg-black bg-opacity-80 flex items-center justify-center z-30 p-4 font-mono">
       <div className="w-full max-w-5xl h-[90vh] bg-yellow-900 border-4 border-yellow-700 rounded-lg p-6 text-white shadow-lg flex flex-col">
@@ -53,26 +65,29 @@ const Shop: React.FC<ShopProps> = ({ shopData, player, onBuy, onClose, onEquip, 
           <div className="flex flex-col gap-4 overflow-hidden">
             <h3 className="text-xl font-bold text-center">商品</h3>
             <div className="flex-grow bg-black bg-opacity-30 p-4 rounded-lg border border-yellow-800 overflow-y-auto space-y-3">
-              {shopData.items.map(item => (
-                 <div key={item.instanceId} className="grid grid-cols-3 gap-4 items-center bg-black bg-opacity-40 p-3 rounded">
-                    <div className="col-span-1">
-                      <p className="font-bold text-lg">{item.name}</p>
-                      <p className="text-yellow-400 text-xl">{item.price} G</p>
+              {shopData.items.map(item => {
+                 const ownedBetter = hasBetterOrEqual(item);
+                 return (
+                    <div key={item.instanceId} className="grid grid-cols-3 gap-4 items-center bg-black bg-opacity-40 p-3 rounded">
+                        <div className="col-span-1">
+                        <p className="font-bold text-lg">{item.name}</p>
+                        <p className="text-yellow-400 text-xl">{item.price} G</p>
+                        </div>
+                        <div className="col-span-1">
+                            <StatDisplay item={item} />
+                        </div>
+                        <div className="col-span-1 text-right">
+                            <button
+                            onClick={() => onBuy(item)}
+                            disabled={player.gold < item.price || ownedBetter}
+                            className="px-4 py-2 bg-green-600 font-bold rounded hover:bg-green-500 disabled:bg-gray-600 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+                            >
+                            {ownedBetter ? '売り切れ' : '買う'}
+                            </button>
+                        </div>
                     </div>
-                    <div className="col-span-1">
-                        <StatDisplay item={item} />
-                    </div>
-                    <div className="col-span-1 text-right">
-                        <button
-                          onClick={() => onBuy(item)}
-                          disabled={player.gold < item.price}
-                          className="px-4 py-2 bg-green-600 font-bold rounded hover:bg-green-500 disabled:bg-gray-600 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
-                        >
-                          買う
-                        </button>
-                    </div>
-                 </div>
-              ))}
+                 );
+              })}
             </div>
           </div>
           
