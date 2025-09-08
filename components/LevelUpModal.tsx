@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Player, AllocatableStat, BaseStats } from '../types';
+import { calculateDerivedStats } from '../utils/statCalculations';
 
 interface LevelUpModalProps {
   player: Player;
@@ -32,23 +33,16 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ player, onConfirm }) => {
     }
   };
   
+  const currentStats = useMemo(() => calculateDerivedStats(player), [player]);
+
   const projectedStats = useMemo(() => {
     const newBase: BaseStats = { ...player.baseStats };
     for (const [stat, value] of Object.entries(allocated)) {
         newBase[stat as AllocatableStat] += value;
     }
-    
-    // Recalculate derived stats based on new base stats
-    return {
-        maxHp: 20 + (newBase.stamina * 10) + (newBase.strength * 2),
-        physicalAttack: 5 + (newBase.strength * 2) + (newBase.speedAgility * 1),
-        physicalDefense: (newBase.stamina * 1) + (newBase.strength * 1),
-        magicalAttack: (newBase.intelligence * 2),
-        magicalDefense: (newBase.intelligence * 2) + (newBase.stamina * 1),
-        speed: 10 + (newBase.speedAgility * 2),
-        luckValue: 5 + (newBase.luck * 1),
-    };
-  }, [player.baseStats, allocated]);
+    const projectedPlayer = { ...player, baseStats: newBase };
+    return calculateDerivedStats(projectedPlayer);
+  }, [player, allocated]);
 
   const StatRow: React.FC<{ stat: AllocatableStat }> = ({ stat }) => {
     const currentValue = player.baseStats[stat];
@@ -84,19 +78,17 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ player, onConfirm }) => {
   };
   
   const DerivedStatPreview: React.FC = () => {
-      const currentHp = 20 + (player.baseStats.stamina * 10) + (player.baseStats.strength * 2);
-      const currentMagicalDefense = (player.baseStats.intelligence * 2) + (player.baseStats.stamina * 1);
       return (
         <div className="mt-6 pt-4 border-t-2 border-yellow-700 text-sm text-center">
             <p className="text-gray-400 mb-2">ステータス変化</p>
             <div className="grid grid-cols-3 gap-2">
-                <p>HP: {currentHp} <span className="text-green-400 font-bold">→ {projectedStats.maxHp}</span></p>
-                <p>物攻: {5 + (player.baseStats.strength * 2) + (player.baseStats.speedAgility * 1)} <span className="text-green-400 font-bold">→ {projectedStats.physicalAttack}</span></p>
-                <p>物防: {(player.baseStats.stamina * 1) + (player.baseStats.strength * 1)} <span className="text-green-400 font-bold">→ {projectedStats.physicalDefense}</span></p>
-                <p>魔攻: {player.baseStats.intelligence * 2} <span className="text-green-400 font-bold">→ {projectedStats.magicalAttack}</span></p>
-                <p>魔防: {currentMagicalDefense} <span className="text-green-400 font-bold">→ {projectedStats.magicalDefense}</span></p>
-                <p>素早さ: {10 + (player.baseStats.speedAgility * 2)} <span className="text-green-400 font-bold">→ {projectedStats.speed}</span></p>
-                <p>運気: {5 + (player.baseStats.luck * 1)} <span className="text-green-400 font-bold">→ {projectedStats.luckValue}</span></p>
+                <p>HP: {Math.floor(currentStats.maxHp)} <span className="text-green-400 font-bold">→ {Math.floor(projectedStats.maxHp)}</span></p>
+                <p>物攻: {Math.floor(currentStats.physicalAttack)} <span className="text-green-400 font-bold">→ {Math.floor(projectedStats.physicalAttack)}</span></p>
+                <p>物防: {Math.floor(currentStats.physicalDefense)} <span className="text-green-400 font-bold">→ {Math.floor(projectedStats.physicalDefense)}</span></p>
+                <p>魔攻: {Math.floor(currentStats.magicalAttack)} <span className="text-green-400 font-bold">→ {Math.floor(projectedStats.magicalAttack)}</span></p>
+                <p>魔防: {Math.floor(currentStats.magicalDefense)} <span className="text-green-400 font-bold">→ {Math.floor(projectedStats.magicalDefense)}</span></p>
+                <p>素早さ: {Math.floor(currentStats.speed)} <span className="text-green-400 font-bold">→ {Math.floor(projectedStats.speed)}</span></p>
+                <p>運気: {Math.floor(currentStats.luckValue)} <span className="text-green-400 font-bold">→ {Math.floor(projectedStats.luckValue)}</span></p>
             </div>
         </div>
       );

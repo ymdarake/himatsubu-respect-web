@@ -264,7 +264,7 @@ export const useGameLogic = () => {
   const handleStatAllocation = (allocatedStats: Record<AllocatableStat, number>) => {
     setPlayer(p => {
         const newBaseStats: BaseStats = { ...p.baseStats };
-        let hpChange = 0;
+        let hpChange = 10; // Base HP gain from level up
         for (const [stat, value] of Object.entries(allocatedStats)) {
             newBaseStats[stat as AllocatableStat] += value;
         }

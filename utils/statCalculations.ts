@@ -4,7 +4,7 @@ import { EnemyBaseData } from '../constants';
 export const calculateDerivedStats = (player: PlayerType): Record<DerivedStat, number> => {
   const base = player.baseStats;
   const derived: Record<DerivedStat, number> = {
-      maxHp: 20 + (base.stamina * 10) + (base.strength * 2),
+      maxHp: 20 + (base.stamina * 10) + (base.strength * 2) + (player.level - 1) * 10,
       physicalAttack: 5 + (base.strength * 2) + (base.speedAgility * 1),
       physicalDefense: (base.stamina * 1) + (base.strength * 1),
       magicalAttack: (base.intelligence * 2),
