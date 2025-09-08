@@ -107,27 +107,47 @@ export const useGameLogic = () => {
     }
   }, []);
 
+  const saveCurrentGame = useCallback(() => {
+    if (gameState !== GameState.PLAYING) return;
+    try {
+        const saveData = {
+            player,
+            stageIndex,
+            playStats: {
+                ...playStats,
+                collectedEquipment: Array.from(playStats.collectedEquipment),
+            },
+        };
+        localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+        setHasSaveData(true);
+    } catch (error) {
+        console.error("Failed to save game:", error);
+    }
+  }, [gameState, player, stageIndex, playStats]);
+
+  const saveAndExit = useCallback(() => {
+    if (gameState === GameState.PLAYING) {
+        addLog('ゲームをセーブしてタイトルに戻ります。');
+        saveCurrentGame();
+    }
+    stopBGM();
+    setLog([]);
+    setEnemies([]);
+    setStructures([]);
+    setScenery([]);
+    setGoldDrops([]);
+    setDamageInstances([]);
+    setDisplayedEnemyId(null);
+    setEngagedEnemyId(null);
+    setDistance(0);
+    setGameState(GameState.START);
+  }, [gameState, addLog, saveCurrentGame]);
+
   // Autosave interval and save on unload
   useEffect(() => {
     if (gameState !== GameState.PLAYING) {
         return;
     }
-
-    const saveCurrentGame = () => {
-         try {
-            const saveData = {
-                player,
-                stageIndex,
-                playStats: {
-                    ...playStats,
-                    collectedEquipment: Array.from(playStats.collectedEquipment),
-                },
-            };
-            localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
-         } catch (error) {
-             console.error("Failed to save game:", error);
-         }
-    };
 
     const intervalId = setInterval(saveCurrentGame, 10000); // Save every 10 seconds
     window.addEventListener('beforeunload', saveCurrentGame);
@@ -136,7 +156,7 @@ export const useGameLogic = () => {
         clearInterval(intervalId);
         window.removeEventListener('beforeunload', saveCurrentGame);
     };
-  }, [gameState, player, stageIndex, playStats]);
+  }, [gameState, saveCurrentGame]);
 
   const loadStage = useCallback((index: number) => {
       if (index === 0) {
@@ -915,5 +935,6 @@ export const useGameLogic = () => {
     handlePointerDown,
     handlePointerUp,
     handleActionPress,
+    saveAndExit,
   };
 };
