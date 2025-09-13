@@ -51,7 +51,6 @@ export const PIXELS_PER_METER = 100;
 export const HEALING_HOUSE_RANGE = 40;
 export const SHOP_RANGE = 80;
 export const ENEMY_PANEL_DISPLAY_RANGE = 200; // pixels
-export const LUCK_TO_GOLD_MULTIPLIER = 0.05; // 5% bonus gold per luck point
 export const STAT_POINTS_PER_LEVEL = 5;
 
 // Item and enemy spawn rates

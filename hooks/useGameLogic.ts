@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { GameState, Enemy, Player as PlayerType, Structure, ShopType, Equipment, AllocatableStat, BaseStats, Gem, SceneryObject, PlayStats, Element, DamageInstance, DamageInfo } from '../types';
-import { AREAS, INITIAL_PLAYER, GAME_SPEED, ATTACK_RANGE, STAGE_LENGTH, XP_FOR_NEXT_LEVEL_MULTIPLIER, HEALING_HOUSE_RANGE, PIXELS_PER_METER, LUCK_TO_GOLD_MULTIPLIER, SHOP_RANGE, STAT_POINTS_PER_LEVEL, BASE_DROP_CHANCE, LUCK_TO_DROP_CHANCE_MULTIPLIER, INITIAL_PLAY_STATS, ELEMENTAL_AFFINITY, ELEMENT_HEX_COLORS, ATTACK_SPEED_LEVELS, ENEMY_PANEL_DISPLAY_RANGE } from '../constants';
+import { AREAS, INITIAL_PLAYER, GAME_SPEED, ATTACK_RANGE, STAGE_LENGTH, XP_FOR_NEXT_LEVEL_MULTIPLIER, HEALING_HOUSE_RANGE, PIXELS_PER_METER, SHOP_RANGE, STAT_POINTS_PER_LEVEL, BASE_DROP_CHANCE, LUCK_TO_DROP_CHANCE_MULTIPLIER, INITIAL_PLAY_STATS, ELEMENTAL_AFFINITY, ELEMENT_HEX_COLORS, ATTACK_SPEED_LEVELS, ENEMY_PANEL_DISPLAY_RANGE } from '../constants';
 import { playSound, resumeAudioContext, playBGM, stopBGM } from '../utils/audio';
 import { calculateDerivedStats } from '../utils/statCalculations';
 import { generateRandomEquipment, generateShopItems } from '../utils/itemGenerator';
@@ -640,7 +640,17 @@ export const useGameLogic = () => {
                       playerUpdate.xp += xpGained;
                       setPlayStats(prev => ({ ...prev, totalXpGained: prev.totalXpGained + xpGained }));
 
-                      const goldDropped = Math.floor(e.goldValue * (1 + currentCalculatedStats.luckValue * LUCK_TO_GOLD_MULTIPLIER));
+                      // New gold calculation
+                      const baseGold = Math.floor(Math.random() * 3) + 1; // 1 to 3 G
+                      
+                      // Luck bonus: 1-20G. Higher luck gives more chances for a high roll.
+                      const luckPulls = 1 + Math.floor(currentCalculatedStats.luckValue / 20);
+                      let luckBonus = 0;
+                      for (let i = 0; i < luckPulls; i++) {
+                          luckBonus = Math.max(luckBonus, Math.floor(Math.random() * 20) + 1);
+                      }
+
+                      const goldDropped = baseGold + luckBonus;
                       playerUpdate.gold += goldDropped;
                       
                       const newDrop = { id: nextGoldDropId.current++, x: e.x + 10 };
