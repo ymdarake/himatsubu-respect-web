@@ -101,7 +101,7 @@ const Player: React.FC<PlayerProps> = ({ isAttacking, isHit, isWalking, isDead, 
 
           {/* Sword for attack animation */}
           {isAttacking && (
-            <g transform={attackDirection === 'right' ? "translate(15 5) rotate(45)" : "translate(1 5) rotate(-45)"}>
+            <g transform={attackDirection === 'right' ? 'translate(13 4) rotate(45 0 8)' : 'translate(3 4) rotate(-45 0 8)'}>
               {/* Hilt */}
               <rect x="-2" y="7" width="4" height="1" fill="#806040" />
               <rect x="-1" y="6" width="2" height="3" fill="#806040" />
