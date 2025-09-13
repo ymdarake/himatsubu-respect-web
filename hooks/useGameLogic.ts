@@ -163,9 +163,10 @@ export const useGameLogic = () => {
           nextEnemyId.current = 0;
           nextSceneryId.current = 0;
       }
-      setEnemies(spawnEnemiesForStage(index, nextEnemyId));
+      const newStructures = spawnStructuresForStage(index);
+      setStructures(newStructures);
+      setEnemies(spawnEnemiesForStage(index, nextEnemyId, newStructures));
       setScenery(spawnSceneryForStage(index, nextSceneryId));
-      setStructures(spawnStructuresForStage(index));
       setEngagedEnemyId(null);
       setDisplayedEnemyId(null);
   }, []);

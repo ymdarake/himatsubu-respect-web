@@ -14,7 +14,7 @@ export const INITIAL_PLAYER: Player = {
   isWalking: false,
   level: 1,
   xp: 0,
-  xpToNextLevel: 70,
+  xpToNextLevel: 50,
   gold: 0,
   statPoints: 0,
   equipment: {
@@ -98,7 +98,7 @@ export const ELEMENTAL_PREFIXES: Record<Element, string> = {
 };
 
 
-export const XP_FOR_NEXT_LEVEL_MULTIPLIER = 1.3;
+export const XP_FOR_NEXT_LEVEL_MULTIPLIER = 1.05;
 
 export const ELEMENTAL_AFFINITY: Record<Element, Record<Element, number>> = {
     '火': { '火': 1, '水': 0.5, '風': 2, '土': 1, '光': 1, '闇': 1, '無': 1 },
@@ -136,17 +136,17 @@ export interface EnemyBaseData {
 
 
 export const ENEMY_DATA: Record<string, EnemyBaseData> = {
-  'スライム': { name: 'スライム', baseStats: { strength: 4, stamina: 2, intelligence: 1, speedAgility: 3, luck: 2 }, element: '水', color: 'bg-green-500', shape: 'circle', xpValue: 12, goldValue: 12, attackPrepareTime: 1200, attackAnimationTime: 400 },
-  'ゴブリン': { name: 'ゴブリン', baseStats: { strength: 6, stamina: 4, intelligence: 2, speedAgility: 5, luck: 3 }, element: '土', color: 'bg-green-700', shape: 'square', xpValue: 17, goldValue: 18, attackPrepareTime: 1000, attackAnimationTime: 300 },
-  'ウルフ': { name: 'ウルフ', baseStats: { strength: 7, stamina: 5, intelligence: 1, speedAgility: 10, luck: 4 }, element: '風', color: 'bg-gray-500', shape: 'square', xpValue: 23, goldValue: 30, attackPrepareTime: 700, attackAnimationTime: 300 },
-  'バット': { name: 'バット', baseStats: { strength: 5, stamina: 3, intelligence: 1, speedAgility: 15, luck: 5 }, element: '闇', color: 'bg-gray-600', shape: 'circle', xpValue: 21, goldValue: 24, attackPrepareTime: 600, attackAnimationTime: 250 },
-  'トレント': { name: 'トレント', baseStats: { strength: 10, stamina: 6, intelligence: 2, speedAgility: 1, luck: 3 }, element: '土', color: 'bg-yellow-900', shape: 'square', xpValue: 29, goldValue: 48, attackPrepareTime: 2200, attackAnimationTime: 700 },
-  'オーク': { name: 'オーク', baseStats: { strength: 12, stamina: 8, intelligence: 2, speedAgility: 4, luck: 2 }, element: '火', color: 'bg-red-700', shape: 'square', xpValue: 35, goldValue: 60, attackPrepareTime: 1500, attackAnimationTime: 500 },
-  'ロック・スパイダー': { name: 'ロック・スパイダー', baseStats: { strength: 9, stamina: 6, intelligence: 1, speedAgility: 9, luck: 6 }, element: '土', color: 'bg-stone-600', shape: 'circle', xpValue: 40, goldValue: 72, attackPrepareTime: 900, attackAnimationTime: 350 },
-  'ゴーレム': { name: 'ゴーレム', baseStats: { strength: 8, stamina: 15, intelligence: 1, speedAgility: 2, luck: 1 }, element: '土', color: 'bg-stone-500', shape: 'square', xpValue: 46, goldValue: 90, attackPrepareTime: 2000, attackAnimationTime: 600 },
-  'ファイア・エレメンタル': { name: 'ファイア・エレメンタル', baseStats: { strength: 10, stamina: 8, intelligence: 10, speedAgility: 12, luck: 7 }, element: '火', color: 'bg-orange-500', shape: 'circle', xpValue: 69, goldValue: 120, attackPrepareTime: 1400, attackAnimationTime: 400 },
-  'ドラゴン': { name: 'ドラゴン', baseStats: { strength: 15, stamina: 15, intelligence: 8, speedAgility: 9, luck: 5 }, element: '闇', color: 'bg-red-900', shape: 'circle', xpValue: 115, goldValue: 300, attackPrepareTime: 1800, attackAnimationTime: 500 },
-  'ジェムスライム': { name: 'ジェムスライム', baseStats: { strength: 4, stamina: 2, intelligence: 1, speedAgility: 3, luck: 2 }, element: '光', color: 'bg-fuchsia-500', shape: 'circle', xpValue: 50, goldValue: 100, attackPrepareTime: 1200, attackAnimationTime: 400 },
+  'スライム': { name: 'スライム', baseStats: { strength: 4, stamina: 2, intelligence: 1, speedAgility: 3, luck: 2 }, element: '水', color: 'bg-green-500', shape: 'circle', xpValue: 18, goldValue: 12, attackPrepareTime: 1200, attackAnimationTime: 400 },
+  'ゴブリン': { name: 'ゴブリン', baseStats: { strength: 6, stamina: 4, intelligence: 2, speedAgility: 5, luck: 3 }, element: '土', color: 'bg-green-700', shape: 'square', xpValue: 26, goldValue: 18, attackPrepareTime: 1000, attackAnimationTime: 300 },
+  'ウルフ': { name: 'ウルフ', baseStats: { strength: 7, stamina: 5, intelligence: 1, speedAgility: 10, luck: 4 }, element: '風', color: 'bg-gray-500', shape: 'square', xpValue: 35, goldValue: 30, attackPrepareTime: 700, attackAnimationTime: 300 },
+  'バット': { name: 'バット', baseStats: { strength: 5, stamina: 3, intelligence: 1, speedAgility: 15, luck: 5 }, element: '闇', color: 'bg-gray-600', shape: 'circle', xpValue: 32, goldValue: 24, attackPrepareTime: 600, attackAnimationTime: 250 },
+  'トレント': { name: 'トレント', baseStats: { strength: 10, stamina: 6, intelligence: 2, speedAgility: 1, luck: 3 }, element: '土', color: 'bg-yellow-900', shape: 'square', xpValue: 44, goldValue: 48, attackPrepareTime: 2200, attackAnimationTime: 700 },
+  'オーク': { name: 'オーク', baseStats: { strength: 12, stamina: 8, intelligence: 2, speedAgility: 4, luck: 2 }, element: '火', color: 'bg-red-700', shape: 'square', xpValue: 53, goldValue: 60, attackPrepareTime: 1500, attackAnimationTime: 500 },
+  'ロック・スパイダー': { name: 'ロック・スパイダー', baseStats: { strength: 9, stamina: 6, intelligence: 1, speedAgility: 9, luck: 6 }, element: '土', color: 'bg-stone-600', shape: 'circle', xpValue: 60, goldValue: 72, attackPrepareTime: 900, attackAnimationTime: 350 },
+  'ゴーレム': { name: 'ゴーレム', baseStats: { strength: 8, stamina: 15, intelligence: 1, speedAgility: 2, luck: 1 }, element: '土', color: 'bg-stone-500', shape: 'square', xpValue: 69, goldValue: 90, attackPrepareTime: 2000, attackAnimationTime: 600 },
+  'ファイア・エレメンタル': { name: 'ファイア・エレメンタル', baseStats: { strength: 10, stamina: 8, intelligence: 10, speedAgility: 12, luck: 7 }, element: '火', color: 'bg-orange-500', shape: 'circle', xpValue: 104, goldValue: 120, attackPrepareTime: 1400, attackAnimationTime: 400 },
+  'ドラゴン': { name: 'ドラゴン', baseStats: { strength: 15, stamina: 15, intelligence: 8, speedAgility: 9, luck: 5 }, element: '闇', color: 'bg-red-900', shape: 'circle', xpValue: 173, goldValue: 300, attackPrepareTime: 1800, attackAnimationTime: 500 },
+  'ジェムスライム': { name: 'ジェムスライム', baseStats: { strength: 4, stamina: 2, intelligence: 1, speedAgility: 3, luck: 2 }, element: '光', color: 'bg-fuchsia-500', shape: 'circle', xpValue: 75, goldValue: 100, attackPrepareTime: 1200, attackAnimationTime: 400 },
 };
 
 

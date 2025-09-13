@@ -61,7 +61,8 @@ export const spawnSceneryForStage = (stageIndex: number, nextSceneryId: React.Mu
 
 export const spawnEnemiesForStage = (
     stageIndex: number,
-    nextEnemyId: React.MutableRefObject<number>
+    nextEnemyId: React.MutableRefObject<number>,
+    structures: Structure[]
 ): Enemy[] => {
     const enemies: Enemy[] = [];
     const stageStartX = INITIAL_PLAYER.x + (stageIndex * STAGE_LENGTH * PIXELS_PER_METER);
@@ -85,6 +86,29 @@ export const spawnEnemiesForStage = (
         while (!positionIsSafe && attempts < MAX_SPAWN_ATTEMPTS) {
             attempts++;
             spawnPosition = stageStartX + spawnPadding + Math.random() * spawnableWidth;
+
+            // Check for separation from structures
+            let tooCloseToStructure = false;
+            const ENEMY_WIDTH = 80;
+            const COLLISION_BUFFER = 20; // 20px padding on each side
+
+            for (const structure of structures) {
+                const STRUCTURE_WIDTH = structure.type === 'house' ? 120 : 96;
+                
+                const structureLeft = structure.x - COLLISION_BUFFER;
+                const structureRight = structure.x + STRUCTURE_WIDTH + COLLISION_BUFFER;
+                const enemyLeft = spawnPosition;
+                const enemyRight = spawnPosition + ENEMY_WIDTH;
+
+                // Check for overlap
+                if (enemyRight > structureLeft && enemyLeft < structureRight) {
+                    tooCloseToStructure = true;
+                    break;
+                }
+            }
+            if (tooCloseToStructure) {
+                continue;
+            }
 
             // Check for separation from other newly spawned enemies
             let tooCloseToOtherEnemy = false;
