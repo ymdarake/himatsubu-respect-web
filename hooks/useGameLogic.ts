@@ -614,9 +614,27 @@ export const useGameLogic = () => {
           let totalDamage = 0;
           const damageInfos: DamageInfo[] = [];
 
-          const physicalDamage = Math.max(1, Math.floor(currentCalculatedStats.physicalAttack * (0.8 + Math.random() * 0.4)) - enemyToAttack.physicalDefense);
-          totalDamage += physicalDamage;
-          damageInfos.push({ text: `${physicalDamage}`, color: '#FFFFFF' });
+          // 物理ダメージ計算
+          const basePhysicalDamage = currentCalculatedStats.physicalAttack;
+          // ダメージの揺らぎを0.98-1.02倍に
+          let rawPhysicalDamage = basePhysicalDamage * (0.98 + Math.random() * 0.04); 
+
+          // クリティカルヒット判定
+          const criticalChance = Math.min(0.75, currentCalculatedStats.luckValue / 400); // 運気400でキャップ
+          const isCritical = Math.random() < criticalChance;
+          const criticalMultiplier = 1.5; // クリティカル倍率
+
+          if (isCritical) {
+            rawPhysicalDamage *= criticalMultiplier;
+          }
+          
+          const finalPhysicalDamage = Math.max(1, Math.floor(rawPhysicalDamage) - enemyToAttack.physicalDefense);
+          totalDamage += finalPhysicalDamage;
+
+          damageInfos.push({ 
+              text: `${finalPhysicalDamage}${isCritical ? '!' : ''}`, 
+              color: isCritical ? '#fde047' : '#FFFFFF' // クリティカル時は黄色 (yellow-300)
+          });
           
           const allElementalDamages: Partial<Record<Element, number>> = {};
           const equipmentList = [playerUpdate.equipment.weapon, playerUpdate.equipment.armor, playerUpdate.equipment.accessory];
