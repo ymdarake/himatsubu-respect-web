@@ -1,6 +1,7 @@
 
 let audioContext: AudioContext | null = null;
 let whiteNoiseBuffer: AudioBuffer | null = null;
+let isMutedGlobally = false;
 
 const createAudioContext = () => {
   if (typeof window !== 'undefined' && (window.AudioContext || (window as any).webkitAudioContext)) {
@@ -26,10 +27,17 @@ export const resumeAudioContext = async () => {
 // Initialize on load, if in a browser environment
 createAudioContext();
 
+export const setMutedState = (muted: boolean) => {
+    isMutedGlobally = muted;
+    if (muted) {
+        stopBGM();
+    }
+}
+
 type SoundType = 'playerAttack' | 'enemyAttack' | 'playerHit' | 'enemyHit' | 'playerDeath' | 'levelUp';
 
 export const playSound = (type: SoundType) => {
-  if (!audioContext || audioContext.state !== 'running') return;
+  if (isMutedGlobally || !audioContext || audioContext.state !== 'running') return;
 
   const gainNode = audioContext.createGain();
   gainNode.connect(audioContext.destination);
@@ -167,7 +175,7 @@ const BGM_SONG = {
 let noteIndex = 0;
 
 export const playBGM = () => {
-    if (!audioContext || bgmPlaying) return;
+    if (isMutedGlobally || !audioContext || bgmPlaying) return;
     if (audioContext.state !== 'running') {
       console.warn('AudioContext not running, cannot play BGM.');
       return;

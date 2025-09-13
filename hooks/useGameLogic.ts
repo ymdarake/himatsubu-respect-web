@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { GameState, Enemy, Player as PlayerType, Structure, ShopType, Equipment, AllocatableStat, BaseStats, Gem, SceneryObject, PlayStats, Element, DamageInstance, DamageInfo } from '../types';
 import { AREAS, INITIAL_PLAYER, GAME_SPEED, ATTACK_RANGE, STAGE_LENGTH, XP_FOR_NEXT_LEVEL_MULTIPLIER, HEALING_HOUSE_RANGE, PIXELS_PER_METER, SHOP_RANGE, STAT_POINTS_PER_LEVEL, BASE_DROP_CHANCE, LUCK_TO_DROP_CHANCE_MULTIPLIER, INITIAL_PLAY_STATS, ELEMENTAL_AFFINITY, ELEMENT_HEX_COLORS, ATTACK_SPEED_LEVELS, ENEMY_PANEL_DISPLAY_RANGE } from '../constants';
-import { playSound, resumeAudioContext, playBGM, stopBGM } from '../utils/audio';
+import { playSound, resumeAudioContext, playBGM, stopBGM, setMutedState } from '../utils/audio';
 import { calculateDerivedStats } from '../utils/statCalculations';
 import { generateRandomEquipment, generateShopItems } from '../utils/itemGenerator';
 import { spawnStructuresForStage, spawnSceneryForStage, spawnEnemiesForStage } from '../utils/worldGenerator';
@@ -15,6 +15,7 @@ const baseStatNames: Record<AllocatableStat, string> = {
 };
 
 const SAVE_KEY = 'sidescroll-quest-savegame';
+const MUTE_KEY = 'sidescroll-quest-muted';
 
 const addEquipmentToPlayer = (player: PlayerType, newItem: Equipment, trackEquipment: (item: Equipment) => void, logFn: (msg: string) => void): PlayerType => {
     const allPlayerItems = [
@@ -70,6 +71,7 @@ export const useGameLogic = () => {
   const [goldDrops, setGoldDrops] = useState<{id: number, x: number}[]>([]);
   const [damageInstances, setDamageInstances] = useState<DamageInstance[]>([]);
   const [hasSaveData, setHasSaveData] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
 
   const nextEnemyId = useRef(0);
   const rightArrowPressed = useRef(false);
@@ -93,6 +95,29 @@ export const useGameLogic = () => {
   const displayedEnemy = useMemo(() => enemies.find(e => e.id === displayedEnemyId), [enemies, displayedEnemyId]);
   const currentAreaIndex = Math.floor(stageIndex / 10);
   const currentArea = AREAS[Math.min(currentAreaIndex, AREAS.length - 1)];
+
+  // Load mute state on initial mount
+  useEffect(() => {
+    const savedMute = localStorage.getItem(MUTE_KEY);
+    if (savedMute) {
+        const initialMute = JSON.parse(savedMute);
+        setIsMuted(initialMute);
+        setMutedState(initialMute);
+    }
+  }, []);
+
+  const toggleMute = useCallback(() => {
+    setIsMuted(prevMuted => {
+      const newMuted = !prevMuted;
+      localStorage.setItem(MUTE_KEY, JSON.stringify(newMuted));
+      setMutedState(newMuted);
+      if (!newMuted && gameState === GameState.PLAYING) {
+        playBGM();
+      }
+      return newMuted;
+    });
+  }, [gameState]);
+
 
   // Check for save data on mount
   useEffect(() => {
@@ -969,5 +994,7 @@ export const useGameLogic = () => {
     handlePointerUp,
     handleActionPress,
     saveAndExit,
+    isMuted,
+    toggleMute,
   };
 };

@@ -62,6 +62,8 @@ const App: React.FC = () => {
     handlePointerUp,
     handleActionPress,
     saveAndExit,
+    isMuted,
+    toggleMute,
   } = useGameLogic();
 
   return (
@@ -102,6 +104,22 @@ const App: React.FC = () => {
                         </svg>
                     </button>
                 )}
+                <button
+                    onClick={toggleMute}
+                    className="h-10 sm:h-12 w-10 sm:w-12 bg-black bg-opacity-60 text-white rounded-lg hover:bg-gray-700 transition-colors shadow-sm border-2 border-gray-600 flex items-center justify-center"
+                    title={isMuted ? "ミュート解除" : "ミュート"}
+                    aria-label={isMuted ? "Unmute audio" : "Mute audio"}
+                >
+                    {isMuted ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM12.293 7.293a1 1 0 011.414 0L15 8.586l1.293-1.293a1 1 0 111.414 1.414L16.414 10l1.293 1.293a1 1 0 01-1.414 1.414L15 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L13.586 10l-1.293-1.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                        </svg>
+                    ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                           <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 14.657a1 1 0 01-1.414-1.414L14.586 12H14a2 2 0 01-2-2V8a2 2 0 012-2h.586l-1.343-1.343a1 1 0 011.414-1.414l3 3a1 1 0 010 1.414l-3 3z" clipRule="evenodd" />
+                        </svg>
+                    )}
+                </button>
               </div>
             </>
           )}
