@@ -4,7 +4,7 @@ export enum GameState {
   PLAYER_DEAD,
   SHOPPING,
   LEVEL_UP,
-  EQUIPMENT_CHANGE,
+  IN_HOUSE,
 }
 
 export type EquipmentType = 'weapon' | 'armor' | 'accessory';

@@ -55,7 +55,8 @@ const App: React.FC = () => {
     onCloseShop,
     handleEquipItem,
     handleUnequipItem,
-    onCloseEquipmentChange,
+    onCloseHouse,
+    handleHeal,
     toggleStatAllocationLock,
     handlePointerDown,
     handlePointerUp,
@@ -145,7 +146,9 @@ const App: React.FC = () => {
           )}
           {housePrompt && gameState === GameState.PLAYING && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20">
-                <p className="text-white text-sm sm:text-lg font-bold animate-pulse p-2 sm:p-3 bg-gray-800 rounded-lg border-2 border-green-400 shadow-lg">スペースキーまたはアクションボタンで家に入る</p>
+                <p className="text-white text-sm sm:text-lg font-bold animate-pulse p-2 sm:p-3 bg-gray-800 rounded-lg border-2 border-green-400 shadow-lg">
+                    スペースキーまたはアクションボタンで家に入る (回復: {player.level * 10} G)
+                </p>
             </div>
           )}
             
@@ -331,12 +334,14 @@ const App: React.FC = () => {
       {gameState === GameState.LEVEL_UP && (
         <LevelUpModal player={player} onConfirm={handleStatAllocation} />
       )}
-      {gameState === GameState.EQUIPMENT_CHANGE && (
+      {gameState === GameState.IN_HOUSE && (
         <EquipmentChangeModal
             player={player}
+            calculatedStats={calculatedStats}
             onEquip={handleEquipItem}
             onUnequip={handleUnequipItem}
-            onClose={onCloseEquipmentChange}
+            onClose={onCloseHouse}
+            onHeal={handleHeal}
         />
       )}
     </div>

@@ -256,21 +256,34 @@ export const useGameLogic = () => {
   }, [gameState]);
   
   const enterHouse = useCallback(() => {
+    setGameState(GameState.IN_HOUSE);
+    setHousePrompt(false);
+  }, []);
+
+  const onCloseHouse = useCallback(() => {
+      setGameState(GameState.PLAYING);
+  }, []);
+
+  const handleHeal = useCallback(() => {
     setPlayer(p => {
+        const cost = p.level * 10;
         const stats = calculateDerivedStats(p);
-        if (p.currentHp < stats.maxHp) {
-            addLog('家で休んで体力が全回復した！');
-            return { ...p, currentHp: stats.maxHp };
+        if (p.gold >= cost && p.currentHp < stats.maxHp) {
+            addLog(`HPが全回復した！ (-${cost}G)`);
+            return {
+                ...p,
+                currentHp: stats.maxHp,
+                gold: p.gold - cost,
+            };
+        }
+        if (p.gold < cost) {
+            addLog(`ゴールドが足りない！`);
+        } else if (p.currentHp >= stats.maxHp) {
+            addLog('HPはすでに満タンだ。');
         }
         return p;
     });
-    setGameState(GameState.EQUIPMENT_CHANGE);
-    setHousePrompt(false);
   }, [addLog]);
-
-  const onCloseEquipmentChange = useCallback(() => {
-      setGameState(GameState.PLAYING);
-  }, []);
 
   const triggerAction = useCallback(() => {
     if (shopTarget.current) {
@@ -295,17 +308,21 @@ export const useGameLogic = () => {
       if (e.key === 'Escape') {
         if (gameState === GameState.SHOPPING) {
             onCloseShop();
-        } else if (gameState === GameState.EQUIPMENT_CHANGE) {
-            onCloseEquipmentChange();
+        } else if (gameState === GameState.IN_HOUSE) {
+            onCloseHouse();
         }
       }
 
       if (e.code === 'Space') {
           e.preventDefault();
           if (gameState === GameState.PLAYING) {
-              triggerAction();
+              if (shopTarget.current || houseTarget.current) {
+                triggerAction();
+              }
           } else if (gameState === GameState.SHOPPING) {
               onCloseShop();
+          } else if (gameState === GameState.IN_HOUSE) {
+              onCloseHouse();
           }
       }
 
@@ -326,7 +343,7 @@ export const useGameLogic = () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [gameState, triggerAction, onCloseEquipmentChange, onCloseShop]);
+  }, [gameState, triggerAction, onCloseHouse, onCloseShop]);
   
   useEffect(() => {
     if (gameViewRef.current) {
@@ -935,7 +952,8 @@ export const useGameLogic = () => {
     onCloseShop,
     handleEquipItem,
     handleUnequipItem,
-    onCloseEquipmentChange,
+    onCloseHouse,
+    handleHeal,
     toggleStatAllocationLock,
     handlePointerDown,
     handlePointerUp,
