@@ -285,24 +285,33 @@ export const useGameLogic = () => {
     }
   }, [stageIndex, enterHouse]);
 
+  const onCloseShop = useCallback(() => {
+    setGameState(GameState.PLAYING);
+    setShopData(null);
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         if (gameState === GameState.SHOPPING) {
-            setGameState(GameState.PLAYING);
-            setShopData(null);
+            onCloseShop();
         } else if (gameState === GameState.EQUIPMENT_CHANGE) {
             onCloseEquipmentChange();
         }
       }
 
+      if (e.code === 'Space') {
+          e.preventDefault();
+          if (gameState === GameState.PLAYING) {
+              triggerAction();
+          } else if (gameState === GameState.SHOPPING) {
+              onCloseShop();
+          }
+      }
+
       if (gameState === GameState.PLAYING) {
         if (e.key === 'ArrowRight') rightArrowPressed.current = true;
         if (e.key === 'ArrowLeft') leftArrowPressed.current = true;
-        if (e.code === 'Space') {
-            e.preventDefault();
-            triggerAction();
-        }
       }
     };
     const handleKeyUp = (e: KeyboardEvent) => {
@@ -317,7 +326,7 @@ export const useGameLogic = () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [gameState, triggerAction, onCloseEquipmentChange]);
+  }, [gameState, triggerAction, onCloseEquipmentChange, onCloseShop]);
   
   useEffect(() => {
     if (gameViewRef.current) {
@@ -845,11 +854,6 @@ export const useGameLogic = () => {
   let targetScrollX = player.x - 150; 
   const scrollX = Math.max(currentStageStartX - INITIAL_PLAYER.x, Math.min(targetScrollX, currentStageEndX - gameViewWidth));
   const worldOffset = -scrollX;
-
-  const onCloseShop = () => {
-    setGameState(GameState.PLAYING);
-    setShopData(null);
-  }
 
   const handleEquipItem = (itemToEquip: Equipment) => {
     setPlayer(p => {
