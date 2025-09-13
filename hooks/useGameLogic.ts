@@ -654,7 +654,8 @@ export const useGameLogic = () => {
               for (const [element, power] of Object.entries(allElementalDamages)) {
                   if(power){
                     const affinityMultiplier = ELEMENTAL_AFFINITY[element as Element][enemyToAttack.element];
-                    const baseMagicalDamage = power * (1 + currentCalculatedStats.magicalAttack / 50);
+                    // 新魔法ダメージ計算式: 魔攻を主軸にし、属性値は倍率として機能する
+                    const baseMagicalDamage = (currentCalculatedStats.magicalAttack * 1.5) * (1 + power / 100);
                     const rawMagicalDamage = Math.floor(baseMagicalDamage * (0.9 + Math.random() * 0.2));
                     const effectiveMagicalDamage = rawMagicalDamage * affinityMultiplier;
                     const finalMagicalDamage = Math.max(1, Math.floor(effectiveMagicalDamage) - enemyToAttack.magicalDefense);
