@@ -146,54 +146,86 @@ export const playSound = (type: SoundType) => {
 };
 
 // BGM
-let bgmPlaying = false;
+let currentBgmIndex: number | null = null;
 let bgmInterval: number | undefined;
 
 const NOTE_FREQ: Record<string, number> = {
-    'C3': 130.81, 'D3': 146.83, 'E3': 164.81, 'F3': 174.61, 'G3': 196.00, 'A3': 220.00,
+    'C2': 65.41, 'D2': 73.42, 'E2': 82.41, 'F2': 87.31, 'G2': 98.00, 'A2': 110.00, 'B2': 123.47,
+    'C3': 130.81, 'D3': 146.83, 'E3': 164.81, 'F3': 174.61, 'G3': 196.00, 'A3': 220.00, 'B3': 246.94,
     'C4': 261.63, 'D4': 293.66, 'E4': 329.63, 'F4': 349.23, 'G4': 392.00, 'A4': 440.00, 'B4': 493.88,
-    'C5': 523.25,
+    'C5': 523.25, 'D5': 587.33, 'E5': 659.25, 'F5': 698.46, 'G5': 783.99,
 };
 const REST = null;
 
-const BGM_SONG = {
-    tempo: 140, // bpm
-    melody: [
-        'G4', 'A4', 'B4', 'G4', 'A4', 'B4', 'C5', REST,
-        'E4', 'F4', 'G4', 'E4', 'F4', 'G4', 'A4', REST,
-        'G4', 'A4', 'B4', 'G4', 'A4', 'B4', 'C5', 'B4',
-        'A4', 'G4', 'F4', 'E4', 'D4', 'E4', 'C4', REST,
-    ],
-    bass: [
-        'C3', REST, 'G3', REST, 'C3', REST, 'G3', REST,
-        'A3', REST, 'E3', REST, 'A3', REST, 'E3', REST,
-        'F3', REST, 'C3', REST, 'F3', REST, 'C3', REST,
-        'G3', REST, 'D3', REST, 'G3', 'F3', 'E3', 'D3',
-    ],
+// Area 1: Grassland (Original)
+const BGM_GRASSLAND = {
+    tempo: 140,
+    melody: [ 'G4', 'A4', 'B4', 'G4', 'A4', 'B4', 'C5', REST, 'E4', 'F4', 'G4', 'E4', 'F4', 'G4', 'A4', REST, 'G4', 'A4', 'B4', 'G4', 'A4', 'B4', 'C5', 'B4', 'A4', 'G4', 'F4', 'E4', 'D4', 'E4', 'C4', REST, ],
+    bass: [ 'C3', REST, 'G3', REST, 'C3', REST, 'G3', REST, 'A3', REST, 'E3', REST, 'A3', REST, 'E3', REST, 'F3', REST, 'C3', REST, 'F3', REST, 'C3', REST, 'G3', REST, 'D3', REST, 'G3', 'F3', 'E3', 'D3', ],
 };
+
+// Area 2: Dark Forest
+const BGM_FOREST = {
+    tempo: 110,
+    melody: [ 'A3', 'C4', 'B3', 'A3', 'E4', REST, 'D4', 'C4', 'B3', 'D4', 'C4', 'B3', 'F4', REST, 'E4', 'D4', 'G3', 'B3', 'A3', 'G3', 'D4', REST, 'C4', 'B3', 'A3', 'C4', 'B3', 'A3', 'E3', REST, REST, REST ],
+    bass: [ 'F2', REST, REST, REST, 'C3', REST, REST, REST, 'G2', REST, REST, REST, 'D3', REST, REST, REST, 'F2', REST, REST, REST, 'C3', REST, REST, REST, 'G2', REST, REST, REST, 'A2', REST, REST, REST ],
+};
+
+// Area 3: Dusty Cave
+const BGM_CAVE = {
+    tempo: 120,
+    melody: [ 'G3', REST, 'G3', 'A3', 'G3', REST, 'F3', REST, 'D3', REST, 'D3', 'F3', 'D3', REST, 'C3', REST, 'C4', REST, 'B3', 'A3', 'G3', REST, 'A3', 'B3', 'C4', REST, 'B3', 'A3', 'G3', 'F3', 'E3', REST ],
+    bass: [ 'C2', REST, 'C2', REST, 'G2', REST, 'G2', REST, 'F2', REST, 'F2', REST, 'C2', REST, 'C2', REST, 'C2', 'G2', 'F2', 'C2', 'G2', 'F2', 'G2', 'C2', 'F2', 'G2', 'C2', 'F2', 'C2', REST, REST, REST ],
+};
+
+// Area 4: Volcano
+const BGM_VOLCANO = {
+    tempo: 160,
+    melody: [ 'C4', 'C4', 'G4', 'G4', 'C4', 'D4', 'E4', REST, 'F4', 'F4', 'C4', 'C4', 'F4', 'G4', 'A4', REST, 'G4', 'E4', 'C4', 'E4', 'G4', 'E4', 'D4', 'B3', 'C4', 'A3', 'F3', 'A3', 'C4', REST, REST, REST ],
+    bass: [ 'C3', 'C3', 'C3', 'C3', 'F3', 'F3', 'F3', 'F3', 'G3', 'G3', 'G3', 'G3', 'C3', 'C3', 'C3', 'C3', 'C3', 'F3', 'G3', 'C3', 'C3', 'F3', 'G3', 'C3', 'F3', 'G3', 'C3', 'F3', 'G3', 'C3', 'G3', 'C3' ],
+};
+
+// Area 5: Castle Gate
+const BGM_CASTLE = {
+    tempo: 120,
+    melody: [ 'C4', 'E4', 'G4', REST, 'G4', 'A4', 'G4', 'F4', 'E4', 'D4', 'E4', 'C4', REST, REST, REST, REST, 'G4', 'A4', 'B4', REST, 'B4', 'C5', 'B4', 'A4', 'G4', 'F4', 'G4', 'E4', REST, REST, REST, REST ],
+    bass: [ 'C3', REST, 'G3', REST, 'F3', REST, 'C3', REST, 'G3', REST, 'G3', REST, 'C3', REST, REST, REST, 'C3', REST, 'G3', REST, 'F3', REST, 'C3', REST, 'G3', REST, 'G3', REST, 'C3', REST, REST, REST ],
+};
+
+// Area 6: Throne Room
+const BGM_THRONE = {
+    tempo: 100,
+    melody: [ 'G4', 'B4', 'D5', 'G5', 'F5', 'D5', 'B4', 'G4', 'A4', 'C5', 'E5', 'A5', 'G5', 'E5', 'C5', 'A4', 'F4', 'A4', 'C5', 'F5', 'E5', 'C5', 'A4', 'F4', 'G4', 'B4', 'D5', 'G4', 'G4', REST, REST, REST ],
+    bass: [ 'G3', REST, REST, REST, 'A3', REST, REST, REST, 'F3', REST, REST, REST, 'G3', REST, 'C3', REST, 'G3', REST, REST, REST, 'A3', REST, REST, REST, 'D3', REST, REST, REST, 'G2', REST, REST, REST ],
+};
+
+const ALL_BGM_SONGS = [BGM_GRASSLAND, BGM_FOREST, BGM_CAVE, BGM_VOLCANO, BGM_CASTLE, BGM_THRONE];
 
 let noteIndex = 0;
 
-export const playBGM = () => {
-    if (isMutedGlobally || !audioContext || bgmPlaying) return;
+export const playBGM = (areaIndex: number) => {
+    if (isMutedGlobally || !audioContext || currentBgmIndex === areaIndex) return;
     if (audioContext.state !== 'running') {
       console.warn('AudioContext not running, cannot play BGM.');
       return;
     }
 
-    bgmPlaying = true;
+    stopBGM(); // Ensure any previous BGM is stopped before starting a new one.
+
+    currentBgmIndex = areaIndex;
+    const song = ALL_BGM_SONGS[areaIndex % ALL_BGM_SONGS.length];
     noteIndex = 0;
-    const noteIntervalMs = (60 / BGM_SONG.tempo) * 1000 / 2; // Corresponds to 8th notes
+    const noteIntervalMs = (60 / song.tempo) * 1000 / 2; // Corresponds to 8th notes
 
     const playNote = () => {
         if (!audioContext) return;
-        const melodyNoteName = BGM_SONG.melody[noteIndex % BGM_SONG.melody.length];
-        const bassNoteName = BGM_SONG.bass[noteIndex % BGM_SONG.bass.length];
+        const melodyNoteName = song.melody[noteIndex % song.melody.length];
+        const bassNoteName = song.bass[noteIndex % song.bass.length];
 
         const nextNoteTime = audioContext.currentTime + 0.05;
 
         // Play Melody
-        if (melodyNoteName !== REST) {
+        if (melodyNoteName && NOTE_FREQ[melodyNoteName]) {
             const melodyOsc = audioContext.createOscillator();
             const melodyGain = audioContext.createGain();
             melodyOsc.connect(melodyGain);
@@ -210,7 +242,7 @@ export const playBGM = () => {
         }
 
         // Play Bass
-        if (bassNoteName !== REST) {
+        if (bassNoteName && NOTE_FREQ[bassNoteName]) {
             const bassOsc = audioContext.createOscillator();
             const bassGain = audioContext.createGain();
             bassOsc.connect(bassGain);
@@ -237,5 +269,5 @@ export const stopBGM = () => {
         clearInterval(bgmInterval);
         bgmInterval = undefined;
     }
-    bgmPlaying = false;
+    currentBgmIndex = null;
 };

@@ -96,6 +96,13 @@ export const useGameLogic = () => {
   const currentAreaIndex = Math.floor(stageIndex / 10);
   const currentArea = AREAS[Math.min(currentAreaIndex, AREAS.length - 1)];
 
+  // BGM control based on area
+  useEffect(() => {
+    if (gameState === GameState.PLAYING) {
+        playBGM(currentAreaIndex);
+    }
+  }, [currentAreaIndex, gameState]);
+
   // Load mute state on initial mount
   useEffect(() => {
     const savedMute = localStorage.getItem(MUTE_KEY);
@@ -112,11 +119,11 @@ export const useGameLogic = () => {
       localStorage.setItem(MUTE_KEY, JSON.stringify(newMuted));
       setMutedState(newMuted);
       if (!newMuted && gameState === GameState.PLAYING) {
-        playBGM();
+        playBGM(currentAreaIndex);
       }
       return newMuted;
     });
-  }, [gameState]);
+  }, [gameState, currentAreaIndex]);
 
 
   // Check for save data on mount
@@ -234,8 +241,8 @@ export const useGameLogic = () => {
         addLog(`中断したところから再開しました。ステージ${loadedStageIndex + 1}の最初から始まります。`);
 
         resumeAudioContext().then(() => {
-            stopBGM();
-            playBGM();
+            const areaIndex = Math.floor(loadedStageIndex / 10);
+            playBGM(areaIndex);
             loadStage(loadedStageIndex); // Load stage without player position
             setGameState(GameState.PLAYING);
         });
@@ -250,8 +257,7 @@ export const useGameLogic = () => {
     localStorage.removeItem(SAVE_KEY);
     setHasSaveData(false);
     resumeAudioContext().then(() => {
-        stopBGM();
-        playBGM();
+        playBGM(0);
         const initialPlayerState = {
             ...INITIAL_PLAYER,
             currentHp: calculateDerivedStats(INITIAL_PLAYER).maxHp,
@@ -415,7 +421,7 @@ export const useGameLogic = () => {
             setDistance(0);
             
             resumeAudioContext().then(() => {
-                playBGM();
+                playBGM(0);
                 // Setting stageIndex to 0 and gameState to PLAYING will trigger the loading useEffect.
                 setStageIndex(0);
                 setGameState(GameState.PLAYING);
