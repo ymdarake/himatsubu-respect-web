@@ -53,7 +53,7 @@ const ItemStats: React.FC<{ item: Equipment }> = React.memo(({ item }) => (
 
 const Shop: React.FC<ShopProps> = ({ shopData, player, onBuy, onClose, onEquip, onUnequip }) => {
   const [activeTab, setActiveTab] = useState<'shop' | 'player'>('shop');
-  const [playerItemFilter, setPlayerItemFilter] = useState<EquipmentType | 'all'>('all');
+  const [playerItemFilter, setPlayerItemFilter] = useState<EquipmentType>('weapon');
   
   const allPlayerItems = useMemo(() => [
     ...player.inventory,
@@ -79,10 +79,7 @@ const Shop: React.FC<ShopProps> = ({ shopData, player, onBuy, onClose, onEquip, 
       .map(item => ({ ...item, isEquipped: false }));
 
     const allItems = [...equippedItems, ...inventoryItems].sort((a,b) => a.price - b.price);
-
-    if (playerItemFilter === 'all') {
-        return allItems;
-    }
+    
     return allItems.filter(item => item.type === playerItemFilter);
   }, [player.equipment, player.inventory, playerItemFilter]);
 
@@ -120,13 +117,13 @@ const Shop: React.FC<ShopProps> = ({ shopData, player, onBuy, onClose, onEquip, 
     <div className="flex flex-col h-full bg-black bg-opacity-30 p-2 sm:p-3 rounded-lg border border-yellow-800 overflow-hidden">
         <h3 className="text-xl font-bold text-center mb-2 flex-shrink-0">持ち物</h3>
         <div className="flex mb-2 flex-shrink-0 border-b border-yellow-800">
-            {(['all', 'weapon', 'armor', 'accessory'] as const).map(type => (
+            {(['weapon', 'armor', 'accessory'] as const).map(type => (
                 <button
                     key={type}
                     onClick={() => setPlayerItemFilter(type)}
                     className={`flex-1 text-xs sm:text-sm py-1 font-bold rounded-t transition-colors ${playerItemFilter === type ? 'bg-yellow-800 text-yellow-200' : 'text-yellow-500 hover:bg-yellow-900/50'}`}
                 >
-                    {type === 'all' ? 'すべて' : typeNames[type]}
+                    {typeNames[type]}
                 </button>
             ))}
         </div>
