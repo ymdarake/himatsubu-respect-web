@@ -44,6 +44,7 @@ const ItemStats: React.FC<{ item: Equipment }> = React.memo(({ item }) => (
 
 const EquipmentChangeModal: React.FC<EquipmentChangeModalProps> = ({ player, calculatedStats, onEquip, onUnequip, onClose, onHeal }) => {
   const [activeTab, setActiveTab] = useState<'inventory' | 'stats'>('inventory');
+  const [itemFilter, setItemFilter] = useState<EquipmentType | 'all'>('all');
   const healCost = player.level * 10;
   const canHeal = player.gold >= healCost;
   const needsHeal = player.currentHp < calculatedStats.maxHp;
@@ -59,12 +60,28 @@ const EquipmentChangeModal: React.FC<EquipmentChangeModalProps> = ({ player, cal
       .filter(item => !equippedInstanceIds.has(item.instanceId))
       .map(item => ({ ...item, isEquipped: false }));
 
-    return [...equippedItems, ...inventoryItems].sort((a,b) => a.price - b.price);
-  }, [player.equipment, player.inventory]);
+    const allItems = [...equippedItems, ...inventoryItems].sort((a,b) => a.price - b.price);
+    
+    if (itemFilter === 'all') {
+        return allItems;
+    }
+    return allItems.filter(item => item.type === itemFilter);
+  }, [player.equipment, player.inventory, itemFilter]);
 
   const PlayerItemsPanel = () => (
     <div className="flex flex-col h-full bg-black bg-opacity-30 p-2 sm:p-3 rounded-lg border border-gray-600 overflow-hidden">
         <h3 className="text-xl font-bold text-center mb-2 flex-shrink-0">持ち物</h3>
+        <div className="flex mb-2 flex-shrink-0 border-b border-gray-600">
+            {(['all', 'weapon', 'armor', 'accessory'] as const).map(type => (
+                <button
+                    key={type}
+                    onClick={() => setItemFilter(type)}
+                    className={`flex-1 text-xs sm:text-sm py-1 font-bold rounded-t transition-colors ${itemFilter === type ? 'bg-gray-700 text-yellow-200' : 'text-gray-400 hover:bg-gray-900/50'}`}
+                >
+                    {type === 'all' ? 'すべて' : typeNames[type]}
+                </button>
+            ))}
+        </div>
         <div className="flex-grow overflow-y-auto min-h-0">
             <div className="space-y-2">
                 {playerItemsForDisplay.length > 0 ? (
