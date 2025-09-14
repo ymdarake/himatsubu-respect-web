@@ -98,7 +98,7 @@ export const ELEMENTAL_PREFIXES: Record<Element, string> = {
 };
 
 
-export const XP_FOR_NEXT_LEVEL_MULTIPLIER = 1.05;
+export const XP_FOR_NEXT_LEVEL_MULTIPLIER = 1.1;
 
 export const ELEMENTAL_AFFINITY: Record<Element, Record<Element, number>> = {
     '火': { '火': 1, '水': 0.5, '風': 2, '土': 1, '光': 1, '闇': 1, '無': 1 },
