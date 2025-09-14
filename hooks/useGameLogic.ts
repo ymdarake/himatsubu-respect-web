@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { GameState, Enemy, Player as PlayerType, Structure, ShopType, Equipment, AllocatableStat, BaseStats, Gem, SceneryObject, PlayStats, Element, DamageInstance, DamageInfo } from '../types';
-import { AREAS, INITIAL_PLAYER, GAME_SPEED, ATTACK_RANGE, STAGE_LENGTH, XP_FOR_NEXT_LEVEL_MULTIPLIER, HEALING_HOUSE_RANGE, PIXELS_PER_METER, SHOP_RANGE, STAT_POINTS_PER_LEVEL, BASE_DROP_CHANCE, LUCK_TO_DROP_CHANCE_MULTIPLIER, INITIAL_PLAY_STATS, ELEMENTAL_AFFINITY, ELEMENT_HEX_COLORS, ATTACK_SPEED_LEVELS, ENEMY_PANEL_DISPLAY_RANGE } from '../constants';
+import { AREAS, INITIAL_PLAYER, GAME_SPEED, ATTACK_RANGE, STAGE_LENGTH, XP_FOR_NEXT_LEVEL_MULTIPLIER, HEALING_HOUSE_RANGE, PIXELS_PER_METER, SHOP_RANGE, STAT_POINTS_PER_LEVEL, BASE_DROP_CHANCE, LUCK_TO_DROP_CHANCE_MULTIPLIER, INITIAL_PLAY_STATS, ELEMENTAL_AFFINITY, ELEMENT_HEX_COLORS, ATTACK_SPEED_LEVELS, ENEMY_PANEL_DISPLAY_RANGE, TELEPORTER_RANGE } from '../constants';
 import { playSound, resumeAudioContext, playBGM, stopBGM, setMutedState } from '../utils/audio';
 import { calculateDerivedStats } from '../utils/statCalculations';
 import { generateRandomEquipment, generateShopItems } from '../utils/itemGenerator';
@@ -65,6 +65,7 @@ export const useGameLogic = () => {
   const [shopData, setShopData] = useState<{type: ShopType, items: Equipment[]} | null>(null);
   const [shopPrompt, setShopPrompt] = useState<boolean>(false);
   const [housePrompt, setHousePrompt] = useState<boolean>(false);
+  const [teleporterPrompt, setTeleporterPrompt] = useState<boolean>(false);
   const [engagedEnemyId, setEngagedEnemyId] = useState<number | null>(null);
   const [displayedEnemyId, setDisplayedEnemyId] = useState<number | null>(null);
   const [playStats, setPlayStats] = useState<PlayStats>(INITIAL_PLAY_STATS);
@@ -80,6 +81,7 @@ export const useGameLogic = () => {
   const [gameViewWidth, setGameViewWidth] = useState(0);
   const shopTarget = useRef<Structure | null>(null);
   const houseTarget = useRef<Structure | null>(null);
+  const teleporterTarget = useRef<Structure | null>(null);
   const nextSceneryId = useRef(0);
   const nextGoldDropId = useRef(0);
   const nextDamageInstanceId = useRef(0);
@@ -326,6 +328,9 @@ export const useGameLogic = () => {
         setShopPrompt(false);
     } else if (houseTarget.current) {
         enterHouse();
+    } else if (teleporterTarget.current) {
+        setGameState(GameState.TELEPORTING);
+        setTeleporterPrompt(false);
     }
   }, [stageIndex, enterHouse]);
 
@@ -334,27 +339,49 @@ export const useGameLogic = () => {
     setShopData(null);
   }, []);
 
+  const onCloseTeleporter = useCallback(() => {
+    setGameState(GameState.PLAYING);
+  }, []);
+
+  const handleTeleport = useCallback((targetStageIndex: number) => {
+      const cost = Math.abs(targetStageIndex - stageIndex) * 10;
+      if (player.gold < cost) {
+          addLog("ゴールドが足りません！");
+          return;
+      }
+
+      const areaIndex = Math.floor(targetStageIndex / 10);
+      const area = AREAS[Math.min(areaIndex, AREAS.length - 1)];
+      const stageInArea = (targetStageIndex % 10) + 1;
+
+      addLog(`${area.name} ${stageInArea} へ転送します... (-${cost}G)`);
+      
+      setPlayer(p => ({
+          ...p,
+          gold: p.gold - cost,
+          x: INITIAL_PLAYER.x + targetStageIndex * STAGE_LENGTH * PIXELS_PER_METER,
+      }));
+      setStageIndex(targetStageIndex);
+      setGameState(GameState.PLAYING);
+  }, [player.gold, stageIndex, addLog]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (gameState === GameState.SHOPPING) {
-            onCloseShop();
-        } else if (gameState === GameState.IN_HOUSE) {
-            onCloseHouse();
-        }
+        if (gameState === GameState.SHOPPING) onCloseShop();
+        else if (gameState === GameState.IN_HOUSE) onCloseHouse();
+        else if (gameState === GameState.TELEPORTING) onCloseTeleporter();
       }
 
       if (e.code === 'Space') {
           e.preventDefault();
           if (gameState === GameState.PLAYING) {
-              if (shopTarget.current || houseTarget.current) {
+              if (shopTarget.current || houseTarget.current || teleporterTarget.current) {
                 triggerAction();
               }
-          } else if (gameState === GameState.SHOPPING) {
-              onCloseShop();
-          } else if (gameState === GameState.IN_HOUSE) {
-              onCloseHouse();
-          }
+          } else if (gameState === GameState.SHOPPING) onCloseShop();
+          else if (gameState === GameState.IN_HOUSE) onCloseHouse();
+          else if (gameState === GameState.TELEPORTING) onCloseTeleporter();
       }
 
       if (gameState === GameState.PLAYING) {
@@ -374,7 +401,7 @@ export const useGameLogic = () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [gameState, triggerAction, onCloseHouse, onCloseShop]);
+  }, [gameState, triggerAction, onCloseHouse, onCloseShop, onCloseTeleporter]);
   
   useEffect(() => {
     if (gameViewRef.current) {
@@ -526,6 +553,10 @@ export const useGameLogic = () => {
       const shopToVisit = structures.find(s => s.type.includes('_shop') && Math.abs(s.x - playerUpdate.x) < SHOP_RANGE);
       shopTarget.current = shopToVisit || null;
       setShopPrompt(!!shopTarget.current);
+
+      const teleporterToUse = structures.find(s => s.type === 'teleporter' && Math.abs(s.x - playerUpdate.x) < TELEPORTER_RANGE);
+      teleporterTarget.current = teleporterToUse || null;
+      setTeleporterPrompt(!!teleporterTarget.current);
 
       const activeEnemies = newEnemies.filter(e => e.currentHp > 0);
       
@@ -1011,6 +1042,7 @@ export const useGameLogic = () => {
     shopData,
     shopPrompt,
     housePrompt,
+    teleporterPrompt,
     goldDrops,
     damageInstances,
     playerAction,
@@ -1023,6 +1055,7 @@ export const useGameLogic = () => {
     playStats,
     gameViewRef,
     worldOffset,
+    stageIndex,
     startGame,
     continueGame,
     hasSaveData,
@@ -1040,5 +1073,7 @@ export const useGameLogic = () => {
     saveAndExit,
     isMuted,
     toggleMute,
+    handleTeleport,
+    onCloseTeleporter,
   };
 };

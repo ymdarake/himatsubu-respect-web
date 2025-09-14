@@ -50,6 +50,7 @@ export const STAGE_LENGTH = 10; // in meters
 export const PIXELS_PER_METER = 100;
 export const HEALING_HOUSE_RANGE = 40;
 export const SHOP_RANGE = 80;
+export const TELEPORTER_RANGE = 60;
 export const ENEMY_PANEL_DISPLAY_RANGE = 200; // pixels
 export const STAT_POINTS_PER_LEVEL = 5;
 

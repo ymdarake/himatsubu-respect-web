@@ -12,6 +12,11 @@ const createStructureForStage = (targetStageIndex: number): Structure | null => 
     // 0-indexed stage number within the area (0-9)
     const stageInArea = targetStageIndex % 10;
 
+    // Rule: Teleporter on the 1st stage of each area.
+    if (targetStageIndex % 10 === 0) {
+        return { id: targetStageIndex, type: 'teleporter', x: stageStartX + 200 }; // Place it near the start
+    }
+
     // Rule: House on the 7th stage (index 6)
     if (stageInArea === 6) { 
         return { id: targetStageIndex, type: 'house', x: positionX };
@@ -93,7 +98,8 @@ export const spawnEnemiesForStage = (
             const COLLISION_BUFFER = 20; // 20px padding on each side
 
             for (const structure of structures) {
-                const STRUCTURE_WIDTH = structure.type === 'house' ? 120 : 96;
+                let STRUCTURE_WIDTH = 96; // Default for shop/teleporter
+                if (structure.type === 'house') STRUCTURE_WIDTH = 120;
                 
                 const structureLeft = structure.x - COLLISION_BUFFER;
                 const structureRight = structure.x + STRUCTURE_WIDTH + COLLISION_BUFFER;

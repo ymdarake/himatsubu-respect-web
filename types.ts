@@ -5,6 +5,7 @@ export enum GameState {
   SHOPPING,
   LEVEL_UP,
   IN_HOUSE,
+  TELEPORTING,
 }
 
 export type EquipmentType = 'weapon' | 'armor' | 'accessory';
@@ -125,7 +126,7 @@ export type ShopType = 'weapon_shop' | 'armor_shop' | 'accessory_shop';
 
 export interface Structure {
   id: number;
-  type: 'house' | ShopType;
+  type: 'house' | ShopType | 'teleporter';
   x: number; // World position
 }
 

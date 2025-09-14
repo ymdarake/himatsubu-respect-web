@@ -15,6 +15,8 @@ import PlayStatsPanel from './components/PlayStatsPanel';
 import DamageTextComponent from './components/DamageText';
 import EquipmentChangeModal from './components/EquipmentChangeModal';
 import TouchControls from './components/TouchControls';
+import TeleporterStructure from './components/TeleporterStructure';
+import TeleporterModal from './components/TeleporterModal';
 
 const baseStatNames: Record<AllocatableStat, string> = {
   strength: '腕力',
@@ -35,6 +37,7 @@ const App: React.FC = () => {
     shopData,
     shopPrompt,
     housePrompt,
+    teleporterPrompt,
     goldDrops,
     damageInstances,
     playerAction,
@@ -47,6 +50,7 @@ const App: React.FC = () => {
     playStats,
     gameViewRef,
     worldOffset,
+    stageIndex,
     startGame,
     continueGame,
     hasSaveData,
@@ -64,6 +68,8 @@ const App: React.FC = () => {
     saveAndExit,
     isMuted,
     toggleMute,
+    handleTeleport,
+    onCloseTeleporter,
   } = useGameLogic();
 
   return (
@@ -139,11 +145,15 @@ const App: React.FC = () => {
                   attackDirection={playerAttackDirection}
                 />
             }
-            {structures.map(structure => (
-              structure.type === 'house' 
-                ? <House key={`${structure.id}-${structure.type}`} structure={structure} />
-                : <ShopStructure key={`${structure.id}-${structure.type}`} structure={structure} />
-            ))}
+            {structures.map(structure => {
+                if (structure.type === 'house') {
+                    return <House key={`${structure.id}-${structure.type}`} structure={structure} />;
+                } else if (structure.type === 'teleporter') {
+                    return <TeleporterStructure key={`${structure.id}-${structure.type}`} structure={structure} />;
+                } else {
+                    return <ShopStructure key={`${structure.id}-${structure.type}`} structure={structure} />;
+                }
+            })}
             {enemies.map(enemy => (
                 <EnemyComponent key={enemy.id} enemy={enemy} isHit={enemyHits[enemy.id] || false} playerX={player.x} />
             ))}
@@ -166,6 +176,13 @@ const App: React.FC = () => {
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20">
                 <p className="text-white text-sm sm:text-lg font-bold animate-pulse p-2 sm:p-3 bg-gray-800 rounded-lg border-2 border-green-400 shadow-lg">
                     スペースキーまたはアクションボタンで家に入る (回復: {player.level * 10} G)
+                </p>
+            </div>
+          )}
+          {teleporterPrompt && gameState === GameState.PLAYING && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20">
+                <p className="text-white text-sm sm:text-lg font-bold animate-pulse p-2 sm:p-3 bg-gray-800 rounded-lg border-2 border-purple-400 shadow-lg">
+                    スペースキーまたはアクションボタンで転送陣を使う
                 </p>
             </div>
           )}
@@ -281,7 +298,7 @@ const App: React.FC = () => {
                           onPointerDown={handlePointerDown} 
                           onPointerUp={handlePointerUp}
                           onAction={handleActionPress}
-                          actionVisible={shopPrompt || housePrompt}
+                          actionVisible={shopPrompt || housePrompt || teleporterPrompt}
                         />
                     )}
                 </div>
@@ -360,6 +377,15 @@ const App: React.FC = () => {
             onUnequip={handleUnequipItem}
             onClose={onCloseHouse}
             onHeal={handleHeal}
+        />
+      )}
+       {gameState === GameState.TELEPORTING && (
+        <TeleporterModal
+          player={player}
+          playStats={playStats}
+          currentStageIndex={stageIndex}
+          onTeleport={handleTeleport}
+          onClose={onCloseTeleporter}
         />
       )}
     </div>
