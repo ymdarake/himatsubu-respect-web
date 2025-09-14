@@ -782,24 +782,43 @@ export const useGameLogic = () => {
               const combinedHalfWidths = (playerWidth / 2) + (enemyWidth / 2);
 
               if (distanceBetweenCenters <= combinedHalfWidths + ATTACK_RANGE) {
-                   const isMagicalAttack = enemy.magicalAttack > enemy.physicalAttack;
-                   let damage: number;
-                   let damageColor = '#FFFFFF';
-                   if (isMagicalAttack) {
-                       const affinityMultiplier = ELEMENTAL_AFFINITY[enemy.element][player.equipment.armor?.elementalDamages ? Object.keys(player.equipment.armor.elementalDamages)[0] as Element : '無'] || 1;
-                       const rawDamage = Math.floor(enemy.magicalAttack * (0.8 + Math.random() * 0.4));
-                       const effectiveDamage = rawDamage * affinityMultiplier;
-                       damage = Math.max(1, Math.floor(effectiveDamage) - currentCalculatedStats.magicalDefense);
-                       damageColor = ELEMENT_HEX_COLORS[enemy.element];
-                   } else {
-                       const rawDamage = Math.floor(enemy.physicalAttack * (0.8 + Math.random() * 0.4));
-                       damage = Math.max(1, rawDamage - currentCalculatedStats.physicalDefense);
-                   }
-                   totalPlayerDamageThisFrame += damage;
-                   lastAttackingEnemy = enemy;
-                   const damageInstance: DamageInstance = { id: nextDamageInstanceId.current++, x: playerUpdate.x + 16, damages: [{ text: `${damage}`, color: damageColor }] };
-                   setDamageInstances(prev => [...prev, damageInstance]);
-                   setTimeout(() => setDamageInstances(prev => prev.filter(di => di.id !== damageInstance.id)), 1200);
+                  const damageInfos: DamageInfo[] = [];
+
+                  // 1. Calculate physical damage for ALL attacks
+                  const rawPhysicalDamage = Math.floor(enemy.physicalAttack * (0.8 + Math.random() * 0.4));
+                  const finalPhysicalDamage = Math.max(1, rawPhysicalDamage - currentCalculatedStats.physicalDefense);
+                  totalPlayerDamageThisFrame += finalPhysicalDamage;
+                  damageInfos.push({ text: `${finalPhysicalDamage}`, color: '#FFFFFF' });
+
+                  // 2. Check if the enemy should also deal magical damage
+                  const isMagicalAttacker = enemy.magicalAttack > enemy.physicalAttack;
+                  if (isMagicalAttacker) {
+                      // プレイヤーの魔法ダメージ計算式を模倣
+                      const power = enemy.baseStats.intelligence; // 敵の知力を属性値(power)として使用
+                      const baseMagicalDamage = (enemy.magicalAttack * 1.5) * (1 + power / 100);
+                      const rawMagicalDamage = Math.floor(baseMagicalDamage * (0.9 + Math.random() * 0.2)); // プレイヤーと同じ0.9-1.1倍の揺らぎ
+
+                      // プレイヤーの防御属性を取得。鎧の属性を優先する
+                      const playerDefenseElement = playerUpdate.equipment.armor?.elementalDamages ? Object.keys(playerUpdate.equipment.armor.elementalDamages)[0] as Element : '無';
+                      const affinityMultiplier = ELEMENTAL_AFFINITY[enemy.element][playerDefenseElement] || 1;
+
+                      const effectiveMagicalDamage = rawMagicalDamage * affinityMultiplier;
+                      const finalMagicalDamage = Math.max(1, Math.floor(effectiveMagicalDamage) - currentCalculatedStats.magicalDefense);
+                      
+                      totalPlayerDamageThisFrame += finalMagicalDamage;
+                      damageInfos.push({
+                          text: `${finalMagicalDamage}`,
+                          color: ELEMENT_HEX_COLORS[enemy.element]
+                      });
+                  }
+
+                  // 3. Create damage instance if any damage was dealt
+                  if (damageInfos.length > 0) {
+                      lastAttackingEnemy = enemy;
+                      const damageInstance: DamageInstance = { id: nextDamageInstanceId.current++, x: playerUpdate.x + 16, damages: damageInfos };
+                      setDamageInstances(prev => [...prev, damageInstance]);
+                      setTimeout(() => setDamageInstances(prev => prev.filter(di => di.id !== damageInstance.id)), 1200);
+                  }
               }
               enemy.attackState = 'attacking';
               enemy.attackStateTimer = now + enemy.attackAnimationTime;
