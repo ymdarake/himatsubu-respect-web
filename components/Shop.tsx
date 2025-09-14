@@ -36,6 +36,16 @@ const STAT_ABBREVIATIONS: Record<DerivedStat, string> = {
     luckValue: '運',
 };
 
+const getDefaultFilterForShop = (shopType: ShopType): EquipmentType => {
+  if (shopType === 'armor_shop') {
+    return 'armor';
+  }
+  if (shopType === 'accessory_shop') {
+    return 'accessory';
+  }
+  return 'weapon';
+};
+
 const ItemStats: React.FC<{ item: Equipment }> = React.memo(({ item }) => (
     <div className="flex flex-wrap items-center gap-x-2 text-xs">
         {Object.entries(item.stats).map(([stat, value]) => (
@@ -53,7 +63,9 @@ const ItemStats: React.FC<{ item: Equipment }> = React.memo(({ item }) => (
 
 const Shop: React.FC<ShopProps> = ({ shopData, player, onBuy, onClose, onEquip, onUnequip }) => {
   const [activeTab, setActiveTab] = useState<'shop' | 'player'>('shop');
-  const [playerItemFilter, setPlayerItemFilter] = useState<EquipmentType>('weapon');
+  const [playerItemFilter, setPlayerItemFilter] = useState<EquipmentType>(
+    getDefaultFilterForShop(shopData.type)
+  );
   
   const allPlayerItems = useMemo(() => [
     ...player.inventory,
