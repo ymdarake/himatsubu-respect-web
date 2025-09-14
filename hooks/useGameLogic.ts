@@ -595,7 +595,7 @@ export const useGameLogic = () => {
       let enemyToAttack: Enemy | undefined = undefined;
       if (currentEngagedEnemy) {
         const playerWidth = 64; // from Player.tsx w-16
-        const enemyWidth = 80;  // from Enemy.tsx w-20
+        const enemyWidth = 128;  // from Enemy.tsx w-32
         const playerCenter = playerUpdate.x + playerWidth / 2;
         const enemyCenter = currentEngagedEnemy.x + enemyWidth / 2;
         const distanceBetweenCenters = Math.abs(playerCenter - enemyCenter);
@@ -775,7 +775,7 @@ export const useGameLogic = () => {
               playSound('enemyAttack');
               
               const playerWidth = 64;
-              const enemyWidth = 80;
+              const enemyWidth = 128;
               const playerCenter = playerUpdate.x + playerWidth / 2;
               const enemyCenter = enemy.x + enemyWidth / 2;
               const distanceBetweenCenters = Math.abs(playerCenter - enemyCenter);
@@ -868,7 +868,7 @@ export const useGameLogic = () => {
       // Collision detection with engaged enemy, considering character widths
       if (currentEngagedEnemy) {
         const playerWidth = 64; // from Player.tsx w-16
-        const enemyWidth = 80;  // from Enemy.tsx w-20
+        const enemyWidth = 128;  // from Enemy.tsx w-32
         const playerFutureX = playerUpdate.x + dx;
 
         // Player is moving right and is about to collide/pass the enemy

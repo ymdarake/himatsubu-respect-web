@@ -242,13 +242,13 @@ const EnemyComponent: React.FC<EnemyProps> = ({ enemy, isHit, playerX }) => {
       `}</style>
       
       {enemy.currentHp < enemy.maxHp && (
-          <div className="absolute -top-6 w-20">
+          <div className="absolute -top-6 w-32">
             <HealthBar current={enemy.currentHp} max={enemy.maxHp} barColor="bg-red-500" />
           </div>
       )}
 
       <div 
-        className={`relative w-20 h-20 ${hitAnimationClass} ${preparingClass} ${attackingClass} ${!isAttacking ? 'animate-float' : ''}`}
+        className={`relative w-32 h-32 ${hitAnimationClass} ${preparingClass} ${attackingClass} ${!isAttacking ? 'animate-float' : ''}`}
         style={{ imageRendering: 'pixelated' }}
       >
          {renderEnemySprite(enemy.name)}

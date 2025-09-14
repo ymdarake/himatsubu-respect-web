@@ -89,7 +89,7 @@ export const spawnEnemiesForStage = (
 
             // Check for separation from structures
             let tooCloseToStructure = false;
-            const ENEMY_WIDTH = 80;
+            const ENEMY_WIDTH = 128;
             const COLLISION_BUFFER = 20; // 20px padding on each side
 
             for (const structure of structures) {
