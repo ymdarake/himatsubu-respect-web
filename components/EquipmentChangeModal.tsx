@@ -63,9 +63,9 @@ const EquipmentChangeModal: React.FC<EquipmentChangeModalProps> = ({ player, cal
   }, [player.equipment, player.inventory]);
 
   const PlayerItemsPanel = () => (
-    <div className="flex flex-col h-full bg-black bg-opacity-30 p-2 sm:p-3 rounded-lg border border-gray-600">
+    <div className="flex flex-col h-full bg-black bg-opacity-30 p-2 sm:p-3 rounded-lg border border-gray-600 overflow-hidden">
         <h3 className="text-xl font-bold text-center mb-2 flex-shrink-0">持ち物</h3>
-        <div className="flex-grow overflow-y-auto">
+        <div className="flex-grow overflow-y-auto min-h-0">
             <div className="space-y-2">
                 {playerItemsForDisplay.length > 0 ? (
                     playerItemsForDisplay.map(item => (
@@ -93,9 +93,9 @@ const EquipmentChangeModal: React.FC<EquipmentChangeModalProps> = ({ player, cal
   );
   
   const PlayerStatusPanel = () => (
-    <div className="flex flex-col h-full bg-black bg-opacity-30 p-2 sm:p-3 rounded-lg border border-gray-600">
+    <div className="flex flex-col h-full bg-black bg-opacity-30 p-2 sm:p-3 rounded-lg border border-gray-600 overflow-hidden">
       <h3 className="text-xl font-bold text-center mb-2 flex-shrink-0">ステータス</h3>
-      <div className="flex-grow overflow-y-auto p-2">
+      <div className="flex-grow overflow-y-auto min-h-0 p-2">
         <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
           {Object.entries(calculatedStats).map(([stat, value]) => (
             <React.Fragment key={stat}>

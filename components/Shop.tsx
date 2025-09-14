@@ -81,9 +81,9 @@ const Shop: React.FC<ShopProps> = ({ shopData, player, onBuy, onClose, onEquip, 
   }, [player.equipment, player.inventory]);
 
   const ShopItemsPanel = () => (
-    <div className="flex flex-col h-full bg-black bg-opacity-30 p-2 sm:p-3 rounded-lg border border-yellow-800">
+    <div className="flex flex-col h-full bg-black bg-opacity-30 p-2 sm:p-3 rounded-lg border border-yellow-800 overflow-hidden">
       <h3 className="text-xl font-bold text-center mb-2 flex-shrink-0">商品</h3>
-      <div className="flex-grow overflow-y-auto">
+      <div className="flex-grow overflow-y-auto min-h-0">
         <div className="space-y-2">
           {shopData.items.map(item => {
             const canAfford = player.gold >= item.price;
@@ -111,9 +111,9 @@ const Shop: React.FC<ShopProps> = ({ shopData, player, onBuy, onClose, onEquip, 
   );
 
   const PlayerItemsPanel = () => (
-    <div className="flex flex-col h-full bg-black bg-opacity-30 p-2 sm:p-3 rounded-lg border border-yellow-800">
+    <div className="flex flex-col h-full bg-black bg-opacity-30 p-2 sm:p-3 rounded-lg border border-yellow-800 overflow-hidden">
         <h3 className="text-xl font-bold text-center mb-2 flex-shrink-0">持ち物</h3>
-        <div className="flex-grow overflow-y-auto">
+        <div className="flex-grow overflow-y-auto min-h-0">
             <div className="space-y-2">
                 {playerItemsForDisplay.length > 0 ? (
                     playerItemsForDisplay.map(item => (
