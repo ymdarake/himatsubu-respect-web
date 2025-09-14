@@ -90,6 +90,25 @@ const EnemyComponent: React.FC<EnemyProps> = ({ enemy, isHit, playerX }) => {
                     <rect x="11" y="11" width="6" height="1" fill="#374151" /> {/* Right wing bot */}
                 </svg>
             );
+        case 'スケルトン':
+            return (
+                <svg {...svgProps}>
+                    <rect x="8" y="4" width="4" height="3" fill="#e2e8f0" /> {/* Skull */}
+                    <rect x="9" y="5" width="1" height="1" fill="#ef4444" /> {/* Eye */}
+                    <rect x="11" y="5" width="1" height="1" fill="#ef4444" /> {/* Eye */}
+                    <rect x="7" y="7" width="6" height="1" fill="#e2e8f0" /> {/* Jaw */}
+                    <rect x="9" y="8" width="2" height="1" fill="#e2e8f0" /> {/* Neck */}
+                    <rect x="7" y="9" width="6" height="4" fill="#e2e8f0" /> {/* Ribs */}
+                    <rect x="8" y="9" width="1" height="4" fill="#cbd5e1" />
+                    <rect x="11" y="9" width="1" height="4" fill="#cbd5e1" />
+                    <rect x="5" y="9" width="2" height="4" fill="#e2e8f0" /> {/* Left Arm */}
+                    <rect x="13" y="9" width="2" height="4" fill="#e2e8f0" /> {/* Right Arm */}
+                    <rect x="7" y="13" width="2" height="4" fill="#e2e8f0" /> {/* Left Leg */}
+                    <rect x="11" y="13" width="2" height="4" fill="#e2e8f0" /> {/* Right Leg */}
+                    <rect x="15" y="7" width="1" height="8" fill="#94a3b8" /> {/* Sword */}
+                    <rect x="14" y="10" width="3" height="1" fill="#64748b" /> {/* Hilt */}
+                </svg>
+            );
         case 'トレント':
             return (
                 <svg {...svgProps}>
@@ -119,6 +138,21 @@ const EnemyComponent: React.FC<EnemyProps> = ({ enemy, isHit, playerX }) => {
                     <rect x="11" y="15" width="3" height="3" fill="#556b2f" />
                 </svg>
             );
+        case 'リザードマン':
+             return (
+                 <svg {...svgProps}>
+                    <rect x="8" y="5" width="4" height="4" fill="#0d9488" /> {/* Head */}
+                    <rect x="7" y="7" width="1" height="1" fill="#0d9488" /> {/* Snout */}
+                    <rect x="9" y="6" width="1" height="1" fill="#fef08a" /> {/* Eye */}
+                    <rect x="7" y="9" width="6" height="6" fill="#0f766e" /> {/* Body */}
+                    <rect x="5" y="9" width="2" height="4" fill="#0d9488" /> {/* Left arm */}
+                    <rect x="13" y="9" width="2" height="4" fill="#0d9488" /> {/* Right arm */}
+                    <rect x="7" y="15" width="2" height="3" fill="#0d9488" /> {/* Left leg */}
+                    <rect x="11" y="15" width="2" height="3" fill="#0d9488" /> {/* Right leg */}
+                    <rect x="15" y="3" width="1" height="13" fill="#a16207" /> {/* Spear Shaft */}
+                    <rect x="14" y="2" width="3" height="1" fill="#94a3b8" /> {/* Spear Head */}
+                 </svg>
+             );
         case 'ロック・スパイダー':
             return (
                 <svg {...svgProps}>
@@ -151,6 +185,22 @@ const EnemyComponent: React.FC<EnemyProps> = ({ enemy, isHit, playerX }) => {
                     <rect x="11" y="14" width="4" height="4" fill="#a8a29e" />
                 </svg>
             );
+        case 'ガーゴイル':
+            return (
+                <svg {...svgProps}>
+                    <rect x="8" y="6" width="4" height="3" fill="#52525b" /> {/* Head */}
+                    <rect x="7" y="5" width="1" height="1" fill="#52525b" /> {/* Horn */}
+                    <rect x="12" y="5" width="1" height="1" fill="#52525b" /> {/* Horn */}
+                    <rect x="9" y="7" width="1" height="1" fill="#ef4444" /> {/* Eye */}
+                    <rect x="7" y="9" width="6" height="5" fill="#71717a" /> {/* Body */}
+                    <rect x="5" y="14" width="3" height="3" fill="#71717a" /> {/* Left Leg */}
+                    <rect x="12" y="14" width="3" height="3" fill="#71717a" /> {/* Right Leg */}
+                    <rect x="3" y="7" width="4" height="2" fill="#52525b" /> {/* Left Wing */}
+                    <rect x="13" y="7" width="4" height="2" fill="#52525b" /> {/* Right Wing */}
+                    <rect x="2" y="9" width="5" height="1" fill="#52525b" />
+                    <rect x="13" y="9" width="5" height="1" fill="#52525b" />
+                </svg>
+            );
         case 'ファイア・エレメンタル':
             return (
                 <svg {...svgProps}>
@@ -167,6 +217,52 @@ const EnemyComponent: React.FC<EnemyProps> = ({ enemy, isHit, playerX }) => {
                     <rect x="11" y="10" width="1" height="1" fill="#fff" />
                 </svg>
             );
+        case 'ハーピー':
+            return (
+                <svg {...svgProps}>
+                    <rect x="8" y="5" width="4" height="3" fill="#f0c8a0" /> {/* Head */}
+                    <rect x="7" y="8" width="6" height="4" fill="#f0c8a0" /> {/* Body */}
+                    <rect x="9" y="6" width="1" height="1" fill="#000" /> {/* Eye */}
+                    <rect x="2" y="6" width="5" height="2" fill="#a16207" /> {/* Left Wing */}
+                    <rect x="13" y="6" width="5" height="2" fill="#a16207" /> {/* Right Wing */}
+                    <rect x="1" y="8" width="6" height="2" fill="#a16207" />
+                    <rect x="13" y="8" width="6" height="2" fill="#a16207" />
+                    <rect x="7" y="12" width="2" height="3" fill="#ca8a04" /> {/* Left Leg */}
+                    <rect x="11" y="12" width="2" height="3" fill="#ca8a04" /> {/* Right Leg */}
+                </svg>
+            );
+        case 'ウィザード':
+            return (
+                <svg {...svgProps}>
+                    <rect x="7" y="2" width="6" height="2" fill="#581c87" /> {/* Hat Top */}
+                    <rect x="5" y="4" width="10" height="2" fill="#581c87" /> {/* Hat Brim */}
+                    <rect x="7" y="6" width="6" height="3" fill="#f0c8a0" /> {/* Face */}
+                    <rect x="8" y="7" width="1" height="1" fill="#fff" /> {/* Eye */}
+                    <rect x="11" y="7" width="1" height="1" fill="#fff" /> {/* Eye */}
+                    <rect x="6" y="9" width="8" height="8" fill="#6b21a8" /> {/* Robe */}
+                    <rect x="3" y="8" width="2" height="4" fill="#581c87" /> {/* Left Arm */}
+                    <rect x="15" y="8" width="2" height="4" fill="#581c87" /> {/* Right Arm */}
+                    <rect x="1" y="6" width="2" height="8" fill="#a16207" /> {/* Staff */}
+                    <rect x="0" y="5" width="4" height="1" fill="#fde047" /> {/* Staff Orb */}
+                </svg>
+            );
+        case 'ミノタウロス':
+            return (
+                <svg {...svgProps}>
+                    <rect x="7" y="2" width="6" height="4" fill="#b45309" /> {/* Head */}
+                    <rect x="5" y="3" width="2" height="1" fill="#fef08a" /> {/* Left Horn */}
+                    <rect x="13" y="3" width="2" height="1" fill="#fef08a" /> {/* Right Horn */}
+                    <rect x="8" y="4" width="1" height="1" fill="#ef4444" /> {/* Eye */}
+                    <rect x="11" y="4" width="1" height="1" fill="#ef4444" /> {/* Eye */}
+                    <rect x="4" y="6" width="12" height="8" fill="#ca8a04" /> {/* Body */}
+                    <rect x="2" y="7" width="2" height="5" fill="#b45309" /> {/* Left Arm */}
+                    <rect x="16" y="7" width="2" height="5" fill="#b45309" /> {/* Right Arm */}
+                    <rect x="5" y="14" width="4" height="4" fill="#b45309" /> {/* Left Leg */}
+                    <rect x="11" y="14" width="4" height="4" fill="#b45309" /> {/* Right Leg */}
+                    <rect x="1" y="2" width="1" height="10" fill="#71717a" /> {/* Axe Handle */}
+                    <rect x="0" y="1" width="3" height="3" fill="#9ca3af" /> {/* Axe Head */}
+                </svg>
+            );
         case 'ドラゴン':
             return (
                 <svg {...svgProps}>
@@ -181,6 +277,21 @@ const EnemyComponent: React.FC<EnemyProps> = ({ enemy, isHit, playerX }) => {
                     <rect x="13" y="6" width="3" height="3" fill="#7f1d1d" />
                     <rect x="16" y="12" width="3" height="2" fill="#450a0a" />
                     <rect x="18" y="11" width="1" height="1" fill="#450a0a" />
+                </svg>
+            );
+        case 'キマイラ':
+            return (
+                <svg {...svgProps}>
+                    <rect x="6" y="10" width="10" height="6" fill="#b45309" /> {/* Body */}
+                    <rect x="16" y="9" width="3" height="1" fill="#15803d" /> {/* Snake Tail */}
+                    <rect x="18" y="8" width="1" height="1" fill="#15803d" />
+                    <rect x="4" y="6" width="4" height="4" fill="#dc2626" /> {/* Red Head */}
+                    <rect x="5" y="7" width="1" height="1" fill="#fff" />
+                    <rect x="12" y="6" width="4" height="4" fill="#059669" /> {/* Green Head */}
+                    <rect x="13" y="7" width="1" height="1" fill="#fff" />
+                    <rect x="2" y="8" width="4" height="4" fill="#7f1d1d" /> {/* Wing */}
+                    <rect x="7" y="16" width="3" height="2" fill="#a16207" />
+                    <rect x="12" y="16" width="3" height="2" fill="#a16207" />
                 </svg>
             );
         case 'ジェムスライム':

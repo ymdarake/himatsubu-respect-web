@@ -139,23 +139,30 @@ export const ENEMY_DATA: Record<string, EnemyBaseData> = {
   'ゴブリン': { name: 'ゴブリン', baseStats: { strength: 6, stamina: 4, intelligence: 2, speedAgility: 5, luck: 3 }, element: '土', color: 'bg-green-700', shape: 'square', xpValue: 26, goldValue: 18, attackPrepareTime: 1000, attackAnimationTime: 300 },
   'ウルフ': { name: 'ウルフ', baseStats: { strength: 7, stamina: 5, intelligence: 1, speedAgility: 10, luck: 4 }, element: '風', color: 'bg-gray-500', shape: 'square', xpValue: 35, goldValue: 30, attackPrepareTime: 700, attackAnimationTime: 300 },
   'バット': { name: 'バット', baseStats: { strength: 5, stamina: 3, intelligence: 1, speedAgility: 15, luck: 5 }, element: '闇', color: 'bg-gray-600', shape: 'circle', xpValue: 32, goldValue: 24, attackPrepareTime: 600, attackAnimationTime: 250 },
+  'スケルトン': { name: 'スケルトン', baseStats: { strength: 8, stamina: 5, intelligence: 1, speedAgility: 6, luck: 2 }, element: '闇', color: 'bg-gray-300', shape: 'square', xpValue: 40, goldValue: 35, attackPrepareTime: 900, attackAnimationTime: 400 },
   'トレント': { name: 'トレント', baseStats: { strength: 10, stamina: 6, intelligence: 2, speedAgility: 1, luck: 3 }, element: '土', color: 'bg-yellow-900', shape: 'square', xpValue: 44, goldValue: 48, attackPrepareTime: 2200, attackAnimationTime: 700 },
   'オーク': { name: 'オーク', baseStats: { strength: 12, stamina: 8, intelligence: 2, speedAgility: 4, luck: 2 }, element: '火', color: 'bg-red-700', shape: 'square', xpValue: 53, goldValue: 60, attackPrepareTime: 1500, attackAnimationTime: 500 },
+  'リザードマン': { name: 'リザードマン', baseStats: { strength: 9, stamina: 7, intelligence: 4, speedAgility: 8, luck: 3 }, element: '水', color: 'bg-teal-600', shape: 'square', xpValue: 80, goldValue: 85, attackPrepareTime: 1100, attackAnimationTime: 450 },
   'ロック・スパイダー': { name: 'ロック・スパイダー', baseStats: { strength: 9, stamina: 6, intelligence: 1, speedAgility: 9, luck: 6 }, element: '土', color: 'bg-stone-600', shape: 'circle', xpValue: 60, goldValue: 72, attackPrepareTime: 900, attackAnimationTime: 350 },
   'ゴーレム': { name: 'ゴーレム', baseStats: { strength: 8, stamina: 15, intelligence: 1, speedAgility: 2, luck: 1 }, element: '土', color: 'bg-stone-500', shape: 'square', xpValue: 69, goldValue: 90, attackPrepareTime: 2000, attackAnimationTime: 600 },
+  'ガーゴイル': { name: 'ガーゴイル', baseStats: { strength: 11, stamina: 13, intelligence: 1, speedAgility: 3, luck: 2 }, element: '土', color: 'bg-gray-700', shape: 'square', xpValue: 95, goldValue: 110, attackPrepareTime: 1600, attackAnimationTime: 500 },
   'ファイア・エレメンタル': { name: 'ファイア・エレメンタル', baseStats: { strength: 10, stamina: 8, intelligence: 10, speedAgility: 12, luck: 7 }, element: '火', color: 'bg-orange-500', shape: 'circle', xpValue: 104, goldValue: 120, attackPrepareTime: 1400, attackAnimationTime: 400 },
+  'ハーピー': { name: 'ハーピー', baseStats: { strength: 6, stamina: 4, intelligence: 3, speedAgility: 18, luck: 6 }, element: '風', color: 'bg-brown-400', shape: 'circle', xpValue: 110, goldValue: 95, attackPrepareTime: 500, attackAnimationTime: 200 },
+  'ウィザード': { name: 'ウィザード', baseStats: { strength: 2, stamina: 4, intelligence: 14, speedAgility: 7, luck: 4 }, element: '闇', color: 'bg-purple-600', shape: 'square', xpValue: 120, goldValue: 150, attackPrepareTime: 1800, attackAnimationTime: 600 },
+  'ミノタウロス': { name: 'ミノタウロス', baseStats: { strength: 18, stamina: 12, intelligence: 2, speedAgility: 5, luck: 1 }, element: '土', color: 'bg-yellow-800', shape: 'square', xpValue: 150, goldValue: 200, attackPrepareTime: 2500, attackAnimationTime: 800 },
   'ドラゴン': { name: 'ドラゴン', baseStats: { strength: 15, stamina: 15, intelligence: 8, speedAgility: 9, luck: 5 }, element: '闇', color: 'bg-red-900', shape: 'circle', xpValue: 173, goldValue: 300, attackPrepareTime: 1800, attackAnimationTime: 500 },
+  'キマイラ': { name: 'キマイラ', baseStats: { strength: 16, stamina: 14, intelligence: 12, speedAgility: 11, luck: 6 }, element: '火', color: 'bg-orange-700', shape: 'circle', xpValue: 200, goldValue: 400, attackPrepareTime: 1700, attackAnimationTime: 600 },
   'ジェムスライム': { name: 'ジェムスライム', baseStats: { strength: 4, stamina: 2, intelligence: 1, speedAgility: 3, luck: 2 }, element: '光', color: 'bg-fuchsia-500', shape: 'circle', xpValue: 75, goldValue: 100, attackPrepareTime: 1200, attackAnimationTime: 400 },
 };
 
 
 export const AREAS: Area[] = [
     { name: '草原', bgColor: 'bg-sky-400', groundColor: 'bg-green-700', enemyTypes: ['スライム', 'ゴブリン'] },
-    { name: '暗い森', bgColor: 'bg-indigo-900', groundColor: 'bg-emerald-950', enemyTypes: ['ウルフ', 'バット', 'トレント'] },
-    { name: '埃の洞窟', bgColor: 'bg-yellow-800', groundColor: 'bg-yellow-950', enemyTypes: ['オーク', 'ロック・スパイダー', 'ゴーレム'] },
-    { name: '火山', bgColor: 'bg-red-700', groundColor: 'bg-stone-800', enemyTypes: ['ファイア・エレメンタル', 'ドラゴン'] },
-    { name: '城の門', bgColor: 'bg-gray-600', groundColor: 'bg-gray-800', enemyTypes: ['ゴーレム', 'オーク', 'ドラゴン'] },
-    { name: '玉座', bgColor: 'bg-purple-800', groundColor: 'bg-purple-950', enemyTypes: ['バット', 'ファイア・エレメンタル', 'ドラゴン'] },
+    { name: '暗い森', bgColor: 'bg-indigo-900', groundColor: 'bg-emerald-950', enemyTypes: ['ウルフ', 'バット', 'トレント', 'スケルトン'] },
+    { name: '埃の洞窟', bgColor: 'bg-yellow-800', groundColor: 'bg-yellow-950', enemyTypes: ['オーク', 'ロック・スパイダー', 'ゴーレム', 'リザードマン'] },
+    { name: '火山', bgColor: 'bg-red-700', groundColor: 'bg-stone-800', enemyTypes: ['ファイア・エレメンタル', 'ドラゴン', 'ガーゴイル'] },
+    { name: '城の門', bgColor: 'bg-gray-600', groundColor: 'bg-gray-800', enemyTypes: ['ゴーレム', 'オーク', 'ドラゴン', 'ミノタウロス', 'ウィザード'] },
+    { name: '玉座', bgColor: 'bg-purple-800', groundColor: 'bg-purple-950', enemyTypes: ['バット', 'ファイア・エレメンタル', 'ドラゴン', 'ハーピー', 'キマイラ'] },
 ];
 
 export const SHOP_TYPES: ShopType[] = ['weapon_shop', 'armor_shop', 'accessory_shop'];
