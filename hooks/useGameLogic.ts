@@ -721,16 +721,9 @@ export const useGameLogic = () => {
                       playerUpdate.xp += xpGained;
                       setPlayStats(prev => ({ ...prev, totalXpGained: prev.totalXpGained + xpGained }));
 
-                      // New gold calculation
-                      const baseGold = Math.floor(Math.random() * 3) + 1; // 1 to 3 G
-                      
-                      // Luck bonus: 1-20G. Higher luck gives more chances for a high roll.
-                      const luckPulls = 1 + Math.floor(currentCalculatedStats.luckValue / 20);
-                      let luckBonus = 0;
-                      for (let i = 0; i < luckPulls; i++) {
-                          luckBonus = Math.max(luckBonus, Math.floor(Math.random() * 20) + 1);
-                      }
-
+                      // Gold calculation: Base 1-3 G + bonus from luck (capped at 10)
+                      const baseGold = Math.floor(Math.random() * 3) + 1;
+                      const luckBonus = Math.min(10, Math.floor(Math.random() * (currentCalculatedStats.luckValue / 10)));
                       const goldDropped = baseGold + luckBonus;
                       playerUpdate.gold += goldDropped;
                       
