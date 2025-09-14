@@ -30,16 +30,16 @@ export const calculateEnemyStats = (enemyData: EnemyBaseData, level: number) => 
     const scaledBaseStats: BaseStats = { ...enemyData.baseStats };
     for (const stat in scaledBaseStats) {
         const key = stat as keyof BaseStats;
-        const levelMultiplier = 1 + (level - 1) * 0.15 + Math.pow(level - 1, 2) * 0.005;
+        const levelMultiplier = 1 + (level - 1) * 0.18 + Math.pow(level - 1, 2) * 0.006;
         scaledBaseStats[key] = Math.floor(scaledBaseStats[key] * levelMultiplier);
     }
 
     const derivedStats = {
         maxHp: Math.floor(10 + (scaledBaseStats.stamina * 5) + (scaledBaseStats.strength * 1.5)),
         physicalAttack: Math.floor(2 + (scaledBaseStats.strength * 1.8) + (scaledBaseStats.speedAgility * 0.5)),
-        physicalDefense: Math.floor((scaledBaseStats.stamina * 0.8) + (scaledBaseStats.strength * 0.4)),
+        physicalDefense: Math.floor((scaledBaseStats.stamina * 1.0) + (scaledBaseStats.strength * 0.5)),
         magicalAttack: Math.floor((scaledBaseStats.intelligence * 2)),
-        magicalDefense: Math.floor((scaledBaseStats.intelligence * 1.2) + (scaledBaseStats.stamina * 0.8)),
+        magicalDefense: Math.floor((scaledBaseStats.intelligence * 1.5) + (scaledBaseStats.stamina * 1.0)),
         speed: Math.floor(5 + (scaledBaseStats.speedAgility * 1.5)),
         luckValue: Math.floor(1 + (scaledBaseStats.luck * 1)),
     };
