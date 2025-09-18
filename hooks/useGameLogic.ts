@@ -299,7 +299,7 @@ export const useGameLogic = () => {
 
   const handleHeal = useCallback(() => {
     setPlayer(p => {
-        const cost = p.level * 10;
+        const cost = p.level * 7;
         const stats = calculateDerivedStats(p);
         if (p.gold >= cost && p.currentHp < stats.maxHp) {
             addLog(`HPが全回復した！ (-${cost}G)`);
@@ -344,7 +344,7 @@ export const useGameLogic = () => {
   }, []);
 
   const handleTeleport = useCallback((targetStageIndex: number) => {
-      const cost = Math.abs(targetStageIndex - stageIndex) * 10;
+      const cost = Math.abs(targetStageIndex - stageIndex) * 7;
       if (player.gold < cost) {
           addLog("ゴールドが足りません！");
           return;
@@ -651,10 +651,18 @@ export const useGameLogic = () => {
           let totalDamage = 0;
           const damageInfos: DamageInfo[] = [];
 
-          // 物理ダメージ計算
-          const basePhysicalDamage = currentCalculatedStats.physicalAttack;
-          // ダメージの揺らぎを0.98-1.02倍に
-          let rawPhysicalDamage = basePhysicalDamage * (0.98 + Math.random() * 0.04); 
+          // 物理ダメージ計算 (新方式)
+          const basePhysicalAttack = currentCalculatedStats.physicalAttack;
+          const effectiveDefense = enemyToAttack.physicalDefense;
+          
+          // 防御力が0以下の場合の計算エラーを防ぐ
+          const totalStat = basePhysicalAttack + effectiveDefense;
+          const damageMultiplier = totalStat > 0 ? basePhysicalAttack / totalStat : 1;
+          
+          let rawPhysicalDamage = basePhysicalAttack * damageMultiplier;
+
+          // ダメージの揺らぎを0.9-1.1倍に
+          rawPhysicalDamage *= (0.9 + Math.random() * 0.2); 
 
           // クリティカルヒット判定
           const criticalChance = Math.min(0.75, currentCalculatedStats.luckValue / 400); // 運気400でキャップ
@@ -665,7 +673,7 @@ export const useGameLogic = () => {
             rawPhysicalDamage *= criticalMultiplier;
           }
           
-          const finalPhysicalDamage = Math.max(1, Math.floor(rawPhysicalDamage) - enemyToAttack.physicalDefense);
+          const finalPhysicalDamage = Math.max(1, Math.floor(rawPhysicalDamage));
           totalDamage += finalPhysicalDamage;
 
           damageInfos.push({ 
@@ -808,9 +816,17 @@ export const useGameLogic = () => {
               if (distanceBetweenCenters <= combinedHalfWidths + ATTACK_RANGE) {
                   const damageInfos: DamageInfo[] = [];
 
-                  // 1. Calculate physical damage for ALL attacks
-                  const rawPhysicalDamage = Math.floor(enemy.physicalAttack * (0.8 + Math.random() * 0.4));
-                  const finalPhysicalDamage = Math.max(1, rawPhysicalDamage - currentCalculatedStats.physicalDefense);
+                  // 1. Calculate physical damage for ALL attacks (新方式)
+                  const enemyAttack = enemy.physicalAttack;
+                  const playerDefense = currentCalculatedStats.physicalDefense;
+                  
+                  const totalStat = enemyAttack + playerDefense;
+                  const damageMultiplier = totalStat > 0 ? enemyAttack / totalStat : 1;
+
+                  let rawPhysicalDamage = enemyAttack * damageMultiplier;
+                  rawPhysicalDamage *= (0.9 + Math.random() * 0.2); // 揺らぎを追加
+                  const finalPhysicalDamage = Math.max(1, Math.floor(rawPhysicalDamage));
+
                   totalPlayerDamageThisFrame += finalPhysicalDamage;
                   damageInfos.push({ text: `${finalPhysicalDamage}`, color: '#FFFFFF' });
 

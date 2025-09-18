@@ -21,7 +21,7 @@ const TeleporterModal: React.FC<TeleporterModalProps> = ({ player, playStats, cu
       const areaIndex = Math.floor(i / 10);
       const area = AREAS[Math.min(areaIndex, AREAS.length - 1)];
       const stageInArea = (i % 10) + 1;
-      const cost = Math.abs(i - currentStageIndex) * 10;
+      const cost = Math.abs(i - currentStageIndex) * 7;
       stageList.push({
         stageIndex: i,
         name: `${area.name} ${stageInArea}`,

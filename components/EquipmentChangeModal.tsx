@@ -45,7 +45,7 @@ const ItemStats: React.FC<{ item: Equipment }> = React.memo(({ item }) => (
 const EquipmentChangeModal: React.FC<EquipmentChangeModalProps> = ({ player, calculatedStats, onEquip, onUnequip, onClose, onHeal }) => {
   const [activeTab, setActiveTab] = useState<'inventory' | 'stats'>('inventory');
   const [itemFilter, setItemFilter] = useState<EquipmentType>('weapon');
-  const healCost = player.level * 10;
+  const healCost = player.level * 7;
   const canHeal = player.gold >= healCost;
   const needsHeal = player.currentHp < calculatedStats.maxHp;
 

@@ -175,7 +175,7 @@ const App: React.FC = () => {
           {housePrompt && gameState === GameState.PLAYING && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20">
                 <p className="text-white text-sm sm:text-lg font-bold animate-pulse p-2 sm:p-3 bg-gray-800 rounded-lg border-2 border-green-400 shadow-lg">
-                    スペースキーまたはアクションボタンで家に入る (回復: {player.level * 10} G)
+                    スペースキーまたはアクションボタンで家に入る (回復: {player.level * 7} G)
                 </p>
             </div>
           )}
