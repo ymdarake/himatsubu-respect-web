@@ -41,7 +41,7 @@ export const equipmentFactory = (masterId: string, level: number): Equipment | n
     instanceId: `${masterId}-${level}-${Date.now()}-${Math.random()}`,
     masterId: masterData.masterId,
     level: level,
-    name: masterData.name + (level > 0 ? `+${level}` : ''),
+    name: `${masterData.name} Lv.${level + 1}`,
     type: masterData.type,
     stats: calculatedStats,
     price: masterData.basePrice + (masterData.priceGrowth * level),

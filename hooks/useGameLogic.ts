@@ -321,8 +321,7 @@ export const useGameLogic = () => {
   const triggerAction = useCallback(() => {
     if (shopTarget.current) {
         const shopType = shopTarget.current.type as ShopType;
-        const areaIndex = Math.floor(stageIndex / 10);
-        const items = generateShopItems(shopType, areaIndex);
+        const items = generateShopItems(shopType, stageIndex);
         setShopData({ type: shopType, items });
         setGameState(GameState.SHOPPING);
         setShopPrompt(false);
@@ -776,8 +775,7 @@ export const useGameLogic = () => {
                                 playerUpdate.baseStats[gem.stat] += gem.value;
                                 setPlayStats(prev => ({ ...prev, gemCollection: { ...prev.gemCollection, [gem.stat]: (prev.gemCollection[gem.stat] || 0) + 1 }}));
                             } else {
-                                const areaIndex = Math.floor(stageIndex / 10);
-                                const droppedItem = generateRandomEquipment(areaIndex);
+                                const droppedItem = generateRandomEquipment(stageIndex);
                                 playerUpdate = addEquipmentToPlayer(playerUpdate, droppedItem, trackEquipmentCollection, addLog);
                             }
                         }

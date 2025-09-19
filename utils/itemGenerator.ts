@@ -53,7 +53,7 @@ const ITEM_POOL_BY_AREA_TIER: Record<number, { masterId: string }[]> = {
 };
 
 const getAvailableItemsForArea = (areaIndex: number, type: ShopType | 'any'): EquipmentMaster[] => {
-    const tier = Math.min(Math.floor(areaIndex / 10), Object.keys(ITEM_POOL_BY_AREA_TIER).length - 1);
+    const tier = Math.min(areaIndex, Object.keys(ITEM_POOL_BY_AREA_TIER).length - 1);
     const pool = ITEM_POOL_BY_AREA_TIER[tier] || ITEM_POOL_BY_AREA_TIER[0];
     
     let equipmentTypeFilter: string | null = null;
@@ -71,23 +71,24 @@ const getAvailableItemsForArea = (areaIndex: number, type: ShopType | 'any'): Eq
     return masterItems;
 };
 
-export const generateRandomEquipment = (areaIndex: number): Equipment => {
+export const generateRandomEquipment = (stageIndex: number): Equipment => {
+    const areaIndex = Math.floor(stageIndex / 10);
     const availableItems = getAvailableItemsForArea(areaIndex, 'any');
     if (availableItems.length === 0) {
         return equipmentFactory('wpn_short_sword', 0)!;
     }
     const randomMasterItem = availableItems[Math.floor(Math.random() * availableItems.length)];
     
-    const levelVariance = Math.floor(Math.random() * 5) - 2; // -2 to +2
-    const level = Math.max(0, areaIndex + levelVariance);
+    const level = stageIndex;
 
     const newItem = equipmentFactory(randomMasterItem.masterId, level);
     
     return newItem || equipmentFactory('wpn_short_sword', 0)!;
 };
 
-export const generateShopItems = (shopType: ShopType, areaIndex: number): Equipment[] => {
+export const generateShopItems = (shopType: ShopType, stageIndex: number): Equipment[] => {
     const items: Equipment[] = [];
+    const areaIndex = Math.floor(stageIndex / 10);
     const availableMasterItems = getAvailableItemsForArea(areaIndex, shopType);
 
     // Shuffle and pick up to 5 unique items to display
@@ -95,8 +96,7 @@ export const generateShopItems = (shopType: ShopType, areaIndex: number): Equipm
     const itemsToGenerate = shuffled.slice(0, 5);
     
     for (const masterItem of itemsToGenerate) {
-        const levelVariance = Math.floor(Math.random() * 3) - 1; // -1 to +1
-        const level = Math.max(0, areaIndex + levelVariance);
+        const level = stageIndex;
         const newItem = equipmentFactory(masterItem.masterId, level);
         if (newItem) {
             items.push(newItem);
@@ -106,7 +106,7 @@ export const generateShopItems = (shopType: ShopType, areaIndex: number): Equipm
     // Fallback if shop is empty
     if (items.length === 0) {
         const defaultMasterId = shopType === 'weapon_shop' ? 'wpn_short_sword' : shopType === 'armor_shop' ? 'arm_leather_vest' : 'acc_speed_ring';
-        const fallbackItem = equipmentFactory(defaultMasterId, areaIndex);
+        const fallbackItem = equipmentFactory(defaultMasterId, stageIndex);
         if (fallbackItem) items.push(fallbackItem);
     }
 
