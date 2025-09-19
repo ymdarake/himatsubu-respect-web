@@ -94,6 +94,23 @@ export const useGameLogic = () => {
 
   const calculatedStats = useMemo(() => calculateDerivedStats(player), [player]);
   
+  const totalElementalDamages = useMemo(() => {
+    const totals: Partial<Record<Element, number>> = {};
+    const equipmentList = [player.equipment.weapon, player.equipment.armor, player.equipment.accessory];
+
+    for (const item of equipmentList) {
+        if (item && item.elementalDamages) {
+            for (const [element, power] of Object.entries(item.elementalDamages)) {
+                if (power) {
+                    const elemKey = element as Element;
+                    totals[elemKey] = (totals[elemKey] || 0) + power;
+                }
+            }
+        }
+    }
+    return totals;
+  }, [player.equipment]);
+
   const displayedEnemy = useMemo(() => enemies.find(e => e.id === displayedEnemyId), [enemies, displayedEnemyId]);
   const currentAreaIndex = Math.floor(stageIndex / 10);
   const currentArea = AREAS[Math.min(currentAreaIndex, AREAS.length - 1)];
@@ -1056,6 +1073,7 @@ export const useGameLogic = () => {
     playerAttackDirection,
     enemyHits,
     calculatedStats,
+    totalElementalDamages,
     totalDistance,
     currentArea,
     displayedEnemy,

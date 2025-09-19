@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { GameState, AllocatableStat, DerivedStat, DERIVED_STAT_NAMES } from './types';
+import { GameState, AllocatableStat, DerivedStat, DERIVED_STAT_NAMES, Element } from './types';
 import { useGameLogic } from './hooks/useGameLogic';
 import Player from './components/Player';
 import EnemyComponent from './components/Enemy';
@@ -17,6 +17,7 @@ import EquipmentChangeModal from './components/EquipmentChangeModal';
 import TouchControls from './components/TouchControls';
 import TeleporterStructure from './components/TeleporterStructure';
 import TeleporterModal from './components/TeleporterModal';
+import { ELEMENT_COLORS } from './constants';
 
 const baseStatNames: Record<AllocatableStat, string> = {
   strength: '腕力',
@@ -44,6 +45,7 @@ const App: React.FC = () => {
     playerAttackDirection,
     enemyHits,
     calculatedStats,
+    totalElementalDamages,
     totalDistance,
     currentArea,
     displayedEnemy,
@@ -244,6 +246,14 @@ const App: React.FC = () => {
                                 <span className="font-bold">{Math.floor(value)}</span>
                                 </div>
                             ))}
+                            {Object.entries(totalElementalDamages).map(([element, value]) => (
+                                value > 0 && (
+                                    <div key={element} className="flex justify-between">
+                                        <span className={`${ELEMENT_COLORS[element as Element]}`}>{element}属性</span>
+                                        <span className={`font-bold ${ELEMENT_COLORS[element as Element]}`}>+{value}</span>
+                                    </div>
+                                )
+                            ))}
                             </div>
                         </div>
                     </div>
@@ -333,6 +343,14 @@ const App: React.FC = () => {
                         <span>{DERIVED_STAT_NAMES[stat as keyof typeof DERIVED_STAT_NAMES]}</span>
                         <span className="font-bold">{Math.floor(value)}</span>
                       </div>
+                    ))}
+                    {Object.entries(totalElementalDamages).map(([element, value]) => (
+                        value > 0 && (
+                            <div key={element} className="flex justify-between">
+                                <span className={`${ELEMENT_COLORS[element as Element]}`}>{element}属性</span>
+                                <span className={`font-bold ${ELEMENT_COLORS[element as Element]}`}>+{value}</span>
+                            </div>
+                        )
                     ))}
                   </div>
                 </div>
