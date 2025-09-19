@@ -33,12 +33,12 @@ const EquipmentSlot: React.FC<{
           <div className="text-xs text-green-400 flex flex-wrap gap-x-2">
             {item.elementalDamages && Object.entries(item.elementalDamages).map(([element, power]) => (
                 <span key={element} className={`font-bold ${ELEMENT_COLORS[element as Element]}`}>
-                    {element}{power}
+                    {element}+{power}
                 </span>
             ))}
             {Object.entries(item.stats).map(([stat, value]) => (
                 <span key={stat}>
-                    +{value} {abbreviateStat(stat as keyof typeof STAT_ABBREVIATIONS)}
+                    {abbreviateStat(stat as keyof typeof STAT_ABBREVIATIONS)}+{value}
                 </span>
             ))}
           </div>
