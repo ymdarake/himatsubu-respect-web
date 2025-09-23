@@ -38,7 +38,7 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ player, onConfirm }) => {
   const projectedStats = useMemo(() => {
     const newBase: BaseStats = { ...player.baseStats };
     for (const [stat, value] of Object.entries(allocated)) {
-        newBase[stat as AllocatableStat] += value;
+        newBase[stat as AllocatableStat] += value as number;
     }
     const projectedPlayer = { ...player, baseStats: newBase };
     return calculateDerivedStats(projectedPlayer);

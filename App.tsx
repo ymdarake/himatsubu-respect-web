@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { GameState, AllocatableStat, DerivedStat, DERIVED_STAT_NAMES, Element } from './types';
 import { useGameLogic } from './hooks/useGameLogic';
@@ -243,11 +244,11 @@ const App: React.FC = () => {
                             {Object.entries(calculatedStats).map(([stat, value]) => (
                                 <div key={stat} className="flex justify-between">
                                 <span>{DERIVED_STAT_NAMES[stat as keyof typeof DERIVED_STAT_NAMES]}</span>
-                                <span className="font-bold">{Math.floor(value)}</span>
+                                <span className="font-bold">{Math.floor(value as number)}</span>
                                 </div>
                             ))}
                             {Object.entries(totalElementalDamages).map(([element, value]) => (
-                                value > 0 && (
+                                (value as number) > 0 && (
                                     <div key={element} className="flex justify-between">
                                         <span className={`${ELEMENT_COLORS[element as Element]}`}>{element}属性</span>
                                         <span className={`font-bold ${ELEMENT_COLORS[element as Element]}`}>+{value}</span>
@@ -341,11 +342,11 @@ const App: React.FC = () => {
                     {Object.entries(calculatedStats).map(([stat, value]) => (
                       <div key={stat} className="flex justify-between">
                         <span>{DERIVED_STAT_NAMES[stat as keyof typeof DERIVED_STAT_NAMES]}</span>
-                        <span className="font-bold">{Math.floor(value)}</span>
+                        <span className="font-bold">{Math.floor(value as number)}</span>
                       </div>
                     ))}
                     {Object.entries(totalElementalDamages).map(([element, value]) => (
-                        value > 0 && (
+                        (value as number) > 0 && (
                             <div key={element} className="flex justify-between">
                                 <span className={`${ELEMENT_COLORS[element as Element]}`}>{element}属性</span>
                                 <span className={`font-bold ${ELEMENT_COLORS[element as Element]}`}>+{value}</span>
