@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { GameState, Enemy, Player as PlayerType, Structure, ShopType, Equipment, AllocatableStat, BaseStats, Gem, SceneryObject, PlayStats, Element, DamageInstance, DamageInfo } from '../types';
 import { AREAS, INITIAL_PLAYER, GAME_SPEED, ATTACK_RANGE, STAGE_LENGTH, XP_FOR_NEXT_LEVEL_MULTIPLIER, HEALING_HOUSE_RANGE, PIXELS_PER_METER, SHOP_RANGE, STAT_POINTS_PER_LEVEL, BASE_DROP_CHANCE, LUCK_TO_DROP_CHANCE_MULTIPLIER, INITIAL_PLAY_STATS, ELEMENTAL_AFFINITY, ELEMENT_HEX_COLORS, ATTACK_SPEED_LEVELS, ENEMY_PANEL_DISPLAY_RANGE, TELEPORTER_RANGE } from '../constants';
@@ -526,7 +527,7 @@ export const useGameLogic = () => {
         const newBaseStats: BaseStats = { ...p.baseStats };
         let hpChange = 10; // Base HP gain from level up
         for (const [stat, value] of Object.entries(allocatedStats)) {
-            newBaseStats[stat as AllocatableStat] += value;
+            newBaseStats[stat as AllocatableStat] += value as number;
         }
         
         hpChange += allocatedStats.stamina * 10;
@@ -745,10 +746,10 @@ export const useGameLogic = () => {
                       playerUpdate.xp += xpGained;
                       setPlayStats(prev => ({ ...prev, totalXpGained: prev.totalXpGained + xpGained }));
 
-                      // Gold calculation: Base 1-3 G + bonus from luck (capped at 10)
-                      const baseGold = Math.floor(Math.random() * 3) + 1;
-                      const luckBonus = Math.min(10, Math.floor(Math.random() * (currentCalculatedStats.luckValue / 10)));
-                      const goldDropped = baseGold + luckBonus;
+                      // New gold calculation based on enemy's goldValue and player's luck
+                      const baseGoldFromEnemy = e.goldValue * (0.8 + Math.random() * 0.4); // 80% to 120% variance
+                      const luckBonusMultiplier = 1 + (currentCalculatedStats.luckValue * 0.0025); // +25% gold at 100 luck
+                      const goldDropped = Math.floor(baseGoldFromEnemy * luckBonusMultiplier);
                       playerUpdate.gold += goldDropped;
                       
                       const newDrop = { id: nextGoldDropId.current++, x: e.x + 10 };
@@ -771,8 +772,8 @@ export const useGameLogic = () => {
                           for (const [stat, count] of Object.entries(gemDrops)) {
                               if (count > 0) {
                                   const statKey = stat as AllocatableStat;
-                                  playerUpdate.baseStats[statKey] += count;
-                                  setPlayStats(prev => ({ ...prev, gemCollection: { ...prev.gemCollection, [statKey]: (prev.gemCollection[statKey] || 0) + count }}));
+                                  playerUpdate.baseStats[statKey] += count as number;
+                                  setPlayStats(prev => ({ ...prev, gemCollection: { ...prev.gemCollection, [statKey]: (prev.gemCollection[statKey] || 0) + (count as number) }}));
                                   logParts.push(`${baseStatNames[statKey]} +${count}`);
                               }
                           }
@@ -919,7 +920,7 @@ export const useGameLogic = () => {
               const newBaseStats: BaseStats = { ...playerUpdate.baseStats };
               let hpChange = 10;
               for (const [stat, value] of Object.entries(playerUpdate.lastStatAllocation)) {
-                  newBaseStats[stat as AllocatableStat] += value;
+                  newBaseStats[stat as AllocatableStat] += value as number;
               }
 
               hpChange += (playerUpdate.lastStatAllocation.stamina || 0) * 10;
