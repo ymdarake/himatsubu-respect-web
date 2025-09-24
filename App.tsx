@@ -18,15 +18,7 @@ import EquipmentChangeModal from './components/EquipmentChangeModal';
 import TouchControls from './components/TouchControls';
 import TeleporterStructure from './components/TeleporterStructure';
 import TeleporterModal from './components/TeleporterModal';
-import { ELEMENT_COLORS } from './constants/ui';
-
-const baseStatNames: Record<AllocatableStat, string> = {
-  strength: '腕力',
-  stamina: '体力',
-  intelligence: '知力',
-  speedAgility: '敏捷',
-  luck: '幸運',
-};
+import { BaseStatsPanel, DerivedStatsPanel } from './components/PlayerStatsPanels';
 
 const App: React.FC = () => {
   const {
@@ -220,43 +212,16 @@ const App: React.FC = () => {
                 <div className="grid grid-cols-5 gap-2 flex-shrink-0">
                     {/* Left Column */}
                     <div className="col-span-2 flex flex-col gap-2">
-                        <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 flex flex-col">
-                            <div className="text-center mb-2 border-b border-gray-700 pb-1">
-                                <span className="font-bold text-base">レベル {player.level}</span>
-                            </div>
-                            <div className="space-y-1 flex-grow text-xs">
-                                {Object.entries(player.baseStats).map(([stat, value]) => (
-                                <div key={stat} className="flex justify-between">
-                                    <span>{baseStatNames[stat as keyof typeof baseStatNames]}</span>
-                                    <span className="font-bold">{value}</span>
-                                </div>
-                                ))}
-                            </div>
-                            <div className="mt-2 pt-2 border-t border-gray-700">
-                                <label className="flex items-center space-x-2 cursor-pointer text-xs select-none" title={!player.lastStatAllocation ? "一度レベルアップしてステータスを割り振ると有効になります" : "ステータス割り振りを固定する"}>
-                                <input type="checkbox" className="form-checkbox h-3 w-3 text-yellow-400 bg-gray-800 border-gray-600 rounded focus:ring-yellow-500 focus:ring-offset-0 disabled:opacity-50 disabled:cursor-not-allowed" checked={player.isStatAllocationLocked} onChange={toggleStatAllocationLock} disabled={!player.lastStatAllocation} />
-                                <span className={player.lastStatAllocation ? '' : 'text-gray-500'}>ステ振り固定</span>
-                                </label>
-                            </div>
-                        </div>
-                        <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600">
-                            <div className="space-y-1 text-xs">
-                            {Object.entries(calculatedStats).map(([stat, value]) => (
-                                <div key={stat} className="flex justify-between">
-                                <span>{DERIVED_STAT_NAMES[stat as keyof typeof DERIVED_STAT_NAMES]}</span>
-                                <span className="font-bold">{Math.floor(value as number)}</span>
-                                </div>
-                            ))}
-                            {Object.entries(totalElementalDamages).map(([element, value]) => (
-                                (value as number) > 0 && (
-                                    <div key={element} className="flex justify-between">
-                                        <span className={`${ELEMENT_COLORS[element as Element]}`}>{element}属性</span>
-                                        <span className={`font-bold ${ELEMENT_COLORS[element as Element]}`}>+{value}</span>
-                                    </div>
-                                )
-                            ))}
-                            </div>
-                        </div>
+                        <BaseStatsPanel
+                            player={player}
+                            toggleStatAllocationLock={toggleStatAllocationLock}
+                            variant="mobile"
+                        />
+                        <DerivedStatsPanel
+                            calculatedStats={calculatedStats}
+                            totalElementalDamages={totalElementalDamages}
+                            variant="mobile"
+                        />
                     </div>
 
                     {/* Right Column */}
@@ -318,43 +283,18 @@ const App: React.FC = () => {
             {/* Desktop View */}
             <div className="hidden sm:flex flex-col gap-4 h-full">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm flex-shrink-0">
-                <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 h-full flex flex-col">
-                  <div className="text-center mb-2 border-b border-gray-700 pb-1">
-                    <span className="font-bold text-lg">レベル {player.level}</span>
-                  </div>
-                  <div className="space-y-1 flex-grow">
-                    {Object.entries(player.baseStats).map(([stat, value]) => (
-                      <div key={stat} className="flex justify-between">
-                        <span>{baseStatNames[stat as keyof typeof baseStatNames]}</span>
-                        <span className="font-bold">{value}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-2 pt-2 border-t border-gray-700">
-                    <label className="flex items-center space-x-2 cursor-pointer text-sm select-none" title={!player.lastStatAllocation ? "一度レベルアップしてステータスを割り振ると有効になります" : "ステータス割り振りを固定する"}>
-                      <input type="checkbox" className="form-checkbox h-4 w-4 text-yellow-400 bg-gray-800 border-gray-600 rounded focus:ring-yellow-500 focus:ring-offset-0 disabled:opacity-50 disabled:cursor-not-allowed" checked={player.isStatAllocationLocked} onChange={toggleStatAllocationLock} disabled={!player.lastStatAllocation} />
-                      <span className={player.lastStatAllocation ? '' : 'text-gray-500'}>ステ振り固定</span>
-                    </label>
-                  </div>
-                </div>
-                <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 h-full">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1">
-                    {Object.entries(calculatedStats).map(([stat, value]) => (
-                      <div key={stat} className="flex justify-between">
-                        <span>{DERIVED_STAT_NAMES[stat as keyof typeof DERIVED_STAT_NAMES]}</span>
-                        <span className="font-bold">{Math.floor(value as number)}</span>
-                      </div>
-                    ))}
-                    {Object.entries(totalElementalDamages).map(([element, value]) => (
-                        (value as number) > 0 && (
-                            <div key={element} className="flex justify-between">
-                                <span className={`${ELEMENT_COLORS[element as Element]}`}>{element}属性</span>
-                                <span className={`font-bold ${ELEMENT_COLORS[element as Element]}`}>+{value}</span>
-                            </div>
-                        )
-                    ))}
-                  </div>
-                </div>
+                <BaseStatsPanel
+                    player={player}
+                    toggleStatAllocationLock={toggleStatAllocationLock}
+                    className="h-full"
+                    variant="desktop"
+                />
+                <DerivedStatsPanel
+                    calculatedStats={calculatedStats}
+                    totalElementalDamages={totalElementalDamages}
+                    className="h-full"
+                    variant="desktop"
+                />
                 <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 h-full">
                   <EquipmentPanel equipment={player.equipment} />
                 </div>
