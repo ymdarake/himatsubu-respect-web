@@ -746,10 +746,11 @@ export const useGameLogic = () => {
                       playerUpdate.xp += xpGained;
                       setPlayStats(prev => ({ ...prev, totalXpGained: prev.totalXpGained + xpGained }));
 
-                      // New gold calculation based on enemy's goldValue and player's luck
+                      // New gold calculation with a cap of 10G based on luck
                       const baseGoldFromEnemy = e.goldValue * (0.8 + Math.random() * 0.4); // 80% to 120% variance
                       const luckBonusMultiplier = 1 + (currentCalculatedStats.luckValue * 0.0025); // +25% gold at 100 luck
-                      const goldDropped = Math.floor(baseGoldFromEnemy * luckBonusMultiplier);
+                      const potentialGoldDropped = baseGoldFromEnemy * luckBonusMultiplier;
+                      const goldDropped = Math.min(10, Math.floor(potentialGoldDropped)); // Cap at 10G
                       playerUpdate.gold += goldDropped;
                       
                       const newDrop = { id: nextGoldDropId.current++, x: e.x + 10 };
