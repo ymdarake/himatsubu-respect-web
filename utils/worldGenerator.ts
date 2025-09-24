@@ -1,7 +1,10 @@
 import React from 'react';
-import { Structure, ShopType, SceneryObject, Enemy } from '../types';
-import { AREAS, ENEMY_DATA, INITIAL_PLAYER, PIXELS_PER_METER, SCENERY_CONFIG, SHOP_TYPES, STAGE_LENGTH, GEM_SLIME_SPAWN_CHANCE } from '../constants';
+import { Structure, SceneryObject, Enemy } from '../types';
 import { calculateEnemyStats } from './statCalculations';
+import { AREAS, SCENERY_CONFIG } from '../data/areas';
+import { ENEMY_DATA } from '../data/enemies';
+import { INITIAL_PLAYER } from '../constants/player';
+import { PIXELS_PER_METER, SHOP_TYPES, STAGE_LENGTH, GEM_SLIME_SPAWN_CHANCE } from '../constants/game';
 
 const createStructureForStage = (targetStageIndex: number): Structure | null => {
     const stageStartX = INITIAL_PLAYER.x + (targetStageIndex * STAGE_LENGTH * PIXELS_PER_METER);

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Equipment, ShopType, DERIVED_STAT_NAMES, Player, Element, EquipmentType, DerivedStat } from '../types';
-import { ELEMENT_COLORS } from '../constants';
+import { ELEMENT_COLORS } from '../constants/ui';
 
 interface ShopProps {
   shopData: {

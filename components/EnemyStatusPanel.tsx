@@ -1,7 +1,7 @@
 import React from 'react';
 import { Enemy, DERIVED_STAT_NAMES, Element } from '../types';
 import HealthBar from './HealthBar';
-import { ELEMENT_COLORS } from '../constants';
+import { ELEMENT_COLORS } from '../constants/ui';
 
 interface EnemyStatusPanelProps {
   enemy: Enemy;

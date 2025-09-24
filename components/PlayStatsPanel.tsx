@@ -1,6 +1,6 @@
 import React from 'react';
 import { PlayStats, Player, AllocatableStat } from '../types';
-import { GEM_COLORS } from '../constants';
+import { GEM_COLORS } from '../constants/ui';
 import { EQUIPMENT_MASTER_DATA } from '../data/equipmentMaster';
 
 interface PlayStatsPanelProps {

@@ -18,7 +18,7 @@ import EquipmentChangeModal from './components/EquipmentChangeModal';
 import TouchControls from './components/TouchControls';
 import TeleporterStructure from './components/TeleporterStructure';
 import TeleporterModal from './components/TeleporterModal';
-import { ELEMENT_COLORS } from './constants';
+import { ELEMENT_COLORS } from './constants/ui';
 
 const baseStatNames: Record<AllocatableStat, string> = {
   strength: '腕力',

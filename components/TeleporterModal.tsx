@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Player, PlayStats } from '../types';
-import { AREAS, STAGE_LENGTH } from '../constants';
+import { STAGE_LENGTH } from '../constants/game';
+import { AREAS } from '../data/areas';
 
 interface TeleporterModalProps {
   player: Player;

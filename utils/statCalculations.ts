@@ -1,5 +1,5 @@
 import { Player as PlayerType, DerivedStat, BaseStats, Equipment } from '../types';
-import { EnemyBaseData } from '../constants';
+import { EnemyBaseData } from '../data/enemies';
 
 export const calculateDerivedStats = (player: PlayerType): Record<DerivedStat, number> => {
   const base = player.baseStats;

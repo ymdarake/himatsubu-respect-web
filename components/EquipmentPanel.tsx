@@ -1,6 +1,6 @@
 import React from 'react';
 import { Player, DerivedStat, Element } from '../types';
-import { ELEMENT_COLORS } from '../constants';
+import { ELEMENT_COLORS } from '../constants/ui';
 
 interface EquipmentPanelProps {
   equipment: Player['equipment'];

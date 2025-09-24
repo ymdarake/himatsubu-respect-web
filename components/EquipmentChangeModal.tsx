@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Player, Equipment, EquipmentType, DERIVED_STAT_NAMES, Element, DerivedStat } from '../types';
-import { ELEMENT_COLORS } from '../constants';
+// fix: Corrected the import path for ELEMENT_COLORS.
+import { ELEMENT_COLORS } from '../constants/ui';
 
 interface EquipmentChangeModalProps {
   player: Player;
