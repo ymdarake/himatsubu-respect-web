@@ -22,7 +22,7 @@ const createAudioContext = () => {
 // FIX: Ensure the function returns the promise from audioContext.resume()
 export const resumeAudioContext = async () => {
   if (audioContext && audioContext.state === 'suspended') {
-    await audioContext.resume();
+    return audioContext.resume();
   }
 };
 
