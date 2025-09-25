@@ -174,8 +174,6 @@ export const useGameLogic = () => {
             stageIndex,
             playStats: {
                 ...playStats,
-                // FIX: Correctly pass `playStats.collectedEquipment` to `Array.from` to convert the Set to an array for saving.
-                // The error "Expected 1 arguments, but got 0" indicates this was likely `Array.from()`.
                 collectedEquipment: Array.from(playStats.collectedEquipment),
             },
         };
@@ -539,8 +537,9 @@ export const useGameLogic = () => {
             newBaseStats[stat as AllocatableStat] += value as number;
         }
         
-        hpChange += (allocatedStats.stamina || 0) * 10;
-        hpChange += (allocatedStats.strength || 0) * 2;
+        // FIX: Cast properties to number to prevent 'unknown' type error in calculation.
+        hpChange += ((allocatedStats.stamina as number) || 0) * 10;
+        hpChange += ((allocatedStats.strength as number) || 0) * 2;
 
         return {
             ...p,
@@ -699,20 +698,22 @@ export const useGameLogic = () => {
     const processEnemyAIAndAttacks = () => {
         let totalPlayerDamageThisFrame = 0;
         let lastAttackingEnemy: Enemy | null = null;
-        
-        newEnemies.forEach(enemy => {
-            if (enemy.currentHp <= 0) return;
 
-            if (enemy.attackState === 'preparing' && now >= enemy.attackStateTimer) {
+        newEnemies = newEnemies.map(enemy => {
+            if (enemy.currentHp <= 0) return enemy;
+
+            const updatedEnemy = { ...enemy };
+
+            if (updatedEnemy.attackState === 'preparing' && now >= updatedEnemy.attackStateTimer) {
                 playSound('enemyAttack');
                 
                 const playerWidth = 64;
                 const enemyWidth = 128;
-                const distanceBetweenCenters = Math.abs((playerUpdate.x + playerWidth / 2) - (enemy.x + enemyWidth / 2));
+                const distanceBetweenCenters = Math.abs((playerUpdate.x + playerWidth / 2) - (updatedEnemy.x + enemyWidth / 2));
                 if (distanceBetweenCenters <= (playerWidth / 2) + (enemyWidth / 2) + ATTACK_RANGE) {
                     const damageInfos: DamageInfo[] = [];
 
-                    const enemyAttack = enemy.physicalAttack;
+                    const enemyAttack = updatedEnemy.physicalAttack;
                     const playerDefense = currentCalculatedStats.physicalDefense;
                     const totalStat = enemyAttack + playerDefense;
                     const damageMultiplier = totalStat > 0 ? enemyAttack / totalStat : 1;
@@ -721,43 +722,44 @@ export const useGameLogic = () => {
                     totalPlayerDamageThisFrame += finalPhysicalDamage;
                     damageInfos.push({ text: `${finalPhysicalDamage}`, color: '#FFFFFF' });
                     
-                    // Simplified magic attack check
-                    if (enemy.magicalAttack > enemy.physicalAttack) {
-                        const power = enemy.baseStats.intelligence;
-                        const baseMagicalDamage = (enemy.magicalAttack * 1.5) * (1 + power / 100);
+                    if (updatedEnemy.magicalAttack > updatedEnemy.physicalAttack) {
+                        const power = updatedEnemy.baseStats.intelligence;
+                        const baseMagicalDamage = (updatedEnemy.magicalAttack * 1.5) * (1 + power / 100);
                         const finalMagicalDamage = Math.max(1, Math.floor(baseMagicalDamage) - currentCalculatedStats.magicalDefense);
                         totalPlayerDamageThisFrame += finalMagicalDamage;
-                        damageInfos.push({ text: `${finalMagicalDamage}`, color: ELEMENT_HEX_COLORS[enemy.element] });
+                        damageInfos.push({ text: `${finalMagicalDamage}`, color: ELEMENT_HEX_COLORS[updatedEnemy.element] });
                     }
 
                     if (damageInfos.length > 0) {
-                        lastAttackingEnemy = enemy;
+                        lastAttackingEnemy = updatedEnemy;
                         const damageInstance: DamageInstance = { id: nextDamageInstanceId.current++, x: playerUpdate.x + 16, damages: damageInfos };
                         setDamageInstances(prev => [...prev, damageInstance]);
                         setTimeout(() => setDamageInstances(prev => prev.filter(di => di.id !== damageInstance.id)), 1200);
                     }
                 }
-                enemy.attackState = 'attacking';
-                enemy.attackStateTimer = now + enemy.attackAnimationTime;
-            } else if (enemy.attackState === 'attacking' && now >= enemy.attackStateTimer) {
-                enemy.attackState = 'idle';
+                updatedEnemy.attackState = 'attacking';
+                updatedEnemy.attackStateTimer = now + updatedEnemy.attackAnimationTime;
+            } else if (updatedEnemy.attackState === 'attacking' && now >= updatedEnemy.attackStateTimer) {
+                updatedEnemy.attackState = 'idle';
             }
 
-            if (enemy.id === engagedEnemyId && enemy.attackState === 'idle') {
-                const lastAttackTime = enemyAttackTimers.current[enemy.id] || 0;
+            if (updatedEnemy.id === engagedEnemyId && updatedEnemy.attackState === 'idle') {
+                const lastAttackTime = enemyAttackTimers.current[updatedEnemy.id] || 0;
                 const playerSpeed = currentCalculatedStats.speed;
-                const enemySpeed = enemy.speed;
+                const enemySpeed = updatedEnemy.speed;
                 const speedRatio = playerSpeed > 0 && enemySpeed > 0 ? playerSpeed / enemySpeed : 1;
                 const speedLevel = ATTACK_SPEED_LEVELS.find(level => speedRatio <= level.ratio) || ATTACK_SPEED_LEVELS[3];
                 const engagedEnemyCooldown = Math.max(200, speedLevel.cooldown / speedRatio);
 
                 if (now - lastAttackTime > engagedEnemyCooldown) {
-                    enemy.attackState = 'preparing';
-                    enemy.attackStateTimer = now + enemy.attackPrepareTime;
-                    enemyAttackTimers.current[enemy.id] = now;
+                    updatedEnemy.attackState = 'preparing';
+                    updatedEnemy.attackStateTimer = now + updatedEnemy.attackPrepareTime;
+                    enemyAttackTimers.current[updatedEnemy.id] = now;
                 }
             }
+            return updatedEnemy;
         });
+
         return { totalPlayerDamageThisFrame, lastAttackingEnemy };
     };
 
@@ -794,7 +796,8 @@ export const useGameLogic = () => {
             for (const [stat, value] of Object.entries(playerUpdate.lastStatAllocation)) {
                 newBaseStats[stat as AllocatableStat] += value as number;
             }
-            hpChange += (playerUpdate.lastStatAllocation.stamina || 0) * 10 + (playerUpdate.lastStatAllocation.strength || 0) * 2;
+            // FIX: Cast properties to number to prevent 'unknown' type error in calculation.
+            hpChange += ((playerUpdate.lastStatAllocation.stamina as number) || 0) * 10 + ((playerUpdate.lastStatAllocation.strength as number) || 0) * 2;
             playerUpdate.baseStats = newBaseStats;
             playerUpdate.currentHp += hpChange;
             addLog('ステータスが自動的に割り振られました。');
