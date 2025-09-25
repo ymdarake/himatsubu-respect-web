@@ -114,8 +114,8 @@ const EquipmentChangeModal: React.FC<EquipmentChangeModalProps> = ({ player, cal
           {Object.entries(calculatedStats).map(([stat, value]) => (
             <React.Fragment key={stat}>
               <span className="text-gray-400">{DERIVED_STAT_NAMES[stat as DerivedStat]}</span>
-              {/* FIX: Cast value to Number to prevent 'unknown' type error with Math.floor */}
-              <span className="font-bold text-right">{Math.floor(value as number)}</span>
+              {/* FIX: Explicitly convert value to a Number to prevent potential 'unknown' type errors with Math.floor. */}
+              <span className="font-bold text-right">{Math.floor(Number(value))}</span>
             </React.Fragment>
           ))}
         </div>

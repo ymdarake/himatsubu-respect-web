@@ -7,6 +7,11 @@
 - [ ] **1. 巨大なロジックフック `useGameLogic` の分割**
   - **内容**: `useGameLogic.ts` を `usePlayerState`, `useEnemyManager`, `useWorldManager` など、責務に応じた小さなフックに分割する。
   - **目的**: 関心の分離、テスト容易性の向上。
+  - **サブタスク:**
+    - [x] 1a. プレイヤーの `state` と初期化・リセットロジックを `usePlayer` フックに分離する。
+    - [x] 1b. プレイヤーの更新ロジック（装備、回復、ステータス割り振りなど）を `usePlayer` フックに移動する。
+    - [ ] 1c. 敵の状態管理（生成、AI、戦闘ロジック）を `useEnemyManager` フックに分離する。
+    - [ ] 1d. ワールド（ステージ、背景、建造物）の管理を `useWorldManager` フックに分離する。
 
 - [x] **2. `Enemy.tsx` のスプライト描画ロジックの分離**
   - **内容**: 敵のSVGスプライトを `Enemy.tsx` から `components/enemySprites.tsx` に分離し、データ駆動で描画する。

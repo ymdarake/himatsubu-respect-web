@@ -11,6 +11,7 @@ import { INITIAL_PLAYER, INITIAL_PLAY_STATS } from '../constants/player';
 import { GAME_SPEED, ATTACK_RANGE, STAGE_LENGTH, XP_FOR_NEXT_LEVEL_MULTIPLIER, HEALING_HOUSE_RANGE, PIXELS_PER_METER, SHOP_RANGE, STAT_POINTS_PER_LEVEL, BASE_DROP_CHANCE, LUCK_TO_DROP_CHANCE_MULTIPLIER, ENEMY_PANEL_DISPLAY_RANGE, TELEPORTER_RANGE } from '../constants/game';
 import { ELEMENTAL_AFFINITY, ATTACK_SPEED_LEVELS } from '../constants/combat';
 import { ELEMENT_HEX_COLORS } from '../constants/ui';
+import { usePlayer } from './usePlayer';
 
 const baseStatNames: Record<AllocatableStat, string> = {
   strength: '腕力',
@@ -58,7 +59,19 @@ const addEquipmentToPlayer = (player: PlayerType, newItem: Equipment, trackEquip
 
 export const useGameLogic = () => {
   const [gameState, setGameState] = useState<GameState>(GameState.START);
-  const [player, setPlayer] = useState<PlayerType>(INITIAL_PLAYER);
+  const { 
+    player, 
+    setPlayer, 
+    resetPlayer, 
+    resetPlayerForDeath, 
+    loadPlayer,
+    handleHeal: playerHeal,
+    handleBuyItem: playerBuyItem,
+    handleEquipItem,
+    handleUnequipItem,
+    handleStatAllocation: playerStatAllocation,
+    toggleStatAllocationLock,
+  } = usePlayer();
   const [enemies, setEnemies] = useState<Enemy[]>([]);
   const [structures, setStructures] = useState<Structure[]>([]);
   const [scenery, setScenery] = useState<SceneryObject[]>([]);
@@ -258,7 +271,7 @@ export const useGameLogic = () => {
             x: stageStartX,
         };
         
-        setPlayer(loadedPlayer);
+        loadPlayer(loadedPlayer);
         setStageIndex(loadedStageIndex);
         setPlayStats(loadedPlayStats);
         
@@ -278,19 +291,15 @@ export const useGameLogic = () => {
         localStorage.removeItem(SAVE_KEY);
         setHasSaveData(false);
     }
-  }, [loadStage, addLog]);
+  }, [loadStage, addLog, loadPlayer]);
 
   const startGame = useCallback(() => {
     localStorage.removeItem(SAVE_KEY);
     setHasSaveData(false);
     resumeAudioContext().then(() => {
         playBGM(0);
-        const initialPlayerState = {
-            ...INITIAL_PLAYER,
-            currentHp: calculateDerivedStats(INITIAL_PLAYER).maxHp,
-        };
         setLog([]);
-        setPlayer(initialPlayerState);
+        resetPlayer();
         setPlayStats({ ...INITIAL_PLAY_STATS, startTime: Date.now(), collectedEquipment: new Set() });
         setDistance(0);
         
@@ -298,7 +307,7 @@ export const useGameLogic = () => {
         loadStage(0); // Explicitly load stage 0 on game start
         setGameState(GameState.PLAYING);
     });
-  }, [loadStage]);
+  }, [loadStage, resetPlayer]);
   
   useEffect(() => {
     let timer: ReturnType<typeof setInterval> | undefined;
@@ -323,25 +332,8 @@ export const useGameLogic = () => {
   }, []);
 
   const handleHeal = useCallback(() => {
-    setPlayer(p => {
-        const cost = p.level * 7;
-        const stats = calculateDerivedStats(p);
-        if (p.gold >= cost && p.currentHp < stats.maxHp) {
-            addLog(`HPが全回復した！ (-${cost}G)`);
-            return {
-                ...p,
-                currentHp: stats.maxHp,
-                gold: p.gold - cost,
-            };
-        }
-        if (p.gold < cost) {
-            addLog(`ゴールドが足りない！`);
-        } else if (p.currentHp >= stats.maxHp) {
-            addLog('HPはすでに満タンだ。');
-        }
-        return p;
-    });
-  }, [addLog]);
+    playerHeal(addLog);
+  }, [playerHeal, addLog]);
 
   const triggerAction = useCallback(() => {
     if (shopTarget.current) {
@@ -450,25 +442,7 @@ export const useGameLogic = () => {
     if (gameState === GameState.PLAYER_DEAD) {
         stopBGM();
         const timer = setTimeout(() => {
-            setPlayer(prevPlayer => {
-                const preservedPlayer = {
-                    ...INITIAL_PLAYER,
-                    baseStats: {...prevPlayer.baseStats},
-                    equipment: {...prevPlayer.equipment},
-                    inventory: [...prevPlayer.inventory],
-                    level: prevPlayer.level,
-                    xp: prevPlayer.xp,
-                    xpToNextLevel: prevPlayer.xpToNextLevel,
-                    gold: prevPlayer.gold,
-                    statPoints: prevPlayer.statPoints,
-                    lastStatAllocation: prevPlayer.lastStatAllocation,
-                    isStatAllocationLocked: prevPlayer.isStatAllocationLocked,
-                };
-                return {
-                    ...preservedPlayer,
-                    currentHp: calculateDerivedStats(preservedPlayer).maxHp,
-                }
-            });
+            resetPlayerForDeath();
             setDistance(0);
             
             resumeAudioContext().then(() => {
@@ -481,7 +455,7 @@ export const useGameLogic = () => {
 
         return () => clearTimeout(timer);
     }
-  }, [gameState]);
+  }, [gameState, resetPlayerForDeath]);
 
   const trackEquipmentCollection = useCallback((item: Equipment) => {
       setPlayStats(prev => {
@@ -495,69 +469,13 @@ export const useGameLogic = () => {
   }, []);
     
   const handleBuyItem = useCallback((itemToBuy: Equipment) => {
-    setPlayer(p => {
-        if (p.gold < itemToBuy.price) {
-            return p;
-        }
+    playerBuyItem(itemToBuy, trackEquipmentCollection, addLog);
+  }, [playerBuyItem, trackEquipmentCollection, addLog]);
 
-        const allPlayerItems = [...p.inventory, ...Object.values(p.equipment).filter((e): e is Equipment => e !== null)];
-        const maxExistingLevel = allPlayerItems
-            .filter(i => i.masterId === itemToBuy.masterId)
-            .reduce((max, item) => Math.max(max, item.level), -1);
-
-        if (itemToBuy.level <= maxExistingLevel) {
-            addLog(`すでに「${itemToBuy.name}」の同等以上のものを持っています。`);
-            return p; 
-        }
-
-        trackEquipmentCollection(itemToBuy);
-        addLog(`「${itemToBuy.name}」を購入して装備した。`);
-
-        const playerAfterPurchase = { ...p, gold: p.gold - itemToBuy.price };
-        
-        let newInventory = playerAfterPurchase.inventory.filter(i => i.masterId !== itemToBuy.masterId);
-        
-        const previouslyEquipped = playerAfterPurchase.equipment[itemToBuy.type];
-        
-        if (previouslyEquipped && previouslyEquipped.masterId !== itemToBuy.masterId) {
-            newInventory.push(previouslyEquipped);
-        }
-
-        const newEquipment = { ...playerAfterPurchase.equipment, [itemToBuy.type]: itemToBuy };
-
-        return { ...playerAfterPurchase, inventory: newInventory, equipment: newEquipment };
-    });
-  }, [addLog, trackEquipmentCollection]);
-
-  const handleStatAllocation = (allocatedStats: Record<AllocatableStat, number>) => {
-    setPlayer(p => {
-        const newBaseStats: BaseStats = { ...p.baseStats };
-        let hpChange = 10; // Base HP gain from level up
-        for (const [stat, value] of Object.entries(allocatedStats)) {
-            newBaseStats[stat as AllocatableStat] += value as number;
-        }
-        
-        // FIX: Cast properties to number to prevent 'unknown' type error in calculation.
-        hpChange += ((allocatedStats.stamina as number) || 0) * 10;
-        hpChange += ((allocatedStats.strength as number) || 0) * 2;
-
-        return {
-            ...p,
-            baseStats: newBaseStats,
-            statPoints: 0,
-            currentHp: p.currentHp + hpChange,
-            lastStatAllocation: allocatedStats,
-        };
-    });
+  const handleStatAllocation = useCallback((allocatedStats: Record<AllocatableStat, number>) => {
+    playerStatAllocation(allocatedStats);
     setGameState(GameState.PLAYING);
-  };
-
-  const toggleStatAllocationLock = useCallback(() => {
-    setPlayer(p => ({
-      ...p,
-      isStatAllocationLocked: !p.isStatAllocationLocked,
-    }));
-  }, []);
+  }, [playerStatAllocation]);
 
   const updateGameLogic = useCallback((deltaTime: number) => {
     if (gameState !== GameState.PLAYING) return;
@@ -796,8 +714,8 @@ export const useGameLogic = () => {
             for (const [stat, value] of Object.entries(playerUpdate.lastStatAllocation)) {
                 newBaseStats[stat as AllocatableStat] += value as number;
             }
-            // FIX: Cast properties to number to prevent 'unknown' type error in calculation.
-            hpChange += ((playerUpdate.lastStatAllocation.stamina as number) || 0) * 10 + ((playerUpdate.lastStatAllocation.strength as number) || 0) * 2;
+            // FIX: Removed redundant and potentially problematic 'as number' casts.
+            hpChange += (playerUpdate.lastStatAllocation.stamina || 0) * 10 + (playerUpdate.lastStatAllocation.strength || 0) * 2;
             playerUpdate.baseStats = newBaseStats;
             playerUpdate.currentHp += hpChange;
             addLog('ステータスが自動的に割り振られました。');
@@ -938,41 +856,6 @@ export const useGameLogic = () => {
   let targetScrollX = player.x - 150; 
   const scrollX = Math.max(currentStageStartX - INITIAL_PLAYER.x, Math.min(targetScrollX, currentStageEndX - gameViewWidth));
   const worldOffset = -scrollX;
-
-  const handleEquipItem = (itemToEquip: Equipment) => {
-    setPlayer(p => {
-        const newInventory = [...p.inventory];
-        const newEquipment = { ...p.equipment };
-        const currentlyEquipped = p.equipment[itemToEquip.type];
-
-        // Find and remove item from inventory
-        const itemIndex = newInventory.findIndex(invItem => invItem.instanceId === itemToEquip.instanceId);
-        if (itemIndex > -1) {
-            newInventory.splice(itemIndex, 1);
-        }
-
-        // Add previously equipped item back to inventory
-        if (currentlyEquipped) {
-            newInventory.push(currentlyEquipped);
-        }
-
-        // Equip the new item
-        newEquipment[itemToEquip.type] = itemToEquip;
-
-        return { ...p, equipment: newEquipment, inventory: newInventory };
-    });
-  };
-
-  const handleUnequipItem = (itemToUnequip: Equipment) => {
-      setPlayer(p => {
-          const newInventory = [...p.inventory, itemToUnequip];
-          const newEquipment = { ...p.equipment };
-
-          newEquipment[itemToUnequip.type] = null;
-
-          return { ...p, equipment: newEquipment, inventory: newInventory };
-      });
-  };
   
   const handlePointerDown = (direction: 'left' | 'right') => {
     if (direction === 'left') leftArrowPressed.current = true;
