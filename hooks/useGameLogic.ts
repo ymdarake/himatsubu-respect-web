@@ -194,7 +194,7 @@ export const useGameLogic = () => {
     setEnemies([]);
     setStructures([]);
     setScenery([]);
-    // fix: Correctly reset goldDrops to an empty array.
+    // fix: Reset all relevant game state when exiting to title.
     setGoldDrops([]);
     setDamageInstances([]);
     setDisplayedEnemyId(null);
