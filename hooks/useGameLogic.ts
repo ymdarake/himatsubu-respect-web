@@ -1,4 +1,5 @@
 
+
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { GameState, Enemy, Player as PlayerType, Structure, ShopType, Equipment, AllocatableStat, BaseStats, Gem, SceneryObject, PlayStats, Element, DamageInstance, DamageInfo } from '../types';
 import { playSound, resumeAudioContext, playBGM, stopBGM, setMutedState } from '../utils/audio';
@@ -92,6 +93,8 @@ export const useGameLogic = () => {
   const nextDamageInstanceId = useRef(0);
   const playerAttackReady = useRef(true);
   const enemyAttackTimers = useRef<Record<number, number>>({});
+  const animationFrameId = useRef<number>();
+  const lastTimeRef = useRef<number>(0);
 
   const addLog = useCallback((message: string) => {
     setLog(prevLog => [message, ...prevLog].slice(0, 50));
@@ -191,6 +194,7 @@ export const useGameLogic = () => {
     setEnemies([]);
     setStructures([]);
     setScenery([]);
+    // fix: Correctly reset goldDrops to an empty array.
     setGoldDrops([]);
     setDamageInstances([]);
     setDisplayedEnemyId(null);
@@ -555,7 +559,7 @@ export const useGameLogic = () => {
     }));
   }, []);
 
-  const gameLoop = useCallback(() => {
+  const updateGameLogic = useCallback((deltaTime: number) => {
     if (gameState !== GameState.PLAYING) return;
     
     let newEnemies = [...enemies]; // Create a mutable copy for this frame
@@ -942,8 +946,9 @@ export const useGameLogic = () => {
       }
 
       let dx = 0;
-      if (rightArrowPressed.current) dx += GAME_SPEED;
-      if (leftArrowPressed.current) dx -= GAME_SPEED;
+      const PLAYER_MOVE_SPEED_PPS = GAME_SPEED * 20; // GAME_SPEED is 10, loop was 50ms (20Hz)
+      if (rightArrowPressed.current) dx += PLAYER_MOVE_SPEED_PPS * deltaTime;
+      if (leftArrowPressed.current) dx -= PLAYER_MOVE_SPEED_PPS * deltaTime;
 
       // Collision detection with engaged enemy, considering character widths
       if (currentEngagedEnemy) {
@@ -998,12 +1003,40 @@ export const useGameLogic = () => {
 
   }, [gameState, enemies, structures, stageIndex, distance, addLog, calculatedStats, engagedEnemyId, trackEquipmentCollection, displayedEnemyId]);
 
+  const savedCallback = useRef(updateGameLogic);
   useEffect(() => {
-    if (gameState === GameState.PLAYING) {
-        const loop = setInterval(gameLoop, 50);
-        return () => clearInterval(loop);
+    savedCallback.current = updateGameLogic;
+  }, [updateGameLogic]);
+    
+  useEffect(() => {
+    if (gameState !== GameState.PLAYING) {
+        return;
     }
-  }, [gameState, gameLoop]);
+
+    const tick = (timestamp: number) => {
+        if (lastTimeRef.current === 0) {
+            lastTimeRef.current = timestamp;
+        }
+        // Cap delta time to prevent huge jumps if the tab was inactive for a long time.
+        const deltaTime = Math.min((timestamp - lastTimeRef.current) / 1000, 0.1);
+        lastTimeRef.current = timestamp;
+        
+        if (deltaTime > 0) {
+            savedCallback.current(deltaTime);
+        }
+        
+        animationFrameId.current = requestAnimationFrame(tick);
+    };
+
+    lastTimeRef.current = 0;
+    animationFrameId.current = requestAnimationFrame(tick);
+    
+    return () => {
+        if (animationFrameId.current) {
+            cancelAnimationFrame(animationFrameId.current);
+        }
+    };
+  }, [gameState]);
   
   const currentStagePixelLength = STAGE_LENGTH * PIXELS_PER_METER;
   const currentStageStartX = INITIAL_PLAYER.x + stageIndex * currentStagePixelLength;

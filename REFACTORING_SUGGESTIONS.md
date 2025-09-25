@@ -12,7 +12,7 @@
   - **内容**: 敵のSVGスプライトを `Enemy.tsx` から `components/enemySprites.tsx` に分離し、データ駆動で描画する。
   - **目的**: コンポーネントの責務分割、スケーラビリティ向上。
 
-- [ ] **3. ゲームループの `requestAnimationFrame` への移行**
+- [x] **3. ゲームループの `requestAnimationFrame` への移行**
   - **内容**: ゲームループを `setInterval` から `requestAnimationFrame` に置き換える。
   - **目的**: パフォーマンス向上、スムーズなアニメーション、リソース消費の削減。
 
