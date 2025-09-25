@@ -535,11 +535,14 @@ export const useGameLogic = () => {
         const newBaseStats: BaseStats = { ...p.baseStats };
         let hpChange = 10; // Base HP gain from level up
         for (const [stat, value] of Object.entries(allocatedStats)) {
-            newBaseStats[stat as AllocatableStat] += value as number;
+            // FIX: Cast value to Number to prevent 'unknown' type errors in strict mode
+            newBaseStats[stat as AllocatableStat] += Number(value);
         }
         
-        hpChange += allocatedStats.stamina * 10;
-        hpChange += allocatedStats.strength * 2;
+        // FIX: Cast value to Number to prevent 'unknown' type errors in strict mode
+        hpChange += Number(allocatedStats.stamina) * 10;
+        // FIX: Cast value to Number to prevent 'unknown' type errors in strict mode
+        hpChange += Number(allocatedStats.strength) * 2;
 
         return {
             ...p,
@@ -781,8 +784,9 @@ export const useGameLogic = () => {
                           for (const [stat, count] of Object.entries(gemDrops)) {
                               if (count > 0) {
                                   const statKey = stat as AllocatableStat;
-                                  playerUpdate.baseStats[statKey] += count as number;
-                                  setPlayStats(prev => ({ ...prev, gemCollection: { ...prev.gemCollection, [statKey]: (prev.gemCollection[statKey] || 0) + (count as number) }}));
+                                  // FIX: Cast count to Number to prevent 'unknown' type errors in strict mode
+                                  playerUpdate.baseStats[statKey] += Number(count);
+                                  setPlayStats(prev => ({ ...prev, gemCollection: { ...prev.gemCollection, [statKey]: (prev.gemCollection[statKey] || 0) + Number(count) }}));
                                   logParts.push(`${baseStatNames[statKey]} +${count}`);
                               }
                           }

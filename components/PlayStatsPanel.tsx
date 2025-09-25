@@ -17,6 +17,8 @@ const formatPlayTime = (seconds: number) => {
 
 const PlayStatsPanel: React.FC<PlayStatsPanelProps> = ({ playStats, player }) => {
     const totalEquipment = EQUIPMENT_MASTER_DATA.length;
+    const collectionPercentage = totalEquipment > 0 ? ((playStats.collectedEquipment.size / totalEquipment) * 100).toFixed(1) : "0.0";
+
     return (
         <div className="p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 h-full flex flex-col justify-between">
             <div className="space-y-1 text-sm">
@@ -24,7 +26,12 @@ const PlayStatsPanel: React.FC<PlayStatsPanelProps> = ({ playStats, player }) =>
                 <div className="flex justify-between"><span>倒した魔物の数</span><span className="font-bold">{playStats.enemiesDefeated}</span></div>
                 <div className="flex justify-between"><span>最高到達点</span><span className="font-bold">{Math.floor(playStats.farthestDistance)}m</span></div>
                 <div className="flex justify-between"><span>所持G</span><span className="font-bold text-yellow-400">{player.gold} G</span></div>
-                <div className="flex justify-between"><span>図鑑</span><span className="font-bold">{playStats.collectedEquipment.size} / {totalEquipment}</span></div>
+                <div className="flex justify-between"><span>総獲得EXP</span><span className="font-bold">{playStats.totalXpGained}</span></div>
+                <div className="flex justify-between"><span>次のレベルまで EXP</span><span className="font-bold">{player.xpToNextLevel - player.xp}</span></div>
+                <div className="flex justify-between">
+                    <span>装備品収集率</span>
+                    <span className="font-bold">{playStats.collectedEquipment.size} / {totalEquipment} ({collectionPercentage}%)</span>
+                </div>
             </div>
             <div>
                  <p className="text-xs text-center text-gray-400 mb-1 border-t border-gray-700 pt-1">ジェム収集</p>
