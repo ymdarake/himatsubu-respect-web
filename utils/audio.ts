@@ -1,4 +1,5 @@
 
+
 let audioContext: AudioContext | null = null;
 let whiteNoiseBuffer: AudioBuffer | null = null;
 let isMutedGlobally = false;
@@ -18,6 +19,7 @@ const createAudioContext = () => {
 };
 
 // Function to be called on first user interaction
+// FIX: Ensure the function returns the promise from audioContext.resume()
 export const resumeAudioContext = async () => {
   if (audioContext && audioContext.state === 'suspended') {
     await audioContext.resume();

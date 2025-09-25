@@ -30,7 +30,7 @@ const PlayStatsPanel: React.FC<PlayStatsPanelProps> = ({ playStats, player }) =>
                 <div className="flex justify-between"><span>次のレベルまで EXP</span><span className="font-bold">{player.xpToNextLevel - player.xp}</span></div>
                 <div className="flex justify-between">
                     <span>装備品収集率</span>
-                    <span className="font-bold">{playStats.collectedEquipment.size} / {totalEquipment} ({collectionPercentage}%)</span>
+                    <span className="font-bold">{collectionPercentage}%</span>
                 </div>
             </div>
             <div>
