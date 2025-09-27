@@ -1,5 +1,6 @@
 
 
+
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { GameState, Enemy, Player as PlayerType, Structure, ShopType, Equipment, AllocatableStat, BaseStats, Gem, SceneryObject, PlayStats, Element, DamageInstance, DamageInfo } from '../types';
 import { playSound, resumeAudioContext, playBGM, stopBGM, setMutedState } from '../utils/audio';
@@ -106,8 +107,6 @@ export const useGameLogic = () => {
   const nextDamageInstanceId = useRef(0);
   const playerAttackReady = useRef(true);
   const enemyAttackTimers = useRef<Record<number, number>>({});
-  const animationFrameId = useRef<number>();
-  const lastTimeRef = useRef<number>(0);
 
   const addLog = useCallback((message: string) => {
     setLog(prevLog => [message, ...prevLog].slice(0, 50));
@@ -710,16 +709,12 @@ export const useGameLogic = () => {
         if (playerUpdate.isStatAllocationLocked && playerUpdate.lastStatAllocation) {
             const newBaseStats: BaseStats = { ...playerUpdate.baseStats };
             let hpChange = 10;
-            // FIX: Using a const to help TypeScript correctly narrow the type of lastStatAllocation.
             const lastAllocation = playerUpdate.lastStatAllocation;
-            // FIX: Replaced Object.entries with Object.keys for better type safety.
-            // The value from Object.entries was being inferred as 'unknown', causing a type error.
-            for (const stat of Object.keys(lastAllocation) as AllocatableStat[]) {
-                // FIX: Cast value to number to prevent 'unknown' type error.
-                newBaseStats[stat] += lastAllocation[stat] as number;
+            // FIX: Reverted to using Object.entries to iterate over stats.
+            // This is more direct and consistent with other parts of the codebase (e.g., usePlayer.ts).
+            for (const [stat, value] of Object.entries(lastAllocation)) {
+                newBaseStats[stat as AllocatableStat] += value as number;
             }
-            // FIX: Removed redundant and potentially problematic 'as number' casts.
-            // FIX: Re-add casts as they are necessary to prevent type errors.
             hpChange += ((lastAllocation.stamina as number) || 0) * 10 + ((lastAllocation.strength as number) || 0) * 2;
             playerUpdate.baseStats = newBaseStats;
             playerUpdate.currentHp += hpChange;
@@ -830,29 +825,17 @@ export const useGameLogic = () => {
     if (gameState !== GameState.PLAYING) {
         return;
     }
-
-    const tick = (timestamp: number) => {
-        if (lastTimeRef.current === 0) {
-            lastTimeRef.current = timestamp;
-        }
-        // Cap delta time to prevent huge jumps if the tab was inactive for a long time.
-        const deltaTime = Math.min((timestamp - lastTimeRef.current) / 1000, 0.1);
-        lastTimeRef.current = timestamp;
-        
-        if (deltaTime > 0) {
-            savedCallback.current(deltaTime);
-        }
-        
-        animationFrameId.current = requestAnimationFrame(tick);
-    };
-
-    lastTimeRef.current = 0;
-    animationFrameId.current = requestAnimationFrame(tick);
     
+    const FPS = 60;
+    const interval = 1000 / FPS;
+    const deltaTime = interval / 1000;
+
+    const gameLoopInterval = setInterval(() => {
+      savedCallback.current(deltaTime);
+    }, interval);
+
     return () => {
-        if (animationFrameId.current) {
-            cancelAnimationFrame(animationFrameId.current);
-        }
+      clearInterval(gameLoopInterval);
     };
   }, [gameState]);
   
