@@ -238,7 +238,6 @@ export const useGameLogic = () => {
       const newStructures = spawnStructuresForStage(index);
       setStructures(newStructures);
       setEnemies(spawnEnemiesForStage(index, nextEnemyId, newStructures));
-      setScenery(spawnSceneryForStage(index, nextSceneryId));
       setEngagedEnemyId(null);
       setDisplayedEnemyId(null);
   }, []);
@@ -711,11 +710,17 @@ export const useGameLogic = () => {
         if (playerUpdate.isStatAllocationLocked && playerUpdate.lastStatAllocation) {
             const newBaseStats: BaseStats = { ...playerUpdate.baseStats };
             let hpChange = 10;
-            for (const [stat, value] of Object.entries(playerUpdate.lastStatAllocation)) {
-                newBaseStats[stat as AllocatableStat] += value as number;
+            // FIX: Using a const to help TypeScript correctly narrow the type of lastStatAllocation.
+            const lastAllocation = playerUpdate.lastStatAllocation;
+            // FIX: Replaced Object.entries with Object.keys for better type safety.
+            // The value from Object.entries was being inferred as 'unknown', causing a type error.
+            for (const stat of Object.keys(lastAllocation) as AllocatableStat[]) {
+                // FIX: Cast value to number to prevent 'unknown' type error.
+                newBaseStats[stat] += lastAllocation[stat] as number;
             }
             // FIX: Removed redundant and potentially problematic 'as number' casts.
-            hpChange += (playerUpdate.lastStatAllocation.stamina || 0) * 10 + (playerUpdate.lastStatAllocation.strength || 0) * 2;
+            // FIX: Re-add casts as they are necessary to prevent type errors.
+            hpChange += ((lastAllocation.stamina as number) || 0) * 10 + ((lastAllocation.strength as number) || 0) * 2;
             playerUpdate.baseStats = newBaseStats;
             playerUpdate.currentHp += hpChange;
             addLog('ステータスが自動的に割り振られました。');
@@ -783,12 +788,13 @@ export const useGameLogic = () => {
         if(closest) setDisplayedEnemyId(closest.e.id);
     }
 
-    // Update engaged enemy
-    const currentEngagedEnemyInLoop = activeEnemies.find(e => e.id === engagedEnemyId);
-    if (!currentEngagedEnemyInLoop && activeEnemies.length > 0) {
-        setEngagedEnemyId(activeEnemies.sort((a,b) => Math.abs(a.x - playerUpdate.x) - Math.abs(b.x - playerUpdate.x))[0].id);
+    // Update engaged enemy and ensure consistency within the current frame
+    let currentEngagedEnemy = activeEnemies.find(e => e.id === engagedEnemyId);
+    if (!currentEngagedEnemy && activeEnemies.length > 0) {
+        const newTarget = activeEnemies.sort((a,b) => Math.abs(a.x - playerUpdate.x) - Math.abs(b.x - playerUpdate.x))[0];
+        setEngagedEnemyId(newTarget.id);
+        currentEngagedEnemy = newTarget; // Use the new target immediately in this frame
     }
-    const currentEngagedEnemy = activeEnemies.find(e => e.id === engagedEnemyId);
     
     // Determine enemy to attack
     let enemyToAttack: Enemy | undefined = undefined;

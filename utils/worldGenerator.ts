@@ -81,101 +81,94 @@ export const spawnEnemiesForStage = (
 
     const numberOfEnemies = 4 + Math.floor(Math.random() * 2); // 4-5 enemies per stage
 
-    const MIN_ENEMY_SEPARATION = 100;
-    const MAX_SPAWN_ATTEMPTS = 20;
+    const ENEMY_WIDTH = 128;
+    const MIN_ENEMY_SEPARATION = ENEMY_WIDTH + 20;
     const spawnPadding = 150;
-    const spawnableWidth = stageEndX - stageStartX - (spawnPadding * 2);
+    const spawnAreaStart = stageStartX + spawnPadding;
+    const spawnAreaEnd = stageEndX - spawnPadding - ENEMY_WIDTH;
 
-    for(let i = 0; i < numberOfEnemies; i++) {
-        let spawnPosition = 0;
-        let positionIsSafe = false;
-        let attempts = 0;
+    // 1. Create a list of all possible spawn positions (slots) based on separation distance
+    const allPossibleSlots: number[] = [];
+    for (let x = spawnAreaStart; x <= spawnAreaEnd; x += MIN_ENEMY_SEPARATION) {
+        allPossibleSlots.push(x);
+    }
+    
+    // 2. Filter out slots that would cause an enemy to overlap with a structure
+    const COLLISION_BUFFER = 20;
+    const availableSlots = allPossibleSlots.filter(pos => {
+        const enemyStart = pos;
+        const enemyEnd = pos + ENEMY_WIDTH;
 
-        while (!positionIsSafe && attempts < MAX_SPAWN_ATTEMPTS) {
-            attempts++;
-            spawnPosition = stageStartX + spawnPadding + Math.random() * spawnableWidth;
-
-            // Check for separation from structures
-            let tooCloseToStructure = false;
-            const ENEMY_WIDTH = 128;
-            const COLLISION_BUFFER = 20; // 20px padding on each side
-
-            for (const structure of structures) {
-                let STRUCTURE_WIDTH = 96; // Default for shop/teleporter
-                if (structure.type === 'house') STRUCTURE_WIDTH = 120;
-                
-                const structureLeft = structure.x - COLLISION_BUFFER;
-                const structureRight = structure.x + STRUCTURE_WIDTH + COLLISION_BUFFER;
-                const enemyLeft = spawnPosition;
-                const enemyRight = spawnPosition + ENEMY_WIDTH;
-
-                // Check for overlap
-                if (enemyRight > structureLeft && enemyLeft < structureRight) {
-                    tooCloseToStructure = true;
-                    break;
-                }
-            }
-            if (tooCloseToStructure) {
-                continue;
-            }
-
-            // Check for separation from other newly spawned enemies
-            let tooCloseToOtherEnemy = false;
-            for (const existingEnemy of enemies) {
-                if (Math.abs(existingEnemy.x - spawnPosition) < MIN_ENEMY_SEPARATION) {
-                    tooCloseToOtherEnemy = true;
-                    break;
-                }
-            }
-            if (tooCloseToOtherEnemy) {
-                continue; // Position is unsafe, try again
-            }
-
-            // If all checks pass, the position is safe
-            positionIsSafe = true;
-        }
-
-        if (positionIsSafe) {
-            let randomEnemyName: string;
-            // 5% chance to spawn a Gem Slime, otherwise spawn a regular enemy for the area
-            if (Math.random() < GEM_SLIME_SPAWN_CHANCE) {
-                randomEnemyName = 'ジェムスライム';
-            } else {
-                const availableEnemyNames = currentArea.enemyTypes;
-                randomEnemyName = availableEnemyNames[Math.floor(Math.random() * availableEnemyNames.length)];
-            }
+        // .some returns true if the enemy overlaps with ANY structure
+        const overlapsWithAStructure = structures.some(structure => {
+            let STRUCTURE_WIDTH = 96; // Default for shop/teleporter
+            if (structure.type === 'house') STRUCTURE_WIDTH = 120;
             
-            const enemyData = ENEMY_DATA[randomEnemyName];
+            const structureStart = structure.x - COLLISION_BUFFER;
+            const structureEnd = structure.x + STRUCTURE_WIDTH + COLLISION_BUFFER;
             
-            const enemyLevel = 1 + stageIndex;
-            const { scaledBaseStats, derivedStats } = calculateEnemyStats(enemyData, enemyLevel);
+            // Standard Axis-Aligned Bounding Box (AABB) overlap check on 1D axis
+            // Returns true if they overlap, false otherwise.
+            return enemyStart < structureEnd && enemyEnd > structureStart;
+        });
+        
+        // A slot is available if it does NOT overlap with any structure
+        return !overlapsWithAStructure;
+    });
 
-            const newEnemy: Enemy = {
-                id: nextEnemyId.current++,
-                name: enemyData.name,
-                level: enemyLevel,
-                baseStats: scaledBaseStats,
-                maxHp: derivedStats.maxHp,
-                currentHp: derivedStats.maxHp,
-                physicalAttack: derivedStats.physicalAttack,
-                physicalDefense: derivedStats.physicalDefense,
-                magicalAttack: derivedStats.magicalAttack,
-                magicalDefense: derivedStats.magicalDefense,
-                speed: derivedStats.speed,
-                luckValue: derivedStats.luckValue,
-                element: enemyData.element,
-                x: spawnPosition,
-                attackState: 'idle',
-                attackStateTimer: 0,
-                color: enemyData.color,
-                shape: enemyData.shape,
-                xpValue: enemyData.xpValue,
-                goldValue: enemyData.goldValue,
-                attackPrepareTime: enemyData.attackPrepareTime,
-                attackAnimationTime: enemyData.attackAnimationTime,
-            };
-            enemies.push(newEnemy);
+
+    // 3. Shuffle the available slots to randomize enemy positions
+    // Fisher-Yates shuffle algorithm
+    for (let i = availableSlots.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [availableSlots[i], availableSlots[j]] = [availableSlots[j], availableSlots[i]];
+    }
+
+    // 4. Take the required number of spawn positions from the shuffled list
+    const spawnPositions = availableSlots.slice(0, numberOfEnemies);
+
+    // Now, iterate through the deterministically found spawn positions
+    for (const spawnPosition of spawnPositions) {
+        let randomEnemyName: string;
+        // 5% chance to spawn a Gem Slime, otherwise spawn a regular enemy for the area
+        if (Math.random() < GEM_SLIME_SPAWN_CHANCE) {
+            randomEnemyName = 'ジェムスライム';
+        } else {
+            const availableEnemyNames = currentArea.enemyTypes;
+            randomEnemyName = availableEnemyNames[Math.floor(Math.random() * availableEnemyNames.length)];
         }
+        
+        const enemyData = ENEMY_DATA[randomEnemyName];
+        
+        const enemyLevel = 1 + stageIndex;
+        const { scaledBaseStats, derivedStats } = calculateEnemyStats(enemyData, enemyLevel);
+
+        const newEnemy: Enemy = {
+            id: nextEnemyId.current++,
+            name: enemyData.name,
+            level: enemyLevel,
+            baseStats: scaledBaseStats,
+            maxHp: derivedStats.maxHp,
+            currentHp: derivedStats.maxHp,
+            physicalAttack: derivedStats.physicalAttack,
+            physicalDefense: derivedStats.physicalDefense,
+            magicalAttack: derivedStats.magicalAttack,
+            magicalDefense: derivedStats.magicalDefense,
+            speed: derivedStats.speed,
+            luckValue: derivedStats.luckValue,
+            element: enemyData.element,
+            // Add a small random offset to the final position for more natural placement
+            x: spawnPosition + (Math.random() - 0.5) * 10,
+            attackState: 'idle',
+            attackStateTimer: 0,
+            color: enemyData.color,
+            shape: enemyData.shape,
+            xpValue: enemyData.xpValue,
+            goldValue: enemyData.goldValue,
+            attackPrepareTime: enemyData.attackPrepareTime,
+            attackAnimationTime: enemyData.attackAnimationTime,
+        };
+        enemies.push(newEnemy);
     }
     return enemies.sort((a,b) => a.x - b.x);
 };
