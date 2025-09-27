@@ -138,7 +138,8 @@ export const usePlayer = () => {
         const newBaseStats: BaseStats = { ...p.baseStats };
         let hpChange = 10; // Base HP gain from level up
         for (const [stat, value] of Object.entries(allocatedStats)) {
-            newBaseStats[stat as AllocatableStat] += value as number;
+            // FIX: Cast `value` to a number, as Object.entries can produce `unknown` values.
+            newBaseStats[stat as AllocatableStat] += Number(value);
         }
         
         hpChange += ((allocatedStats.stamina as number) || 0) * 10;

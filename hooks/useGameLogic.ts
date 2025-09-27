@@ -1,6 +1,4 @@
 
-
-
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { GameState, Enemy, Player as PlayerType, Structure, ShopType, Equipment, AllocatableStat, BaseStats, Gem, SceneryObject, PlayStats, Element, DamageInstance, DamageInfo } from '../types';
 import { playSound, resumeAudioContext, playBGM, stopBGM, setMutedState } from '../utils/audio';
@@ -93,6 +91,7 @@ export const useGameLogic = () => {
   const [damageInstances, setDamageInstances] = useState<DamageInstance[]>([]);
   const [hasSaveData, setHasSaveData] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const nextEnemyId = useRef(0);
   const rightArrowPressed = useRef(false);
@@ -123,7 +122,8 @@ export const useGameLogic = () => {
             for (const [element, power] of Object.entries(item.elementalDamages)) {
                 if (power) {
                     const elemKey = element as Element;
-                    totals[elemKey] = (totals[elemKey] || 0) + power;
+                    // FIX: Cast `power` to a number, as Object.entries can produce `unknown` values.
+                    totals[elemKey] = (totals[elemKey] || 0) + Number(power);
                 }
             }
         }
@@ -229,24 +229,22 @@ export const useGameLogic = () => {
     };
   }, [gameState, saveCurrentGame]);
 
-  const loadStage = useCallback((index: number) => {
-      if (index === 0) {
-          nextEnemyId.current = 0;
-          nextSceneryId.current = 0;
-      }
-      const newStructures = spawnStructuresForStage(index);
-      setStructures(newStructures);
-      setEnemies(spawnEnemiesForStage(index, nextEnemyId, newStructures));
-      setEngagedEnemyId(null);
-      setDisplayedEnemyId(null);
-  }, []);
-
   useEffect(() => {
-    // This hook now only triggers when the stageIndex changes, preventing reloads on gameState changes (like exiting a shop).
-    if (gameState === GameState.PLAYING) {
-      loadStage(stageIndex);
+    if (isTransitioning) {
+        if (stageIndex === 0) {
+            nextEnemyId.current = 0;
+            nextSceneryId.current = 0;
+        }
+        const newStructures = spawnStructuresForStage(stageIndex);
+        setStructures(newStructures);
+        setEnemies(spawnEnemiesForStage(stageIndex, nextEnemyId, newStructures));
+        setEngagedEnemyId(null);
+        setDisplayedEnemyId(null);
+
+        setIsTransitioning(false); // Transition complete
     }
-  }, [stageIndex, loadStage]);
+  }, [isTransitioning, stageIndex]);
+
 
   const continueGame = useCallback(() => {
     const savedDataString = localStorage.getItem(SAVE_KEY);
@@ -281,7 +279,7 @@ export const useGameLogic = () => {
         resumeAudioContext().then(() => {
             const areaIndex = Math.floor(loadedStageIndex / 10);
             playBGM(areaIndex);
-            loadStage(loadedStageIndex); // Load stage without player position
+            setIsTransitioning(true); // Trigger stage load
             setGameState(GameState.PLAYING);
         });
     } catch (error) {
@@ -289,7 +287,7 @@ export const useGameLogic = () => {
         localStorage.removeItem(SAVE_KEY);
         setHasSaveData(false);
     }
-  }, [loadStage, addLog, loadPlayer]);
+  }, [addLog, loadPlayer]);
 
   const startGame = useCallback(() => {
     localStorage.removeItem(SAVE_KEY);
@@ -302,10 +300,10 @@ export const useGameLogic = () => {
         setDistance(0);
         
         setStageIndex(0);
-        loadStage(0); // Explicitly load stage 0 on game start
+        setIsTransitioning(true); // Trigger stage load
         setGameState(GameState.PLAYING);
     });
-  }, [loadStage, resetPlayer]);
+  }, [resetPlayer]);
   
   useEffect(() => {
     let timer: ReturnType<typeof setInterval> | undefined;
@@ -376,6 +374,7 @@ export const useGameLogic = () => {
           x: INITIAL_PLAYER.x + targetStageIndex * STAGE_LENGTH * PIXELS_PER_METER,
       }));
       setStageIndex(targetStageIndex);
+      setIsTransitioning(true); // Trigger stage load on teleport
       setGameState(GameState.PLAYING);
   }, [player.gold, stageIndex, addLog]);
 
@@ -445,8 +444,8 @@ export const useGameLogic = () => {
             
             resumeAudioContext().then(() => {
                 playBGM(0);
-                // Setting stageIndex to 0 and gameState to PLAYING will trigger the loading useEffect.
                 setStageIndex(0);
+                setIsTransitioning(true); // Trigger stage 0 load
                 setGameState(GameState.PLAYING);
             });
         }, 2000);
@@ -476,7 +475,7 @@ export const useGameLogic = () => {
   }, [playerStatAllocation]);
 
   const updateGameLogic = useCallback((deltaTime: number) => {
-    if (gameState !== GameState.PLAYING) return;
+    if (gameState !== GameState.PLAYING || isTransitioning) return;
     
     let playerUpdate = { ...player };
     let newEnemies = [...enemies];
@@ -713,7 +712,8 @@ export const useGameLogic = () => {
             // FIX: Reverted to using Object.entries to iterate over stats.
             // This is more direct and consistent with other parts of the codebase (e.g., usePlayer.ts).
             for (const [stat, value] of Object.entries(lastAllocation)) {
-                newBaseStats[stat as AllocatableStat] += value as number;
+                // FIX: Cast `value` to a number, as Object.entries can produce `unknown` values.
+                newBaseStats[stat as AllocatableStat] += Number(value);
             }
             hpChange += ((lastAllocation.stamina as number) || 0) * 10 + ((lastAllocation.strength as number) || 0) * 2;
             playerUpdate.baseStats = newBaseStats;
@@ -755,14 +755,16 @@ export const useGameLogic = () => {
         if (playerUpdate.x > currentStageStartX + currentStagePixelLength) {
             nextStageIndex++;
             setStageIndex(nextStageIndex);
+            setIsTransitioning(true);
             playerUpdate.x = INITIAL_PLAYER.x + nextStageIndex * currentStagePixelLength;
         } else if (playerUpdate.x < currentStageStartX && nextStageIndex > 0) {
             nextStageIndex--;
             setStageIndex(nextStageIndex);
+            setIsTransitioning(true);
             playerUpdate.x = INITIAL_PLAYER.x + nextStageIndex * currentStagePixelLength + currentStagePixelLength - 64;
         }
         
-        const totalPixelsInCurrentStage = Math.max(0, playerUpdate.x - (INITIAL_PLAYER.x + nextStageIndex * currentStagePixelLength));
+        const totalPixelsInCurrentStage = Math.max(0, playerUpdate.x - (INITIAL_PLAYER.x + stageIndex * currentStagePixelLength));
         setDistance(Math.min(STAGE_LENGTH, Math.floor(totalPixelsInCurrentStage / PIXELS_PER_METER)));
     };
     
@@ -814,7 +816,7 @@ export const useGameLogic = () => {
     setEnemies(newEnemies.filter(e => e.currentHp > 0));
     setPlayer(playerUpdate);
 
-  }, [gameState, player, enemies, structures, stageIndex, distance, addLog, calculatedStats, engagedEnemyId, trackEquipmentCollection, displayedEnemyId, gameViewWidth, totalElementalDamages]);
+  }, [gameState, isTransitioning, player, enemies, structures, stageIndex, distance, addLog, calculatedStats, engagedEnemyId, trackEquipmentCollection, displayedEnemyId, gameViewWidth, totalElementalDamages]);
 
   const savedCallback = useRef(updateGameLogic);
   useEffect(() => {
