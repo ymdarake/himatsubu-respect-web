@@ -131,8 +131,11 @@ export const spawnEnemiesForStage = (
     // Now, iterate through the deterministically found spawn positions
     for (const spawnPosition of spawnPositions) {
         let randomEnemyName: string;
-        // 5% chance to spawn a Gem Slime, otherwise spawn a regular enemy for the area
-        if (Math.random() < GEM_SLIME_SPAWN_CHANCE) {
+        const roll = Math.random();
+
+        if (roll < 0.01) { // 1% chance for Gold Slime
+            randomEnemyName = 'ゴールドスライム';
+        } else if (roll < 0.01 + GEM_SLIME_SPAWN_CHANCE) { // 5% chance for Gem Slime (after Gold Slime check)
             randomEnemyName = 'ジェムスライム';
         } else {
             const availableEnemyNames = currentArea.enemyTypes;

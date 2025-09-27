@@ -296,6 +296,32 @@ const EnemySprite: React.FC<EnemySpriteProps> = ({ enemyName }) => {
                   <rect x="9" y="10" width="2" height="1" fill="#3b82f6" />
                 </svg>
             );
+        case 'ゴールドスライム':
+            return (
+                <svg {...svgProps}>
+                    {/* Crown */}
+                    <rect x="7" y="3" width="6" height="3" fill="#facc15" />
+                    <rect x="7" y="2" width="1" height="1" fill="#fde047" />
+                    <rect x="9" y="2" width="2" height="1" fill="#fde047" />
+                    <rect x="12" y="2" width="1" height="1" fill="#fde047" />
+                    
+                    {/* Body */}
+                    <rect x="6" y="16" width="8" height="1" fill="#ca8a04" /> {/* Shadow */}
+                    <rect x="5" y="15" width="10" height="1" fill="#f59e0b" />
+                    <rect x="4" y="12" width="12" height="3" fill="#f59e0b" />
+                    <rect x="5" y="9" width="10" height="3" fill="#f59e0b" />
+                    <rect x="6" y="7" width="8" height="2" fill="#f59e0b" />
+                    <rect x="7" y="6" width="6" height="1" fill="#f59e0b" />
+                    
+                    {/* Highlight */}
+                    <rect x="5" y="10" width="1" height="1" fill="#fcd34d" /> 
+                    <rect x="6" y="8" width="2" height="1" fill="#fcd34d" />
+                    
+                    {/* Eyes */}
+                    <rect x="7" y="13" width="1" height="1" fill="#fff" /> 
+                    <rect x="12" y="13" width="1" height="1" fill="#fff" />
+                </svg>
+            );
         case 'ホーネット': return (<svg {...svgProps}> <rect x="8" y="8" width="4" height="5" fill="#facc15" /> <rect x="7" y="9" width="6" height="1" fill="#000" /> <rect x="7" y="11" width="6" height="1" fill="#000" /> <rect x="12" y="8" width="1" height="2" fill="#000" /> <rect x="9" y="9" width="1" height="1" fill="#ef4444" /> <rect x="4" y="6" width="4" height="3" fill="#e5e7eb" /> <rect x="12" y="6" width="4" height="3" fill="#e5e7eb" /> </svg>);
         case 'マッドパピー': return (<svg {...svgProps}> <rect x="6" y="10" width="8" height="5" fill="#a16207" /> <rect x="5" y="8" width="4" height="3" fill="#a16207" /> <rect x="4" y="9" width="1" height="1" fill="#a16207" /> <rect x="6" y="9" width="1" height="1" fill="#ef4444" /> <rect x="5" y="7" width="1" height="1" fill="#a16207" /> <rect x="7" y="7" width="1" height="1" fill="#a16207" /> <rect x="14" y="11" width="2" height="1" fill="#a16207" /> <rect x="7" y="15" width="2" height="2" fill="#a16207" /> <rect x="11" y="15" width="2" height="2" fill="#a16207" /> </svg>);
         case 'ジャイアントワーム': return (<svg {...svgProps}> <rect x="7" y="15" width="6" height="2" fill="#c2410c" /> <rect x="6" y="12" width="8" height="3" fill="#ea580c" /> <rect x="5" y="9" width="10" height="3" fill="#f97316" /> <rect x="6" y="6" width="8" height="3" fill="#fb923c" /> <rect x="8" y="7" width="1" height="1" fill="#000" /> <rect x="11" y="7" width="1" height="1" fill="#000" /> </svg>);

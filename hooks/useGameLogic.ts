@@ -237,7 +237,12 @@ export const useGameLogic = () => {
         }
         const newStructures = spawnStructuresForStage(stageIndex);
         setStructures(newStructures);
-        setEnemies(spawnEnemiesForStage(stageIndex, nextEnemyId, newStructures));
+        const newScenery = spawnSceneryForStage(stageIndex, nextSceneryId);
+        setScenery(newScenery);
+
+        const newEnemies = spawnEnemiesForStage(stageIndex, nextEnemyId, newStructures);
+        setEnemies(newEnemies);
+        
         setEngagedEnemyId(null);
         setDisplayedEnemyId(null);
 
@@ -554,18 +559,26 @@ export const useGameLogic = () => {
                 playerUpdate.xp += xpGained;
                 setPlayStats(prev => ({ ...prev, totalXpGained: prev.totalXpGained + xpGained }));
 
-                const baseGoldFromEnemy = e.goldValue * (0.8 + Math.random() * 0.4);
-                const luckBonusMultiplier = 1 + (currentCalculatedStats.luckValue * 0.0025);
-                const goldDropped = Math.min(10, Math.floor(baseGoldFromEnemy * luckBonusMultiplier));
+                let goldDropped = 0;
+                let goldMessage = '';
+                if (e.name === 'ゴールドスライム') {
+                    goldDropped = (stageIndex + 1) * 100;
+                    goldMessage = `💰 なんと ${goldDropped}G を手に入れた！`;
+                } else {
+                    const baseGoldFromEnemy = e.goldValue * (0.8 + Math.random() * 0.4);
+                    const luckBonusMultiplier = 1 + (currentCalculatedStats.luckValue * 0.0025);
+                    goldDropped = Math.floor(baseGoldFromEnemy * luckBonusMultiplier);
+                    goldMessage = `+${goldDropped}G`;
+                }
                 playerUpdate.gold += goldDropped;
+                
+                addLog(`${e.name} レベル${e.level}を倒した！ ${goldMessage}, +${xpGained}XP`);
                 
                 const newDrop = { id: nextGoldDropId.current++, x: e.x + 10 };
                 setGoldDrops(prev => [...prev, newDrop]);
                 setTimeout(() => setGoldDrops(prev => prev.filter(d => d.id !== newDrop.id)), 1000);
 
-                addLog(`${e.name} レベル${e.level}を倒した！ +${goldDropped}G, +${xpGained}XP`);
-                
-                // Handle drops
+                // Handle item drops
                 if (e.name === 'ジェムスライム') {
                     const numberOfGems = Math.floor(Math.random() * 3) + 3; // 3, 4, or 5
                     const allStats: AllocatableStat[] = ['strength', 'stamina', 'intelligence', 'speedAgility', 'luck'];
