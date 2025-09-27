@@ -70,4 +70,5 @@ export const ENEMY_DATA: Record<string, EnemyBaseData> = {
   'エンシェントドラゴン': { name: 'エンシェントドラゴン', baseStats: { strength: 25, stamina: 24, intelligence: 16, speedAgility: 12, luck: 8 }, element: '闇', color: 'bg-indigo-950', shape: 'circle', xpValue: 300, goldValue: 5, attackPrepareTime: 2000, attackAnimationTime: 700 },
   'ジェムスライム': { name: 'ジェムスライム', baseStats: { strength: 4, stamina: 2, intelligence: 1, speedAgility: 3, luck: 2 }, element: '光', color: 'bg-fuchsia-500', shape: 'circle', xpValue: 75, goldValue: 4, attackPrepareTime: 1200, attackAnimationTime: 400 },
   'ゴールドスライム': { name: 'ゴールドスライム', baseStats: { strength: 2, stamina: 10, intelligence: 1, speedAgility: 15, luck: 20 }, element: '光', color: 'bg-amber-400', shape: 'circle', xpValue: 10, goldValue: 100, attackPrepareTime: 2000, attackAnimationTime: 400 },
+  'ヒーリングスライム': { name: 'ヒーリングスライム', baseStats: { strength: 1, stamina: 10, intelligence: 10, speedAgility: 8, luck: 10 }, element: '光', color: 'bg-pink-400', shape: 'circle', xpValue: 20, goldValue: 5, attackPrepareTime: 99999, attackAnimationTime: 400 },
 };

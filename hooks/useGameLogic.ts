@@ -574,6 +574,11 @@ export const useGameLogic = () => {
                 
                 addLog(`${e.name} レベル${e.level}を倒した！ ${goldMessage}, +${xpGained}XP`);
                 
+                if (e.name === 'ヒーリングスライム') {
+                    playerUpdate.currentHp = currentCalculatedStats.maxHp;
+                    addLog('💖 体力が全回復した！');
+                }
+                
                 const newDrop = { id: nextGoldDropId.current++, x: e.x + 10 };
                 setGoldDrops(prev => [...prev, newDrop]);
                 setTimeout(() => setGoldDrops(prev => prev.filter(d => d.id !== newDrop.id)), 1000);

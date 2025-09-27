@@ -132,10 +132,13 @@ export const spawnEnemiesForStage = (
     for (const spawnPosition of spawnPositions) {
         let randomEnemyName: string;
         const roll = Math.random();
+        const HEALING_SLIME_SPAWN_CHANCE = 0.03;
 
         if (roll < 0.01) { // 1% chance for Gold Slime
             randomEnemyName = 'ゴールドスライム';
-        } else if (roll < 0.01 + GEM_SLIME_SPAWN_CHANCE) { // 5% chance for Gem Slime (after Gold Slime check)
+        } else if (roll < 0.01 + HEALING_SLIME_SPAWN_CHANCE) { // 3% chance for Healing Slime
+            randomEnemyName = 'ヒーリングスライム';
+        } else if (roll < 0.01 + HEALING_SLIME_SPAWN_CHANCE + GEM_SLIME_SPAWN_CHANCE) { // 5% chance for Gem Slime
             randomEnemyName = 'ジェムスライム';
         } else {
             const availableEnemyNames = currentArea.enemyTypes;
