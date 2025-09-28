@@ -1,4 +1,5 @@
 
+
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { GameState, Enemy, Player as PlayerType, Structure, ShopType, Equipment, AllocatableStat, BaseStats, Gem, SceneryObject, PlayStats, Element, DamageInstance, DamageInfo } from '../types';
 import { playSound, resumeAudioContext, playBGM, stopBGM, setMutedState } from '../utils/audio';
@@ -122,7 +123,6 @@ export const useGameLogic = () => {
             for (const [element, power] of Object.entries(item.elementalDamages)) {
                 if (power) {
                     const elemKey = element as Element;
-                    // FIX: Cast `power` to a number, as Object.entries can produce `unknown` values.
                     totals[elemKey] = (totals[elemKey] || 0) + Number(power);
                 }
             }
@@ -487,10 +487,8 @@ export const useGameLogic = () => {
     const currentCalculatedStats = calculatedStats;
     const now = Date.now();
 
-    // --- Helper functions for game logic sections ---
-
-    const processPlayerAttack = (enemyToAttack: Enemy | undefined) => {
-        if (!enemyToAttack || !playerAttackReady.current) return;
+    const processPlayerAttack = (enemyToAttack: Enemy) => {
+        if (!playerAttackReady.current) return;
         
         playerAttackReady.current = false;
         const playerSpeed = currentCalculatedStats.speed;
@@ -509,14 +507,12 @@ export const useGameLogic = () => {
         let totalDamage = 0;
         const damageInfos: DamageInfo[] = [];
 
-        // Physical Damage
         const basePhysicalAttack = currentCalculatedStats.physicalAttack;
         const effectiveDefense = enemyToAttack.physicalDefense;
         const totalStat = basePhysicalAttack + effectiveDefense;
         const damageMultiplier = totalStat > 0 ? basePhysicalAttack / totalStat : 1;
         let rawPhysicalDamage = basePhysicalAttack * damageMultiplier * (0.9 + Math.random() * 0.2);
 
-        // Critical Hit
         const criticalChance = Math.min(0.75, currentCalculatedStats.luckValue / 400);
         const isCritical = Math.random() < criticalChance;
         if (isCritical) rawPhysicalDamage *= 1.5;
@@ -525,7 +521,6 @@ export const useGameLogic = () => {
         totalDamage += finalPhysicalDamage;
         damageInfos.push({ text: `${finalPhysicalDamage}${isCritical ? '!' : ''}`, color: isCritical ? '#fde047' : '#FFFFFF' });
         
-        // Elemental Damage
         for (const [element, power] of Object.entries(totalElementalDamages)) {
             const affinityMultiplier = ELEMENTAL_AFFINITY[element as Element][enemyToAttack.element];
             const baseMagicalDamage = (currentCalculatedStats.magicalAttack * 1.5) * (1 + (power as number) / 100);
@@ -542,15 +537,16 @@ export const useGameLogic = () => {
           setTimeout(() => setDamageInstances(prev => prev.filter(d => d.id !== newInstance.id)), 1200);
         }
 
-        let targetIsDefeated = false;
         newEnemies = newEnemies.map(e => {
             if (e.id !== enemyToAttack.id) return e;
 
+            const previousHp = e.currentHp;
+            if (previousHp <= 0) return e;
+
             playSound('enemyHit');
-            const newHp = Math.max(0, e.currentHp - totalDamage);
-            if (newHp === 0) {
-                // Handle defeat
-                targetIsDefeated = true;
+            const newHp = Math.max(0, previousHp - totalDamage);
+            
+            if (previousHp > 0 && newHp <= 0) {
                 setPlayStats(prev => ({ ...prev, enemiesDefeated: prev.enemiesDefeated + 1 }));
                 if (e.id === engagedEnemyId) setEngagedEnemyId(null);
                 if (e.id === displayedEnemyId) setDisplayedEnemyId(null);
@@ -583,9 +579,8 @@ export const useGameLogic = () => {
                 setGoldDrops(prev => [...prev, newDrop]);
                 setTimeout(() => setGoldDrops(prev => prev.filter(d => d.id !== newDrop.id)), 1000);
 
-                // Handle item drops
                 if (e.name === 'ジェムスライム') {
-                    const numberOfGems = Math.floor(Math.random() * 3) + 3; // 3, 4, or 5
+                    const numberOfGems = Math.floor(Math.random() * 3) + 3;
                     const allStats: AllocatableStat[] = ['strength', 'stamina', 'intelligence', 'speedAgility', 'luck'];
                     const droppedGemsCount: Partial<Record<AllocatableStat, number>> = {};
 
@@ -618,14 +613,12 @@ export const useGameLogic = () => {
                         playerUpdate = addEquipmentToPlayer(playerUpdate, droppedItem, trackEquipmentCollection, addLog);
                     }
                 }
+            } else if (newHp > 0) {
+                 setEnemyHits(prev => ({...prev, [enemyToAttack.id]: true}));
+                 setTimeout(() => setEnemyHits(prev => ({...prev, [enemyToAttack.id]: false })), 300);
             }
             return { ...e, currentHp: newHp };
         });
-
-        if(!targetIsDefeated) {
-            setEnemyHits(prev => ({...prev, [enemyToAttack.id]: true}));
-            setTimeout(() => setEnemyHits(prev => ({...prev, [enemyToAttack.id]: false })), 300);
-        }
     };
 
     const processEnemyAIAndAttacks = () => {
@@ -634,18 +627,14 @@ export const useGameLogic = () => {
 
         newEnemies = newEnemies.map(enemy => {
             if (enemy.currentHp <= 0) return enemy;
-
             const updatedEnemy = { ...enemy };
-
             if (updatedEnemy.attackState === 'preparing' && now >= updatedEnemy.attackStateTimer) {
                 playSound('enemyAttack');
-                
                 const playerWidth = 64;
                 const enemyWidth = 128;
                 const distanceBetweenCenters = Math.abs((playerUpdate.x + playerWidth / 2) - (updatedEnemy.x + enemyWidth / 2));
                 if (distanceBetweenCenters <= (playerWidth / 2) + (enemyWidth / 2) + ATTACK_RANGE) {
                     const damageInfos: DamageInfo[] = [];
-
                     const enemyAttack = updatedEnemy.physicalAttack;
                     const playerDefense = currentCalculatedStats.physicalDefense;
                     const totalStat = enemyAttack + playerDefense;
@@ -698,12 +687,10 @@ export const useGameLogic = () => {
 
     const applyPlayerDamageAndCheckDeath = (damage: number, attacker: Enemy | null) => {
         if (damage <= 0) return false;
-
         playSound('playerHit');
         playerUpdate.currentHp = Math.max(0, playerUpdate.currentHp - damage);
         setPlayerAction('hit');
         setTimeout(() => setPlayerAction(undefined), 300);
-
         if (playerUpdate.currentHp === 0) {
             playSound('playerDeath');
             addLog(attacker ? `${attacker.name} Lv.${attacker.level}にやられた…` : '力尽きた…');
@@ -714,32 +701,45 @@ export const useGameLogic = () => {
     };
     
     const handlePlayerLevelUp = () => {
-        if (playerUpdate.xp < playerUpdate.xpToNextLevel) return;
+        if (playerUpdate.xp < playerUpdate.xpToNextLevel) {
+            return;
+        }
 
-        const remainingXp = playerUpdate.xp - playerUpdate.xpToNextLevel;
-        playerUpdate.level += 1;
-        addLog(`レベル ${playerUpdate.level} になった！`);
-        playSound('levelUp');
-        playerUpdate.xp = remainingXp;
-        playerUpdate.xpToNextLevel = Math.floor(playerUpdate.xpToNextLevel * XP_FOR_NEXT_LEVEL_MULTIPLIER);
-        
-        if (playerUpdate.isStatAllocationLocked && playerUpdate.lastStatAllocation) {
-            const newBaseStats: BaseStats = { ...playerUpdate.baseStats };
-            let hpChange = 10;
-            const lastAllocation = playerUpdate.lastStatAllocation;
-            // FIX: Reverted to using Object.entries to iterate over stats.
-            // This is more direct and consistent with other parts of the codebase (e.g., usePlayer.ts).
-            for (const [stat, value] of Object.entries(lastAllocation)) {
-                // FIX: Cast `value` to a number, as Object.entries can produce `unknown` values.
-                newBaseStats[stat as AllocatableStat] += Number(value);
+        const startingLevel = playerUpdate.level;
+        let accumulatedStatPoints = 0;
+        let accumulatedHpChange = 0;
+        let tempBaseStats = { ...playerUpdate.baseStats };
+
+        while (playerUpdate.xp >= playerUpdate.xpToNextLevel) {
+            const xpRequired = playerUpdate.xpToNextLevel;
+            playerUpdate.level += 1;
+            playerUpdate.xp -= xpRequired;
+            playerUpdate.xpToNextLevel = Math.floor(playerUpdate.xpToNextLevel * XP_FOR_NEXT_LEVEL_MULTIPLIER);
+
+            if (playerUpdate.isStatAllocationLocked && playerUpdate.lastStatAllocation) {
+                const lastAllocation = playerUpdate.lastStatAllocation;
+                for (const [stat, value] of Object.entries(lastAllocation)) {
+                    tempBaseStats[stat as AllocatableStat] += Number(value);
+                }
+                accumulatedHpChange += 10 + (Number(lastAllocation.stamina) || 0) * 10 + (Number(lastAllocation.strength) || 0) * 2;
+            } else {
+                accumulatedStatPoints += STAT_POINTS_PER_LEVEL;
             }
-            hpChange += ((lastAllocation.stamina as number) || 0) * 10 + ((lastAllocation.strength as number) || 0) * 2;
-            playerUpdate.baseStats = newBaseStats;
-            playerUpdate.currentHp += hpChange;
-            addLog('ステータスが自動的に割り振られました。');
-        } else {
-            playerUpdate.statPoints = (playerUpdate.statPoints || 0) + STAT_POINTS_PER_LEVEL;
-            setGameState(GameState.LEVEL_UP);
+        }
+        
+        const levelsGained = playerUpdate.level - startingLevel;
+        if (levelsGained > 0) {
+            playSound('levelUp');
+            addLog(`レベル ${playerUpdate.level} になった！ (+${levelsGained} レベル)`);
+
+            if (playerUpdate.isStatAllocationLocked) {
+                playerUpdate.baseStats = tempBaseStats;
+                playerUpdate.currentHp += accumulatedHpChange;
+                addLog('ステータスが自動的に割り振られました。');
+            } else {
+                playerUpdate.statPoints = (playerUpdate.statPoints || 0) + accumulatedStatPoints;
+                setGameState(GameState.LEVEL_UP);
+            }
         }
     };
 
@@ -748,7 +748,6 @@ export const useGameLogic = () => {
         const PLAYER_MOVE_SPEED_PPS = GAME_SPEED * 20;
         if (rightArrowPressed.current) dx += PLAYER_MOVE_SPEED_PPS * deltaTime;
         if (leftArrowPressed.current) dx -= PLAYER_MOVE_SPEED_PPS * deltaTime;
-
         if (currentEngagedEnemy) {
             const playerWidth = 64;
             const enemyWidth = 128;
@@ -759,17 +758,13 @@ export const useGameLogic = () => {
                 dx = (currentEngagedEnemy.x + enemyWidth) - playerUpdate.x;
             }
         }
-
         if (playerUpdate.x + dx < INITIAL_PLAYER.x) dx = INITIAL_PLAYER.x - playerUpdate.x;
-        
         playerUpdate.x += dx;
         playerUpdate.isWalking = dx !== 0;
         if (dx > 0) setPlayStats(prev => ({ ...prev, totalDistanceTraveled: prev.totalDistanceTraveled + (dx / PIXELS_PER_METER) }));
-        
         const currentStagePixelLength = STAGE_LENGTH * PIXELS_PER_METER;
         let nextStageIndex = stageIndex;
         const currentStageStartX = INITIAL_PLAYER.x + nextStageIndex * currentStagePixelLength;
-        
         if (playerUpdate.x > currentStageStartX + currentStagePixelLength) {
             nextStageIndex++;
             setStageIndex(nextStageIndex);
@@ -781,14 +776,10 @@ export const useGameLogic = () => {
             setIsTransitioning(true);
             playerUpdate.x = INITIAL_PLAYER.x + nextStageIndex * currentStagePixelLength + currentStagePixelLength - 64;
         }
-        
         const totalPixelsInCurrentStage = Math.max(0, playerUpdate.x - (INITIAL_PLAYER.x + stageIndex * currentStagePixelLength));
         setDistance(Math.min(STAGE_LENGTH, Math.floor(totalPixelsInCurrentStage / PIXELS_PER_METER)));
     };
     
-    // --- Main Logic Flow for this Tick ---
-
-    // Update prompts
     houseTarget.current = structures.find(s => s.type === 'house' && Math.abs(s.x - playerUpdate.x) < HEALING_HOUSE_RANGE) || null;
     setHousePrompt(!!houseTarget.current);
     shopTarget.current = structures.find(s => s.type.includes('_shop') && Math.abs(s.x - playerUpdate.x) < SHOP_RANGE) || null;
@@ -796,22 +787,19 @@ export const useGameLogic = () => {
     teleporterTarget.current = structures.find(s => s.type === 'teleporter' && Math.abs(s.x - playerUpdate.x) < TELEPORTER_RANGE) || null;
     setTeleporterPrompt(!!teleporterTarget.current);
 
-    // Update displayed enemy
     const activeEnemies = newEnemies.filter(e => e.currentHp > 0);
     if (displayedEnemyId === null && activeEnemies.length > 0) {
         const closest = activeEnemies.map(e => ({ e, d: Math.abs(e.x - playerUpdate.x) })).filter(d => d.d <= ENEMY_PANEL_DISPLAY_RANGE).sort((a,b) => a.d - b.d)[0];
         if(closest) setDisplayedEnemyId(closest.e.id);
     }
 
-    // Update engaged enemy and ensure consistency within the current frame
     let currentEngagedEnemy = activeEnemies.find(e => e.id === engagedEnemyId);
     if (!currentEngagedEnemy && activeEnemies.length > 0) {
         const newTarget = activeEnemies.sort((a,b) => Math.abs(a.x - playerUpdate.x) - Math.abs(b.x - playerUpdate.x))[0];
         setEngagedEnemyId(newTarget.id);
-        currentEngagedEnemy = newTarget; // Use the new target immediately in this frame
+        currentEngagedEnemy = newTarget;
     }
     
-    // Determine enemy to attack
     let enemyToAttack: Enemy | undefined = undefined;
     if (currentEngagedEnemy) {
       const distanceBetweenCenters = Math.abs((playerUpdate.x + 32) - (currentEngagedEnemy.x + 64));
@@ -820,8 +808,10 @@ export const useGameLogic = () => {
       }
     }
 
-    // Execute game logic
-    processPlayerAttack(enemyToAttack);
+    if (enemyToAttack && enemyToAttack.currentHp > 0) {
+        processPlayerAttack(enemyToAttack);
+    }
+    
     const { totalPlayerDamageThisFrame, lastAttackingEnemy } = processEnemyAIAndAttacks();
     const isPlayerDead = applyPlayerDamageAndCheckDeath(totalPlayerDamageThisFrame, lastAttackingEnemy);
 
@@ -830,7 +820,6 @@ export const useGameLogic = () => {
       handlePlayerMovementAndStageChanges(currentEngagedEnemy);
     }
     
-    // Update state
     setEnemies(newEnemies.filter(e => e.currentHp > 0));
     setPlayer(playerUpdate);
 
