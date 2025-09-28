@@ -281,19 +281,20 @@ const EnemySprite: React.FC<EnemySpriteProps> = ({ enemyName }) => {
         case 'ジェムスライム':
             return (
                 <svg {...svgProps}>
-                  <rect x="6" y="16" width="8" height="1" fill="#a21caf" /> {/* Shadow */}
-                  <rect x="5" y="15" width="10" height="1" fill="#d946ef" />
-                  <rect x="4" y="12" width="12" height="3" fill="#d946ef" />
-                  <rect x="5" y="9" width="10" height="3" fill="#d946ef" />
-                  <rect x="6" y="7" width="8" height="2" fill="#d946ef" />
-                  <rect x="7" y="6" width="6" height="1" fill="#d946ef" />
-                  <rect x="5" y="10" width="1" height="1" fill="#f0abfc" /> {/* Highlight */}
-                  <rect x="6" y="8" width="2" height="1" fill="#f0abfc" /> {/* Highlight */}
+                  <rect x="6" y="16" width="8" height="1" fill="#e879f9" /> {/* Shadow */}
+                  <rect x="5" y="15" width="10" height="1" fill="#f472b6" />
+                  <rect x="4" y="12" width="12" height="3" fill="#f472b6" />
+                  <rect x="5" y="9" width="10" height="3" fill="#f472b6" />
+                  <rect x="6" y="7" width="8" height="2" fill="#f472b6" />
+                  <rect x="7" y="6" width="6" height="1" fill="#f472b6" />
+                  <rect x="5" y="10" width="1" height="1" fill="#fda4af" /> {/* Highlight */}
+                  <rect x="6" y="8" width="2" height="1" fill="#fda4af" /> {/* Highlight */}
                   <rect x="7" y="13" width="1" height="1" fill="#fff" /> {/* Eye */}
                   <rect x="12" y="13" width="1" height="1" fill="#fff" /> {/* Eye */}
-                  <rect x="9" y="8" width="2" height="1" fill="#3b82f6" />
-                  <rect x="8" y="9" width="4" height="1" fill="#60a5fa" />
-                  <rect x="9" y="10" width="2" height="1" fill="#3b82f6" />
+                  {/* Heart */}
+                  <rect x="9" y="10" width="2" height="2" fill="#fff" />
+                  <rect x="8" y="11" width="1" height="1" fill="#fff" />
+                  <rect x="11" y="11" width="1" height="1" fill="#fff" />
                 </svg>
             );
         case 'ゴールドスライム':
@@ -325,20 +326,19 @@ const EnemySprite: React.FC<EnemySpriteProps> = ({ enemyName }) => {
         case 'ヒーリングスライム':
             return (
                 <svg {...svgProps}>
-                  <rect x="6" y="16" width="8" height="1" fill="#e879f9" /> {/* Shadow */}
-                  <rect x="5" y="15" width="10" height="1" fill="#f472b6" />
-                  <rect x="4" y="12" width="12" height="3" fill="#f472b6" />
-                  <rect x="5" y="9" width="10" height="3" fill="#f472b6" />
-                  <rect x="6" y="7" width="8" height="2" fill="#f472b6" />
-                  <rect x="7" y="6" width="6" height="1" fill="#f472b6" />
-                  <rect x="5" y="10" width="1" height="1" fill="#fda4af" /> {/* Highlight */}
-                  <rect x="6" y="8" width="2" height="1" fill="#fda4af" /> {/* Highlight */}
+                  <rect x="6" y="16" width="8" height="1" fill="#a21caf" /> {/* Shadow */}
+                  <rect x="5" y="15" width="10" height="1" fill="#d946ef" />
+                  <rect x="4" y="12" width="12" height="3" fill="#d946ef" />
+                  <rect x="5" y="9" width="10" height="3" fill="#d946ef" />
+                  <rect x="6" y="7" width="8" height="2" fill="#d946ef" />
+                  <rect x="7" y="6" width="6" height="1" fill="#d946ef" />
+                  <rect x="5" y="10" width="1" height="1" fill="#f0abfc" /> {/* Highlight */}
+                  <rect x="6" y="8" width="2" height="1" fill="#f0abfc" /> {/* Highlight */}
                   <rect x="7" y="13" width="1" height="1" fill="#fff" /> {/* Eye */}
                   <rect x="12" y="13" width="1" height="1" fill="#fff" /> {/* Eye */}
-                  {/* Heart */}
-                  <rect x="9" y="10" width="2" height="2" fill="#fff" />
-                  <rect x="8" y="11" width="1" height="1" fill="#fff" />
-                  <rect x="11" y="11" width="1" height="1" fill="#fff" />
+                  <rect x="9" y="8" width="2" height="1" fill="#3b82f6" />
+                  <rect x="8" y="9" width="4" height="1" fill="#60a5fa" />
+                  <rect x="9" y="10" width="2" height="1" fill="#3b82f6" />
                 </svg>
             );
         case 'ホーネット': return (<svg {...svgProps}> <rect x="8" y="8" width="4" height="5" fill="#facc15" /> <rect x="7" y="9" width="6" height="1" fill="#000" /> <rect x="7" y="11" width="6" height="1" fill="#000" /> <rect x="12" y="8" width="1" height="2" fill="#000" /> <rect x="9" y="9" width="1" height="1" fill="#ef4444" /> <rect x="4" y="6" width="4" height="3" fill="#e5e7eb" /> <rect x="12" y="6" width="4" height="3" fill="#e5e7eb" /> </svg>);
