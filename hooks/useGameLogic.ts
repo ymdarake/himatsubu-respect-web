@@ -685,7 +685,7 @@ export const useGameLogic = () => {
         return { totalPlayerDamageThisFrame, lastAttackingEnemy };
     };
 
-    const applyPlayerDamageAndCheckDeath = (damage: number, attacker: Enemy | null) => {
+    const applyPlayerDamageAndCheckDeath = (damage: number, attacker: Enemy | null): boolean => {
         if (damage <= 0) return false;
         playSound('playerHit');
         playerUpdate.currentHp = Math.max(0, playerUpdate.currentHp - damage);
@@ -700,9 +700,9 @@ export const useGameLogic = () => {
         return false;
     };
     
-    const handlePlayerLevelUp = () => {
+    const handlePlayerLevelUp = (): boolean => {
         if (playerUpdate.xp < playerUpdate.xpToNextLevel) {
-            return;
+            return false;
         }
 
         const startingLevel = playerUpdate.level;
@@ -738,9 +738,10 @@ export const useGameLogic = () => {
                 addLog('ステータスが自動的に割り振られました。');
             } else {
                 playerUpdate.statPoints = (playerUpdate.statPoints || 0) + accumulatedStatPoints;
-                setGameState(GameState.LEVEL_UP);
+                return true;
             }
         }
+        return false;
     };
 
     const handlePlayerMovementAndStageChanges = (currentEngagedEnemy: Enemy | undefined) => {
@@ -816,8 +817,11 @@ export const useGameLogic = () => {
     const isPlayerDead = applyPlayerDamageAndCheckDeath(totalPlayerDamageThisFrame, lastAttackingEnemy);
 
     if (!isPlayerDead) {
-      handlePlayerLevelUp();
+      const didLevelUp = handlePlayerLevelUp();
       handlePlayerMovementAndStageChanges(currentEngagedEnemy);
+      if (didLevelUp) {
+        setGameState(GameState.LEVEL_UP);
+      }
     }
     
     setEnemies(newEnemies.filter(e => e.currentHp > 0));
