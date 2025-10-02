@@ -8,7 +8,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **技術スタック**: React 19, TypeScript, Vite, Tailwind CSS
 - **ゲームジャンル**: 横スクロール型のRPG（プレイヤーが敵と戦い、レベルアップし、装備を集めながら進む）
-- **AI Studio連携**: Gemini APIを使用（環境変数 `GEMINI_API_KEY` が必要）
 
 ## 開発コマンド
 

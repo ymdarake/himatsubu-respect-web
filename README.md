@@ -1,20 +1,30 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# サイドスクロールクエスト
 
-# Run and deploy your AI Studio app
+React 19とTypeScriptで構築された横スクロール型RPGゲームです。
 
-This contains everything you need to run your app locally.
+## セットアップ
 
-View your app in AI Studio: https://ai.studio/apps/drive/1nXeRMb4D8U5a2dCQ3TNSDuMUlJaTlOLc
+**前提条件:** Node.js
 
-## Run Locally
+1. 依存関係をインストール:
+   ```bash
+   npm install
+   ```
 
-**Prerequisites:**  Node.js
+2. 開発サーバーを起動:
+   ```bash
+   npm run dev
+   ```
 
+3. ブラウザで http://localhost:3000/ にアクセス
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## ビルド
+
+```bash
+npm run build
+```
+
+## ドキュメント
+
+- [ARCHITECTURE.md](docs/ARCHITECTURE.md) - アーキテクチャ概要
+- [SPEC.md](docs/SPEC.md) - 詳細仕様
