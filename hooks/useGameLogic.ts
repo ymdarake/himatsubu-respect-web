@@ -487,18 +487,18 @@ export const useGameLogic = () => {
     const currentCalculatedStats = calculatedStats;
     const now = Date.now();
 
-    const processPlayerAttack = (enemyToAttack: Enemy) => {
-        if (!playerAttackReady.current) return;
-        
+    const processPlayerAttack = (enemyToAttack: Enemy): Enemy[] => {
+        if (!playerAttackReady.current) return newEnemies;
+
         playerAttackReady.current = false;
         const playerSpeed = currentCalculatedStats.speed;
         const enemySpeed = enemyToAttack.speed;
         const speedRatio = playerSpeed > 0 && enemySpeed > 0 ? playerSpeed / enemySpeed : 1;
         const speedLevel = ATTACK_SPEED_LEVELS.find(level => speedRatio <= level.ratio) || ATTACK_SPEED_LEVELS[3];
         setTimeout(() => { playerAttackReady.current = true; }, speedLevel.cooldown);
-        
+
         playSound('playerAttack');
-        
+
         const attackDirection = enemyToAttack.x > playerUpdate.x ? 'right' : 'left';
         setPlayerAttackDirection(attackDirection);
         setPlayerAction('attack');
@@ -516,11 +516,11 @@ export const useGameLogic = () => {
         const criticalChance = Math.min(0.75, currentCalculatedStats.luckValue / 400);
         const isCritical = Math.random() < criticalChance;
         if (isCritical) rawPhysicalDamage *= 1.5;
-        
+
         const finalPhysicalDamage = Math.max(1, Math.floor(rawPhysicalDamage));
         totalDamage += finalPhysicalDamage;
         damageInfos.push({ text: `${finalPhysicalDamage}${isCritical ? '!' : ''}`, color: isCritical ? '#fde047' : '#FFFFFF' });
-        
+
         for (const [element, power] of Object.entries(totalElementalDamages)) {
             const affinityMultiplier = ELEMENTAL_AFFINITY[element as Element][enemyToAttack.element];
             const baseMagicalDamage = (currentCalculatedStats.magicalAttack * 1.5) * (1 + (power as number) / 100);
@@ -537,7 +537,7 @@ export const useGameLogic = () => {
           setTimeout(() => setDamageInstances(prev => prev.filter(d => d.id !== newInstance.id)), 1200);
         }
 
-        newEnemies = newEnemies.map(e => {
+        return newEnemies.map(e => {
             if (e.id !== enemyToAttack.id) return e;
 
             const previousHp = e.currentHp;
@@ -545,12 +545,12 @@ export const useGameLogic = () => {
 
             playSound('enemyHit');
             const newHp = Math.max(0, previousHp - totalDamage);
-            
+
             if (previousHp > 0 && newHp <= 0) {
                 setPlayStats(prev => ({ ...prev, enemiesDefeated: prev.enemiesDefeated + 1 }));
                 if (e.id === engagedEnemyId) setEngagedEnemyId(null);
                 if (e.id === displayedEnemyId) setDisplayedEnemyId(null);
-                
+
                 const xpGained = Math.floor(e.xpValue * (1 + stageIndex * 0.05));
                 playerUpdate.xp += xpGained;
                 setPlayStats(prev => ({ ...prev, totalXpGained: prev.totalXpGained + xpGained }));
@@ -567,14 +567,14 @@ export const useGameLogic = () => {
                     goldMessage = `+${goldDropped}G`;
                 }
                 playerUpdate.gold += goldDropped;
-                
+
                 addLog(`${e.name} レベル${e.level}を倒した！ ${goldMessage}, +${xpGained}XP`);
-                
+
                 if (e.name === 'ヒーリングスライム') {
                     playerUpdate.currentHp = currentCalculatedStats.maxHp;
                     addLog('💖 体力が全回復した！');
                 }
-                
+
                 const newDrop = { id: nextGoldDropId.current++, x: e.x + 10 };
                 setGoldDrops(prev => [...prev, newDrop]);
                 setTimeout(() => setGoldDrops(prev => prev.filter(d => d.id !== newDrop.id)), 1000);
@@ -588,7 +588,7 @@ export const useGameLogic = () => {
                         const randomStat = allStats[Math.floor(Math.random() * allStats.length)];
                         droppedGemsCount[randomStat] = (droppedGemsCount[randomStat] || 0) + 1;
                     }
-                    
+
                     setPlayStats(prev => {
                         const newCollection = { ...prev.gemCollection };
                         for (const [stat, count] of Object.entries(droppedGemsCount)) {
@@ -598,11 +598,11 @@ export const useGameLogic = () => {
                         }
                         return { ...prev, gemCollection: newCollection };
                     });
-                
+
                     const logMessages = Object.entries(droppedGemsCount)
                         .filter(([, count]) => count && count > 0)
                         .map(([stat, count]) => `${baseStatNames[stat as AllocatableStat]}のジェムx${count}`);
-                    
+
                     if(logMessages.length > 0) {
                       addLog(`💎 ジェムを${numberOfGems}個手に入れた！ (${logMessages.join(', ')})`);
                     }
@@ -621,11 +621,11 @@ export const useGameLogic = () => {
         });
     };
 
-    const processEnemyAIAndAttacks = () => {
+    const processEnemyAIAndAttacks = (currentEnemies: Enemy[]) => {
         let totalPlayerDamageThisFrame = 0;
         let lastAttackingEnemy: Enemy | null = null;
 
-        newEnemies = newEnemies.map(enemy => {
+        const updatedEnemies = currentEnemies.map(enemy => {
             if (enemy.currentHp <= 0) return enemy;
             const updatedEnemy = { ...enemy };
             if (updatedEnemy.attackState === 'preparing' && now >= updatedEnemy.attackStateTimer) {
@@ -682,7 +682,7 @@ export const useGameLogic = () => {
             return updatedEnemy;
         });
 
-        return { totalPlayerDamageThisFrame, lastAttackingEnemy };
+        return { updatedEnemies, totalPlayerDamageThisFrame, lastAttackingEnemy };
     };
 
     const applyPlayerDamageAndCheckDeath = (damage: number, attacker: Enemy | null): boolean => {
@@ -789,9 +789,22 @@ export const useGameLogic = () => {
     setTeleporterPrompt(!!teleporterTarget.current);
 
     const activeEnemies = newEnemies.filter(e => e.currentHp > 0);
-    if (displayedEnemyId === null && activeEnemies.length > 0) {
-        const closest = activeEnemies.map(e => ({ e, d: Math.abs(e.x - playerUpdate.x) })).filter(d => d.d <= ENEMY_PANEL_DISPLAY_RANGE).sort((a,b) => a.d - b.d)[0];
-        if(closest) setDisplayedEnemyId(closest.e.id);
+
+    // Check if currently displayed enemy is still valid
+    const currentDisplayedEnemy = activeEnemies.find(e => e.id === displayedEnemyId);
+    const isDisplayedEnemyInRange = currentDisplayedEnemy && Math.abs(currentDisplayedEnemy.x - playerUpdate.x) <= ENEMY_PANEL_DISPLAY_RANGE;
+
+    // Update displayed enemy if needed
+    if (!isDisplayedEnemyInRange && activeEnemies.length > 0) {
+        const closest = activeEnemies
+            .map(e => ({ e, d: Math.abs(e.x - playerUpdate.x) }))
+            .filter(d => d.d <= ENEMY_PANEL_DISPLAY_RANGE)
+            .sort((a, b) => a.d - b.d)[0];
+        if (closest) {
+            setDisplayedEnemyId(closest.e.id);
+        } else {
+            setDisplayedEnemyId(null);
+        }
     }
 
     let currentEngagedEnemy = activeEnemies.find(e => e.id === engagedEnemyId);
@@ -810,10 +823,12 @@ export const useGameLogic = () => {
     }
 
     if (enemyToAttack && enemyToAttack.currentHp > 0) {
-        processPlayerAttack(enemyToAttack);
+        newEnemies = processPlayerAttack(enemyToAttack);
     }
-    
-    const { totalPlayerDamageThisFrame, lastAttackingEnemy } = processEnemyAIAndAttacks();
+
+    const { updatedEnemies, totalPlayerDamageThisFrame, lastAttackingEnemy } = processEnemyAIAndAttacks(newEnemies);
+    newEnemies = updatedEnemies;
+
     const isPlayerDead = applyPlayerDamageAndCheckDeath(totalPlayerDamageThisFrame, lastAttackingEnemy);
 
     if (!isPlayerDead) {
@@ -823,7 +838,7 @@ export const useGameLogic = () => {
         setGameState(GameState.LEVEL_UP);
       }
     }
-    
+
     setEnemies(newEnemies.filter(e => e.currentHp > 0));
     setPlayer(playerUpdate);
 
