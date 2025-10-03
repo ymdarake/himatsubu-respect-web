@@ -14,7 +14,11 @@
       - [x] 敵のstate（enemies, engagedEnemyId, displayedEnemyId, enemyHits）を `useEnemyManager` に移動
       - [x] 敵関連のrefとcomputed values（activeEnemies, engagedEnemy, displayedEnemy）を移動
       - [ ] 敵の生成・AI・戦闘ロジック（processPlayerAttack, processEnemyAIAndAttacks）を `useEnemyManager` に移動（今後のタスク）
-    - [ ] 1d. ワールド（ステージ、背景、建造物）の管理を `useWorldManager` フックに分離する。
+    - [x] 1d. ワールド（ステージ、背景、建造物）の管理を `useWorldManager` フックに分離する。
+      - [x] ワールド関連のstate（structures, scenery, stageIndex, distance）を `useWorldManager` に移動
+      - [x] ワールド関連のref（nextSceneryId, shopTarget, houseTarget, teleporterTarget）を移動
+      - [x] 現在のエリア情報（currentAreaIndex, currentArea）の算出を移動
+      - [x] リセット処理のカプセル化（resetWorld, resetSceneryIdCounter）
 
 - [x] **2. `Enemy.tsx` のスプライト描画ロジックの分離**
   - **内容**: 敵のSVGスプライトを `Enemy.tsx` から `components/enemySprites.tsx` に分離し、データ駆動で描画する。

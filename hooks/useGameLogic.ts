@@ -6,13 +6,13 @@ import { playSound, resumeAudioContext, playBGM, stopBGM, setMutedState } from '
 import { calculateDerivedStats } from '../utils/statCalculations';
 import { generateRandomEquipment, generateShopItems } from '../utils/itemGenerator';
 import { spawnStructuresForStage, spawnSceneryForStage, spawnEnemiesForStage } from '../utils/worldGenerator';
-import { AREAS } from '../data/areas';
 import { INITIAL_PLAYER, INITIAL_PLAY_STATS } from '../constants/player';
 import { GAME_SPEED, ATTACK_RANGE, STAGE_LENGTH, XP_FOR_NEXT_LEVEL_MULTIPLIER, HEALING_HOUSE_RANGE, PIXELS_PER_METER, SHOP_RANGE, STAT_POINTS_PER_LEVEL, BASE_DROP_CHANCE, LUCK_TO_DROP_CHANCE_MULTIPLIER, ENEMY_PANEL_DISPLAY_RANGE, TELEPORTER_RANGE } from '../constants/game';
 import { ELEMENTAL_AFFINITY, ATTACK_SPEED_LEVELS } from '../constants/combat';
 import { ELEMENT_HEX_COLORS } from '../constants/ui';
 import { usePlayer } from './usePlayer';
 import { useEnemyManager } from './useEnemyManager';
+import { useWorldManager } from './useWorldManager';
 
 const baseStatNames: Record<AllocatableStat, string> = {
   strength: '腕力',
@@ -92,10 +92,25 @@ export const useGameLogic = () => {
     resetEnemyIdCounter,
   } = useEnemyManager();
 
-  const [structures, setStructures] = useState<Structure[]>([]);
-  const [scenery, setScenery] = useState<SceneryObject[]>([]);
-  const [distance, setDistance] = useState(0);
-  const [stageIndex, setStageIndex] = useState(0);
+  const {
+    structures,
+    scenery,
+    stageIndex,
+    distance,
+    nextSceneryId,
+    shopTarget,
+    houseTarget,
+    teleporterTarget,
+    setStructures,
+    setScenery,
+    setStageIndex,
+    setDistance,
+    currentAreaIndex,
+    currentArea,
+    resetWorld,
+    resetSceneryIdCounter,
+  } = useWorldManager();
+
   const [playerAction, setPlayerAction] = useState<'attack' | 'hit' | undefined>(undefined);
   const [playerAttackDirection, setPlayerAttackDirection] = useState<'left' | 'right'>('right');
   const [log, setLog] = useState<string[]>([]);
@@ -114,10 +129,6 @@ export const useGameLogic = () => {
   const leftArrowPressed = useRef(false);
   const gameViewRef = useRef<HTMLDivElement>(null);
   const [gameViewWidth, setGameViewWidth] = useState(0);
-  const shopTarget = useRef<Structure | null>(null);
-  const houseTarget = useRef<Structure | null>(null);
-  const teleporterTarget = useRef<Structure | null>(null);
-  const nextSceneryId = useRef(0);
   const nextGoldDropId = useRef(0);
   const nextDamageInstanceId = useRef(0);
   const playerAttackReady = useRef(true);
@@ -144,9 +155,6 @@ export const useGameLogic = () => {
     }
     return totals;
   }, [player.equipment]);
-
-  const currentAreaIndex = Math.floor(stageIndex / 10);
-  const currentArea = AREAS[Math.min(currentAreaIndex, AREAS.length - 1)];
 
   // BGM control based on area
   useEffect(() => {
@@ -217,13 +225,11 @@ export const useGameLogic = () => {
     stopBGM();
     setLog([]);
     resetEnemies();
-    setStructures([]);
-    setScenery([]);
+    resetWorld();
     setGoldDrops([]);
     setDamageInstances([]);
-    setDistance(0);
     setGameState(GameState.START);
-  }, [gameState, addLog, saveCurrentGame, resetEnemies]);
+  }, [gameState, addLog, saveCurrentGame, resetEnemies, resetWorld]);
 
   // Autosave interval and save on unload
   useEffect(() => {
@@ -244,7 +250,7 @@ export const useGameLogic = () => {
     if (isTransitioning) {
         if (stageIndex === 0) {
             resetEnemyIdCounter();
-            nextSceneryId.current = 0;
+            resetSceneryIdCounter();
         }
         const newStructures = spawnStructuresForStage(stageIndex);
         setStructures(newStructures);
@@ -259,7 +265,7 @@ export const useGameLogic = () => {
 
         setIsTransitioning(false); // Transition complete
     }
-  }, [isTransitioning, stageIndex, resetEnemyIdCounter, setEnemies, setEngagedEnemyId, setDisplayedEnemyId]);
+  }, [isTransitioning, stageIndex, resetEnemyIdCounter, resetSceneryIdCounter, setEnemies, setEngagedEnemyId, setDisplayedEnemyId, setStructures, setScenery, nextSceneryId, nextEnemyId]);
 
 
   const continueGame = useCallback(() => {
