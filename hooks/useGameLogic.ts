@@ -6,6 +6,7 @@ import { playSound, resumeAudioContext, playBGM, stopBGM, setMutedState } from '
 import { calculateDerivedStats } from '../utils/statCalculations';
 import { generateRandomEquipment, generateShopItems } from '../utils/itemGenerator';
 import { spawnStructuresForStage, spawnSceneryForStage, spawnEnemiesForStage } from '../utils/worldGenerator';
+import { AREAS } from '../data/areas';
 import { INITIAL_PLAYER, INITIAL_PLAY_STATS } from '../constants/player';
 import { GAME_SPEED, ATTACK_RANGE, STAGE_LENGTH, XP_FOR_NEXT_LEVEL_MULTIPLIER, HEALING_HOUSE_RANGE, PIXELS_PER_METER, SHOP_RANGE, STAT_POINTS_PER_LEVEL, BASE_DROP_CHANCE, LUCK_TO_DROP_CHANCE_MULTIPLIER, ENEMY_PANEL_DISPLAY_RANGE, TELEPORTER_RANGE } from '../constants/game';
 import { ELEMENTAL_AFFINITY, ATTACK_SPEED_LEVELS } from '../constants/combat';
