@@ -12,6 +12,7 @@ import { GAME_SPEED, ATTACK_RANGE, STAGE_LENGTH, XP_FOR_NEXT_LEVEL_MULTIPLIER, H
 import { ELEMENTAL_AFFINITY, ATTACK_SPEED_LEVELS } from '../constants/combat';
 import { ELEMENT_HEX_COLORS } from '../constants/ui';
 import { usePlayer } from './usePlayer';
+import { useEnemyManager } from './useEnemyManager';
 
 const baseStatNames: Record<AllocatableStat, string> = {
   strength: '腕力',
@@ -72,21 +73,36 @@ export const useGameLogic = () => {
     handleStatAllocation: playerStatAllocation,
     toggleStatAllocationLock,
   } = usePlayer();
-  const [enemies, setEnemies] = useState<Enemy[]>([]);
+
+  const {
+    enemies,
+    engagedEnemyId,
+    displayedEnemyId,
+    enemyHits,
+    nextEnemyId,
+    enemyAttackTimers,
+    setEnemies,
+    setEngagedEnemyId,
+    setDisplayedEnemyId,
+    setEnemyHits,
+    engagedEnemy: _engagedEnemy,
+    displayedEnemy,
+    activeEnemies,
+    resetEnemies,
+    resetEnemyIdCounter,
+  } = useEnemyManager();
+
   const [structures, setStructures] = useState<Structure[]>([]);
   const [scenery, setScenery] = useState<SceneryObject[]>([]);
   const [distance, setDistance] = useState(0);
   const [stageIndex, setStageIndex] = useState(0);
   const [playerAction, setPlayerAction] = useState<'attack' | 'hit' | undefined>(undefined);
   const [playerAttackDirection, setPlayerAttackDirection] = useState<'left' | 'right'>('right');
-  const [enemyHits, setEnemyHits] = useState<Record<number, boolean>>({});
   const [log, setLog] = useState<string[]>([]);
   const [shopData, setShopData] = useState<{type: ShopType, items: Equipment[]} | null>(null);
   const [shopPrompt, setShopPrompt] = useState<boolean>(false);
   const [housePrompt, setHousePrompt] = useState<boolean>(false);
   const [teleporterPrompt, setTeleporterPrompt] = useState<boolean>(false);
-  const [engagedEnemyId, setEngagedEnemyId] = useState<number | null>(null);
-  const [displayedEnemyId, setDisplayedEnemyId] = useState<number | null>(null);
   const [playStats, setPlayStats] = useState<PlayStats>(INITIAL_PLAY_STATS);
   const [goldDrops, setGoldDrops] = useState<{id: number, x: number}[]>([]);
   const [damageInstances, setDamageInstances] = useState<DamageInstance[]>([]);
@@ -94,7 +110,6 @@ export const useGameLogic = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  const nextEnemyId = useRef(0);
   const rightArrowPressed = useRef(false);
   const leftArrowPressed = useRef(false);
   const gameViewRef = useRef<HTMLDivElement>(null);
@@ -106,7 +121,6 @@ export const useGameLogic = () => {
   const nextGoldDropId = useRef(0);
   const nextDamageInstanceId = useRef(0);
   const playerAttackReady = useRef(true);
-  const enemyAttackTimers = useRef<Record<number, number>>({});
 
   const addLog = useCallback((message: string) => {
     setLog(prevLog => [message, ...prevLog].slice(0, 50));
@@ -131,7 +145,6 @@ export const useGameLogic = () => {
     return totals;
   }, [player.equipment]);
 
-  const displayedEnemy = useMemo(() => enemies.find(e => e.id === displayedEnemyId), [enemies, displayedEnemyId]);
   const currentAreaIndex = Math.floor(stageIndex / 10);
   const currentArea = AREAS[Math.min(currentAreaIndex, AREAS.length - 1)];
 
@@ -203,16 +216,14 @@ export const useGameLogic = () => {
     }
     stopBGM();
     setLog([]);
-    setEnemies([]);
+    resetEnemies();
     setStructures([]);
     setScenery([]);
     setGoldDrops([]);
     setDamageInstances([]);
-    setDisplayedEnemyId(null);
-    setEngagedEnemyId(null);
     setDistance(0);
     setGameState(GameState.START);
-  }, [gameState, addLog, saveCurrentGame]);
+  }, [gameState, addLog, saveCurrentGame, resetEnemies]);
 
   // Autosave interval and save on unload
   useEffect(() => {
@@ -232,7 +243,7 @@ export const useGameLogic = () => {
   useEffect(() => {
     if (isTransitioning) {
         if (stageIndex === 0) {
-            nextEnemyId.current = 0;
+            resetEnemyIdCounter();
             nextSceneryId.current = 0;
         }
         const newStructures = spawnStructuresForStage(stageIndex);
@@ -242,13 +253,13 @@ export const useGameLogic = () => {
 
         const newEnemies = spawnEnemiesForStage(stageIndex, nextEnemyId, newStructures);
         setEnemies(newEnemies);
-        
+
         setEngagedEnemyId(null);
         setDisplayedEnemyId(null);
 
         setIsTransitioning(false); // Transition complete
     }
-  }, [isTransitioning, stageIndex]);
+  }, [isTransitioning, stageIndex, resetEnemyIdCounter, setEnemies, setEngagedEnemyId, setDisplayedEnemyId]);
 
 
   const continueGame = useCallback(() => {
@@ -788,15 +799,15 @@ export const useGameLogic = () => {
     teleporterTarget.current = structures.find(s => s.type === 'teleporter' && Math.abs(s.x - playerUpdate.x) < TELEPORTER_RANGE) || null;
     setTeleporterPrompt(!!teleporterTarget.current);
 
-    const activeEnemies = newEnemies.filter(e => e.currentHp > 0);
+    const currentActiveEnemies = newEnemies.filter(e => e.currentHp > 0);
 
     // Check if currently displayed enemy is still valid
-    const currentDisplayedEnemy = activeEnemies.find(e => e.id === displayedEnemyId);
+    const currentDisplayedEnemy = currentActiveEnemies.find(e => e.id === displayedEnemyId);
     const isDisplayedEnemyInRange = currentDisplayedEnemy && Math.abs(currentDisplayedEnemy.x - playerUpdate.x) <= ENEMY_PANEL_DISPLAY_RANGE;
 
     // Update displayed enemy if needed
-    if (!isDisplayedEnemyInRange && activeEnemies.length > 0) {
-        const closest = activeEnemies
+    if (!isDisplayedEnemyInRange && currentActiveEnemies.length > 0) {
+        const closest = currentActiveEnemies
             .map(e => ({ e, d: Math.abs(e.x - playerUpdate.x) }))
             .filter(d => d.d <= ENEMY_PANEL_DISPLAY_RANGE)
             .sort((a, b) => a.d - b.d)[0];
@@ -807,9 +818,9 @@ export const useGameLogic = () => {
         }
     }
 
-    let currentEngagedEnemy = activeEnemies.find(e => e.id === engagedEnemyId);
-    if (!currentEngagedEnemy && activeEnemies.length > 0) {
-        const newTarget = activeEnemies.sort((a,b) => Math.abs(a.x - playerUpdate.x) - Math.abs(b.x - playerUpdate.x))[0];
+    let currentEngagedEnemy = currentActiveEnemies.find(e => e.id === engagedEnemyId);
+    if (!currentEngagedEnemy && currentActiveEnemies.length > 0) {
+        const newTarget = currentActiveEnemies.sort((a,b) => Math.abs(a.x - playerUpdate.x) - Math.abs(b.x - playerUpdate.x))[0];
         setEngagedEnemyId(newTarget.id);
         currentEngagedEnemy = newTarget;
     }

@@ -10,7 +10,10 @@
   - **サブタスク:**
     - [x] 1a. プレイヤーの `state` と初期化・リセットロジックを `usePlayer` フックに分離する。
     - [x] 1b. プレイヤーの更新ロジック（装備、回復、ステータス割り振りなど）を `usePlayer` フックに移動する。
-    - [ ] 1c. 敵の状態管理（生成、AI、戦闘ロジック）を `useEnemyManager` フックに分離する。
+    - [x] 1c. 敵の状態管理（生成、AI、戦闘ロジック）を `useEnemyManager` フックに分離する。
+      - [x] 敵のstate（enemies, engagedEnemyId, displayedEnemyId, enemyHits）を `useEnemyManager` に移動
+      - [x] 敵関連のrefとcomputed values（activeEnemies, engagedEnemy, displayedEnemy）を移動
+      - [ ] 敵の生成・AI・戦闘ロジック（processPlayerAttack, processEnemyAIAndAttacks）を `useEnemyManager` に移動（今後のタスク）
     - [ ] 1d. ワールド（ステージ、背景、建造物）の管理を `useWorldManager` フックに分離する。
 
 - [x] **2. `Enemy.tsx` のスプライト描画ロジックの分離**
