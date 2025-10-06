@@ -2,9 +2,10 @@ import React from 'react';
 
 interface EnemySpriteProps {
   enemyName: string;
+  isBoss?: boolean;
 }
 
-const EnemySprite: React.FC<EnemySpriteProps> = ({ enemyName }) => {
+const EnemySprite: React.FC<EnemySpriteProps> = ({ enemyName, isBoss }) => {
      const svgProps = {
         viewBox: "0 0 20 20",
         xmlns: "http://www.w3.org/2000/svg",
@@ -378,6 +379,152 @@ const EnemySprite: React.FC<EnemySpriteProps> = ({ enemyName }) => {
         case 'マスターウィザード': return (<svg {...svgProps}> <rect x="7" y="2" width="6" height="2" fill="#1e3a8a" /> <rect x="5" y="4" width="10" height="2" fill="#1e3a8a" /> <rect x="7" y="6" width="6" height="3" fill="#f0c8a0" /> <rect x="8" y="7" width="1" height="1" fill="#fef08a" /> <rect x="11" y="7" width="1" height="1" fill="#fef08a" /> <rect x="6" y="9" width="8" height="8" fill="#1e40af" /> <rect x="1" y="6" width="2" height="8" fill="#7c3aed" /> <rect x="0" y="5" width="4" height="1" fill="#a78bfa" /> </svg>);
         case 'キングゴースト': return (<svg {...svgProps}> <rect x="6" y="8" width="8" height="8" fill="#e2e8f0" /> <rect x="5" y="10" width="1" height="4" fill="#e2e8f0" /> <rect x="14" y="10" width="1" height="4" fill="#e2e8f0" /> <rect x="8" y="11" width="1" height="1" fill="#000" /> <rect x="11" y="11" width="1" height="1" fill="#000" /> <rect x="6" y="5" width="8" height="3" fill="#facc15" /> <rect x="6" y="4" width="1" height="1" fill="#facc15" /> <rect x="13" y="4" width="1" height="1" fill="#facc15" /> <rect x="9" y="4" width="2" height="1" fill="#facc15" /> </svg>);
         case 'エンシェントドラゴン': return (<svg {...svgProps}> <rect x="7" y="9" width="10" height="8" fill="#1e1b4b" /> <rect x="9" y="7" width="5" height="2" fill="#312e81" /> <rect x="8" y="17" width="3" height="2" fill="#312e81" /> <rect x="13" y="17" width="3" height="2" fill="#312e81" /> <rect x="4" y="5" width="5" height="5" fill="#1e1b4b" /> <rect x="2" y="7" width="2" height="2" fill="#1e1b4b" /> <rect x="5" y="6" width="1" height="1" fill="#fde047" /> <rect x="11" y="3" width="3" height="6" fill="#4338ca" /> <rect x="14" y="4" width="4" height="4" fill="#4338ca" /> <rect x="17" y="12" width="3" height="3" fill="#1e1b4b" /> </svg>);
+
+        // ボス
+        case 'ゴブリンキング':
+            return (
+                <svg {...svgProps}>
+                    {/* 王冠 */}
+                    <rect x="6" y="2" width="8" height="1" fill="#facc15" />
+                    <rect x="7" y="1" width="1" height="1" fill="#facc15" />
+                    <rect x="9" y="1" width="2" height="1" fill="#facc15" />
+                    <rect x="12" y="1" width="1" height="1" fill="#facc15" />
+                    {/* 頭部 - より大きく */}
+                    <rect x="7" y="3" width="6" height="5" fill="#15803d" />
+                    <rect x="6" y="4" width="1" height="2" fill="#15803d" />
+                    <rect x="13" y="4" width="1" height="2" fill="#15803d" />
+                    {/* 目 */}
+                    <rect x="8" y="5" width="1" height="1" fill="#dc2626" />
+                    <rect x="11" y="5" width="1" height="1" fill="#dc2626" />
+                    {/* 体 */}
+                    <rect x="6" y="8" width="8" height="7" fill="#a16207" />
+                    {/* 腕 */}
+                    <rect x="5" y="9" width="1" height="4" fill="#15803d" />
+                    <rect x="14" y="9" width="1" height="4" fill="#15803d" />
+                    <rect x="4" y="11" width="1" height="2" fill="#15803d" />
+                    <rect x="15" y="11" width="1" height="2" fill="#15803d" />
+                    {/* 脚 */}
+                    <rect x="7" y="15" width="2" height="4" fill="#15803d" />
+                    <rect x="11" y="15" width="2" height="4" fill="#15803d" />
+                    <rect x="7" y="19" width="2" height="1" fill="#422006" />
+                    <rect x="11" y="19" width="2" height="1" fill="#422006" />
+                </svg>
+            );
+        case 'フォレストタイラント':
+            return (
+                <svg {...svgProps}>
+                    {/* 幹 */}
+                    <rect x="7" y="10" width="6" height="10" fill="#422006" />
+                    {/* 葉 - 大きく広がる */}
+                    <rect x="4" y="5" width="12" height="6" fill="#166534" />
+                    <rect x="3" y="6" width="14" height="4" fill="#15803d" />
+                    <rect x="2" y="7" width="16" height="2" fill="#16a34a" />
+                    {/* 目 */}
+                    <rect x="8" y="13" width="1" height="1" fill="#dc2626" />
+                    <rect x="11" y="13" width="1" height="1" fill="#dc2626" />
+                    {/* 枝（腕） */}
+                    <rect x="4" y="9" width="3" height="1" fill="#422006" />
+                    <rect x="13" y="9" width="3" height="1" fill="#422006" />
+                    <rect x="3" y="8" width="1" height="1" fill="#166534" />
+                    <rect x="16" y="8" width="1" height="1" fill="#166534" />
+                </svg>
+            );
+        case 'ストーンコロッサス':
+            return (
+                <svg {...svgProps}>
+                    {/* 頭部 */}
+                    <rect x="7" y="3" width="6" height="4" fill="#78716c" />
+                    <rect x="8" y="5" width="1" height="1" fill="#ef4444" />
+                    <rect x="11" y="5" width="1" height="1" fill="#ef4444" />
+                    {/* 体 - 巨大 */}
+                    <rect x="5" y="7" width="10" height="8" fill="#57534e" />
+                    <rect x="6" y="8" width="8" height="6" fill="#44403c" />
+                    {/* 肩 */}
+                    <rect x="3" y="8" width="2" height="3" fill="#78716c" />
+                    <rect x="15" y="8" width="2" height="3" fill="#78716c" />
+                    {/* 腕 */}
+                    <rect x="2" y="9" width="1" height="6" fill="#57534e" />
+                    <rect x="17" y="9" width="1" height="6" fill="#57534e" />
+                    {/* 脚 */}
+                    <rect x="6" y="15" width="3" height="5" fill="#57534e" />
+                    <rect x="11" y="15" width="3" height="5" fill="#57534e" />
+                </svg>
+            );
+        case 'ボルケーノロード':
+            return (
+                <svg {...svgProps}>
+                    {/* 角 */}
+                    <rect x="5" y="2" width="2" height="3" fill="#450a0a" />
+                    <rect x="13" y="2" width="2" height="3" fill="#450a0a" />
+                    {/* 頭 */}
+                    <rect x="7" y="4" width="6" height="4" fill="#7f1d1d" />
+                    <rect x="8" y="6" width="1" height="1" fill="#fde047" />
+                    <rect x="11" y="6" width="1" height="1" fill="#fde047" />
+                    {/* 体 */}
+                    <rect x="6" y="8" width="8" height="8" fill="#991b1b" />
+                    {/* 炎のエフェクト */}
+                    <rect x="5" y="9" width="1" height="1" fill="#fb923c" />
+                    <rect x="14" y="9" width="1" height="1" fill="#fb923c" />
+                    <rect x="4" y="11" width="1" height="1" fill="#fb923c" />
+                    <rect x="15" y="11" width="1" height="1" fill="#fb923c" />
+                    {/* 翼 */}
+                    <rect x="2" y="8" width="4" height="5" fill="#450a0a" />
+                    <rect x="14" y="8" width="4" height="5" fill="#450a0a" />
+                    {/* 脚 */}
+                    <rect x="7" y="16" width="2" height="4" fill="#7f1d1d" />
+                    <rect x="11" y="16" width="2" height="4" fill="#7f1d1d" />
+                </svg>
+            );
+        case 'ナイトメアキング':
+            return (
+                <svg {...svgProps}>
+                    {/* 兜 */}
+                    <rect x="7" y="3" width="6" height="4" fill="#0f172a" />
+                    <rect x="6" y="4" width="8" height="2" fill="#1e293b" />
+                    {/* 目の光 */}
+                    <rect x="8" y="5" width="1" height="1" fill="#dc2626" />
+                    <rect x="11" y="5" width="1" height="1" fill="#dc2626" />
+                    {/* 鎧 */}
+                    <rect x="6" y="7" width="8" height="9" fill="#1e293b" />
+                    <rect x="7" y="8" width="6" height="7" fill="#334155" />
+                    {/* 肩当て */}
+                    <rect x="4" y="7" width="2" height="3" fill="#0f172a" />
+                    <rect x="14" y="7" width="2" height="3" fill="#0f172a" />
+                    {/* 剣 */}
+                    <rect x="15" y="5" width="1" height="10" fill="#64748b" />
+                    <rect x="14" y="4" width="3" height="1" fill="#94a3b8" />
+                    {/* 脚 */}
+                    <rect x="7" y="16" width="2" height="4" fill="#0f172a" />
+                    <rect x="11" y="16" width="2" height="4" fill="#0f172a" />
+                </svg>
+            );
+        case 'カオスエンペラー':
+            return (
+                <svg {...svgProps}>
+                    {/* 王冠 */}
+                    <rect x="6" y="1" width="8" height="2" fill="#7c3aed" />
+                    <rect x="7" y="0" width="1" height="1" fill="#a78bfa" />
+                    <rect x="9" y="0" width="2" height="1" fill="#a78bfa" />
+                    <rect x="12" y="0" width="1" height="1" fill="#a78bfa" />
+                    {/* 頭 */}
+                    <rect x="7" y="3" width="6" height="4" fill="#581c87" />
+                    <rect x="8" y="5" width="1" height="1" fill="#a855f7" />
+                    <rect x="11" y="5" width="1" height="1" fill="#a855f7" />
+                    {/* マント */}
+                    <rect x="4" y="7" width="12" height="10" fill="#4c1d95" />
+                    <rect x="3" y="8" width="14" height="8" fill="#5b21b6" />
+                    {/* 体 */}
+                    <rect x="7" y="7" width="6" height="9" fill="#6b21a8" />
+                    {/* オーラ */}
+                    <rect x="2" y="6" width="1" height="1" fill="#c084fc" />
+                    <rect x="17" y="6" width="1" height="1" fill="#c084fc" />
+                    <rect x="1" y="10" width="1" height="1" fill="#c084fc" />
+                    <rect x="18" y="10" width="1" height="1" fill="#c084fc" />
+                    {/* 脚 */}
+                    <rect x="7" y="16" width="2" height="4" fill="#581c87" />
+                    <rect x="11" y="16" width="2" height="4" fill="#581c87" />
+                </svg>
+            );
 
         default:
             return <div className="w-full h-full bg-pink-500 rounded-lg" />;

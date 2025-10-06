@@ -15,9 +15,13 @@ const EnemyComponent: React.FC<EnemyProps> = ({ enemy, isHit, playerX }) => {
 
    const hitAnimationClass = isHit ? 'animate-hit-enemy' : '';
    const preparingClass = isPreparing ? 'animate-prepare-attack' : '';
-   
+
    const attackDirection = playerX < enemy.x ? 'left' : 'right';
    const attackingClass = isAttacking ? `animate-attack-enemy-${attackDirection}` : '';
+
+  // ボスは1.5倍のサイズ
+  const sizeClass = enemy.isBoss ? 'w-48 h-48' : 'w-32 h-32';
+  const healthBarWidth = enemy.isBoss ? 'w-48' : 'w-32';
 
   return (
     <div className="absolute bottom-8" style={{ left: `${enemy.x}px`, zIndex: 20 }}>
@@ -27,7 +31,7 @@ const EnemyComponent: React.FC<EnemyProps> = ({ enemy, isHit, playerX }) => {
             50% { filter: brightness(1.5); transform: scale(1.05); }
         }
         .animate-hit-enemy { animation: hit-enemy 0.3s ease-in-out; }
-        
+
         @keyframes float {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-10px); }
@@ -52,18 +56,18 @@ const EnemyComponent: React.FC<EnemyProps> = ({ enemy, isHit, playerX }) => {
         }
         .animate-attack-enemy-right { animation: attack-enemy-right ${enemy.attackAnimationTime / 1000}s ease-in-out; }
       `}</style>
-      
+
       {enemy.currentHp < enemy.maxHp && (
-          <div className="absolute -top-6 w-32">
+          <div className={`absolute -top-6 ${healthBarWidth}`}>
             <HealthBar current={enemy.currentHp} max={enemy.maxHp} barColor="bg-red-500" />
           </div>
       )}
 
-      <div 
-        className={`relative w-32 h-32 ${hitAnimationClass} ${preparingClass} ${attackingClass} ${!isAttacking ? 'animate-float' : ''}`}
+      <div
+        className={`relative ${sizeClass} ${hitAnimationClass} ${preparingClass} ${attackingClass} ${!isAttacking ? 'animate-float' : ''}`}
         style={{ imageRendering: 'pixelated' }}
       >
-         <EnemySprite enemyName={enemy.name} />
+         <EnemySprite enemyName={enemy.name} isBoss={enemy.isBoss} />
       </div>
     </div>
   );
