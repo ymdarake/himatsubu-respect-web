@@ -31,10 +31,10 @@ export const useWorldManager = () => {
   );
 
   /**
-   * 現在のエリア情報を取得
+   * 現在のエリア情報を取得（エリアをループ）
    */
   const currentArea = useMemo(
-    () => AREAS[Math.min(currentAreaIndex, AREAS.length - 1)],
+    () => AREAS[currentAreaIndex % AREAS.length],
     [currentAreaIndex]
   );
 
