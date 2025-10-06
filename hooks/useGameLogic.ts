@@ -777,7 +777,13 @@ export const useGameLogic = () => {
 
     const handlePlayerMovementAndStageChanges = (currentEngagedEnemy: Enemy | undefined) => {
         let dx = 0;
-        const PLAYER_MOVE_SPEED_PPS = GAME_SPEED * 20;
+        // ギャンブラー3点セットボーナス: 移動速度2倍
+        const hasGamblersSet =
+            playerUpdate.equipment.weapon?.masterId === 'wpn_gamblers_dice' &&
+            playerUpdate.equipment.armor?.masterId === 'arm_gamblers_coat' &&
+            playerUpdate.equipment.accessory?.masterId === 'acc_lucky_coin';
+        const speedMultiplier = hasGamblersSet ? 2 : 1;
+        const PLAYER_MOVE_SPEED_PPS = GAME_SPEED * 20 * speedMultiplier;
         if (rightArrowPressed.current) dx += PLAYER_MOVE_SPEED_PPS * deltaTime;
         if (leftArrowPressed.current) dx -= PLAYER_MOVE_SPEED_PPS * deltaTime;
 
