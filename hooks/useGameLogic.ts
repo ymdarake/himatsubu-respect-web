@@ -780,14 +780,22 @@ export const useGameLogic = () => {
         const PLAYER_MOVE_SPEED_PPS = GAME_SPEED * 20;
         if (rightArrowPressed.current) dx += PLAYER_MOVE_SPEED_PPS * deltaTime;
         if (leftArrowPressed.current) dx -= PLAYER_MOVE_SPEED_PPS * deltaTime;
-        if (currentEngagedEnemy) {
-            const playerWidth = 64;
-            const enemyWidth = 128;
-            const playerFutureX = playerUpdate.x + dx;
-            if (dx > 0 && (playerUpdate.x + playerWidth) <= currentEngagedEnemy.x && (playerFutureX + playerWidth) > currentEngagedEnemy.x) {
-                dx = currentEngagedEnemy.x - (playerUpdate.x + playerWidth);
-            } else if (dx < 0 && playerUpdate.x >= (currentEngagedEnemy.x + enemyWidth) && playerFutureX < (currentEngagedEnemy.x + enemyWidth)) {
-                dx = (currentEngagedEnemy.x + enemyWidth) - playerUpdate.x;
+
+        // すべての生きている敵との衝突判定（エンゲージ中でなくても）
+        const playerWidth = 64;
+        const enemyWidth = 128;
+        const playerFutureX = playerUpdate.x + dx;
+
+        for (const enemy of newEnemies) {
+            if (enemy.currentHp <= 0) continue; // 死んでいる敵は無視
+
+            // 右に移動しようとして敵にぶつかる場合
+            if (dx > 0 && (playerUpdate.x + playerWidth) <= enemy.x && (playerFutureX + playerWidth) > enemy.x) {
+                dx = enemy.x - (playerUpdate.x + playerWidth);
+            }
+            // 左に移動しようとして敵にぶつかる場合
+            else if (dx < 0 && playerUpdate.x >= (enemy.x + enemyWidth) && playerFutureX < (enemy.x + enemyWidth)) {
+                dx = (enemy.x + enemyWidth) - playerUpdate.x;
             }
         }
         if (playerUpdate.x + dx < INITIAL_PLAYER.x) dx = INITIAL_PLAYER.x - playerUpdate.x;
