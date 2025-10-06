@@ -89,47 +89,56 @@ export const spawnEnemiesForStage = (
     const spawnPadding = 150;
     const structure = structures[0]; // Assuming max one structure per stage
 
-    const allPossibleSlots: number[] = [];
+    let spawnPositions: number[] = [];
 
-    if (structure) {
-        // A structure exists. Define spawn zones around it.
-        const COLLISION_BUFFER = 20;
-        let STRUCTURE_WIDTH = 96; // Default for shop/teleporter
-        if (structure.type === 'house') STRUCTURE_WIDTH = 120;
-        
-        const structureZoneStart = structure.x - COLLISION_BUFFER;
-        const structureZoneEnd = structure.x + STRUCTURE_WIDTH + COLLISION_BUFFER;
-
-        // Zone 1: To the left of the structure
-        const leftSpawnAreaStart = stageStartX + spawnPadding;
-        const leftSpawnAreaEnd = structureZoneStart - MIN_ENEMY_SEPARATION;
-        for (let x = leftSpawnAreaStart; x <= leftSpawnAreaEnd; x += MIN_ENEMY_SEPARATION) {
-            allPossibleSlots.push(x);
-        }
-
-        // Zone 2: To the right of the structure
-        const rightSpawnAreaStart = structureZoneEnd;
-        const rightSpawnAreaEnd = stageEndX - spawnPadding - ENEMY_WIDTH;
-        for (let x = rightSpawnAreaStart; x <= rightSpawnAreaEnd; x += MIN_ENEMY_SEPARATION) {
-            allPossibleSlots.push(x);
-        }
+    // ボスステージの場合は右端に固定配置
+    if (isBossStage) {
+        const bossSpawnX = stageEndX - spawnPadding - ENEMY_WIDTH;
+        spawnPositions = [bossSpawnX];
     } else {
-        // No structure, use the entire stage for spawning.
-        const spawnAreaStart = stageStartX + spawnPadding;
-        const spawnAreaEnd = stageEndX - spawnPadding - ENEMY_WIDTH;
-        for (let x = spawnAreaStart; x <= spawnAreaEnd; x += MIN_ENEMY_SEPARATION) {
-            allPossibleSlots.push(x);
+        // 通常ステージは従来通りのロジック
+        const allPossibleSlots: number[] = [];
+
+        if (structure) {
+            // A structure exists. Define spawn zones around it.
+            const COLLISION_BUFFER = 20;
+            let STRUCTURE_WIDTH = 96; // Default for shop/teleporter
+            if (structure.type === 'house') STRUCTURE_WIDTH = 120;
+
+            const structureZoneStart = structure.x - COLLISION_BUFFER;
+            const structureZoneEnd = structure.x + STRUCTURE_WIDTH + COLLISION_BUFFER;
+
+            // Zone 1: To the left of the structure
+            const leftSpawnAreaStart = stageStartX + spawnPadding;
+            const leftSpawnAreaEnd = structureZoneStart - MIN_ENEMY_SEPARATION;
+            for (let x = leftSpawnAreaStart; x <= leftSpawnAreaEnd; x += MIN_ENEMY_SEPARATION) {
+                allPossibleSlots.push(x);
+            }
+
+            // Zone 2: To the right of the structure
+            const rightSpawnAreaStart = structureZoneEnd;
+            const rightSpawnAreaEnd = stageEndX - spawnPadding - ENEMY_WIDTH;
+            for (let x = rightSpawnAreaStart; x <= rightSpawnAreaEnd; x += MIN_ENEMY_SEPARATION) {
+                allPossibleSlots.push(x);
+            }
+        } else {
+            // No structure, use the entire stage for spawning.
+            const spawnAreaStart = stageStartX + spawnPadding;
+            const spawnAreaEnd = stageEndX - spawnPadding - ENEMY_WIDTH;
+            for (let x = spawnAreaStart; x <= spawnAreaEnd; x += MIN_ENEMY_SEPARATION) {
+                allPossibleSlots.push(x);
+            }
         }
-    }
 
-    // Fisher-Yates shuffle algorithm to randomize enemy positions
-    for (let i = allPossibleSlots.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [allPossibleSlots[i], allPossibleSlots[j]] = [allPossibleSlots[j], allPossibleSlots[i]];
-    }
+        // Fisher-Yates shuffle algorithm to randomize enemy positions
+        for (let i = allPossibleSlots.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [allPossibleSlots[i], allPossibleSlots[j]] = [allPossibleSlots[j], allPossibleSlots[i]];
+        }
 
-    // Take the required number of spawn positions from the shuffled list
-    const spawnPositions = allPossibleSlots.slice(0, Math.min(numberOfEnemies, allPossibleSlots.length));
+        // Take the required number of spawn positions from the shuffled list
+        spawnPositions = allPossibleSlots.slice(0, Math.min(numberOfEnemies, allPossibleSlots.length));
+    }
 
     // Now, iterate through the deterministically found spawn positions
     for (const spawnPosition of spawnPositions) {

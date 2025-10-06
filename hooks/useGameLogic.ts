@@ -716,8 +716,9 @@ export const useGameLogic = () => {
                 updatedEnemy.attackState = 'idle';
 
                 // ボスは攻撃後にプレイヤー方向へ少し移動
+                // 20回の攻撃で画面端まで追い詰める（約450px ÷ 20 = 22.5px）
                 if (updatedEnemy.isBoss) {
-                    const moveAmount = 5; // 5ピクセルずつ移動
+                    const moveAmount = 22;
                     if (updatedEnemy.x > playerUpdate.x) {
                         updatedEnemy.x = Math.max(playerUpdate.x, updatedEnemy.x - moveAmount);
                     } else {
