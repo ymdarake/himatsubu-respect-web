@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { GameState, Enemy, Player as PlayerType, Structure, ShopType, Equipment, AllocatableStat, BaseStats, Gem, SceneryObject, PlayStats, Element, DamageInstance, DamageInfo } from '../types';
-import { playSound, resumeAudioContext, playBGM, stopBGM, setMutedState } from '../utils/audio';
+import { playSound, resumeAudioContext, playBGM, stopBGM, setMutedState, playGamblersBGM, playAreaBGM } from '../utils/audio';
 import { calculateDerivedStats } from '../utils/statCalculations';
 import { generateRandomEquipment, generateShopItems } from '../utils/itemGenerator';
 import { spawnStructuresForStage, spawnSceneryForStage, spawnEnemiesForStage } from '../utils/worldGenerator';
@@ -157,12 +157,23 @@ export const useGameLogic = () => {
     return totals;
   }, [player.equipment]);
 
-  // BGM control based on area
+  // ギャンブラー装備判定
+  const hasGamblersSet = useMemo(() => {
+    return player.equipment.weapon?.masterId === 'wpn_gamblers_dice' &&
+           player.equipment.armor?.masterId === 'arm_gamblers_coat' &&
+           player.equipment.accessory?.masterId === 'acc_lucky_coin';
+  }, [player.equipment]);
+
+  // BGM control based on area and gamblers set
   useEffect(() => {
     if (gameState === GameState.PLAYING) {
-        playBGM(currentAreaIndex);
+        if (hasGamblersSet) {
+            playGamblersBGM();
+        } else {
+            playAreaBGM(currentAreaIndex);
+        }
     }
-  }, [currentAreaIndex, gameState]);
+  }, [currentAreaIndex, gameState, hasGamblersSet]);
 
   // Load mute state on initial mount
   useEffect(() => {

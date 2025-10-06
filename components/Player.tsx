@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Player as PlayerType } from '../types';
 
 interface PlayerProps {
   isAttacking: boolean;
@@ -7,9 +8,16 @@ interface PlayerProps {
   isDead: boolean;
   x: number;
   attackDirection: 'left' | 'right';
+  equipment: PlayerType['equipment'];
 }
 
-const Player: React.FC<PlayerProps> = ({ isAttacking, isHit, isWalking, isDead, x, attackDirection }) => {
+const Player: React.FC<PlayerProps> = ({ isAttacking, isHit, isWalking, isDead, x, attackDirection, equipment }) => {
+  // ギャンブラー3点セット判定
+  const hasGamblersSet =
+    equipment.weapon?.masterId === 'wpn_gamblers_dice' &&
+    equipment.armor?.masterId === 'arm_gamblers_coat' &&
+    equipment.accessory?.masterId === 'acc_lucky_coin';
+
   const animationClasses = isDead
     ? 'animate-dead'
     : isAttacking
@@ -59,7 +67,12 @@ const Player: React.FC<PlayerProps> = ({ isAttacking, isHit, isWalking, isDead, 
       `}</style>
       <div
         className={`absolute bottom-8 w-16 h-24 ${animationClasses}`}
-        style={{ left: `${x}px`, zIndex: 15, imageRendering: 'pixelated' }}
+        style={{
+          left: `${x}px`,
+          zIndex: 15,
+          imageRendering: 'pixelated',
+          filter: hasGamblersSet ? 'brightness(1.3) saturate(1.5) hue-rotate(30deg) drop-shadow(0 0 8px gold)' : 'none'
+        }}
         aria-label="Player Character"
       >
         <svg

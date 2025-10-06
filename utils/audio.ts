@@ -201,7 +201,14 @@ const BGM_THRONE = {
     bass: [ 'G3', REST, REST, REST, 'A3', REST, REST, REST, 'F3', REST, REST, REST, 'G3', REST, 'C3', REST, 'G3', REST, REST, REST, 'A3', REST, REST, REST, 'D3', REST, REST, REST, 'G2', REST, REST, REST ],
 };
 
-const ALL_BGM_SONGS = [BGM_GRASSLAND, BGM_FOREST, BGM_CAVE, BGM_VOLCANO, BGM_CASTLE, BGM_THRONE];
+// Gamblers Theme: Lucky & Upbeat
+const BGM_GAMBLERS = {
+    tempo: 180,
+    melody: [ 'C5', 'E5', 'G5', 'E5', 'C5', 'D5', 'F5', 'D5', 'E5', 'G5', 'C5', 'E5', 'D5', 'F5', 'A4', 'C5', 'G5', 'E5', 'D5', 'C5', 'B4', 'A4', 'G4', 'A4', 'C5', 'E5', 'G5', 'E5', 'C5', 'D5', 'B4', 'C5' ],
+    bass: [ 'C3', REST, 'E3', REST, 'G3', REST, 'C3', REST, 'F3', REST, 'A3', REST, 'F3', REST, 'C3', REST, 'C3', REST, 'E3', REST, 'G3', REST, 'C3', REST, 'F3', REST, 'A3', REST, 'F3', REST, 'G3', 'C3' ],
+};
+
+const ALL_BGM_SONGS = [BGM_GRASSLAND, BGM_FOREST, BGM_CAVE, BGM_VOLCANO, BGM_CASTLE, BGM_THRONE, BGM_GAMBLERS];
 
 let noteIndex = 0;
 
@@ -272,4 +279,14 @@ export const stopBGM = () => {
         bgmInterval = undefined;
     }
     currentBgmIndex = null;
+};
+
+// ギャンブラー専用BGM（インデックス6）を再生
+export const playGamblersBGM = () => {
+    playBGM(6); // BGM_GAMBLERSのインデックス
+};
+
+// 通常のエリアBGMに戻す
+export const playAreaBGM = (areaIndex: number) => {
+    playBGM(Math.min(areaIndex, 5)); // 通常のエリアBGM（0-5）
 };
