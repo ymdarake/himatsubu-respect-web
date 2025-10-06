@@ -569,7 +569,20 @@ export const useGameLogic = () => {
                 if (e.id === engagedEnemyId) setEngagedEnemyId(null);
                 if (e.id === displayedEnemyId) setDisplayedEnemyId(null);
 
-                const xpGained = Math.floor(e.xpValue * Math.pow(1.09, stageIndex / 5));
+                // ステージNを2周（10体撃破）でレベルN→N+1にレベルアップする設計
+                // ステージの目標レベル = ステージ番号 + 1
+                const targetLevel = stageIndex + 1;
+
+                // そのレベルに必要なXPを計算
+                let requiredXPForTargetLevel = 50; // 初期値
+                for (let i = 1; i < targetLevel; i++) {
+                    requiredXPForTargetLevel = Math.floor(requiredXPForTargetLevel * XP_FOR_NEXT_LEVEL_MULTIPLIER);
+                }
+
+                // 10体で達成できるように敵1体のXPを設定（敵の基礎xpValueを掛ける）
+                const baseXpPerEnemy = Math.floor(requiredXPForTargetLevel / 10);
+                const xpGained = Math.floor(baseXpPerEnemy * (e.xpValue / 20)); // xpValue平均20で正規化
+
                 playerUpdate.xp += xpGained;
                 setPlayStats(prev => ({ ...prev, totalXpGained: prev.totalXpGained + xpGained }));
 
