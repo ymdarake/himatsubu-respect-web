@@ -65,7 +65,7 @@ const TouchControls: React.FC<TouchControlsProps> = ({ onPointerDown, onPointerU
       <div className="absolute inset-0 z-20 pointer-events-none">
         <div className="absolute bottom-0 left-0 w-full flex pointer-events-auto" style={{ height: '33vh' }}>
           {/* Left half for moving left */}
-          <div 
+          <div
               className="w-1/2 h-full relative"
               onPointerDown={(e) => handlePointerDown(e, 'left')}
               onPointerUp={handlePointerUp}
@@ -82,7 +82,7 @@ const TouchControls: React.FC<TouchControlsProps> = ({ onPointerDown, onPointerU
               )}
           </div>
           {/* Right half for moving right */}
-          <div 
+          <div
               className="w-1/2 h-full relative"
               onPointerDown={(e) => handlePointerDown(e, 'right')}
               onPointerUp={handlePointerUp}
