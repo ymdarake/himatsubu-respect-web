@@ -593,7 +593,7 @@ export const useGameLogic = () => {
                     goldMessage = `💰 なんと ${goldDropped}G を手に入れた！`;
                 } else {
                     const baseGoldFromEnemy = e.goldValue * (0.8 + Math.random() * 0.4);
-                    const luckBonusMultiplier = 1 + (currentCalculatedStats.luckValue * 0.0025);
+                    const luckBonusMultiplier = 1 + (currentCalculatedStats.luckValue * 0.00833); // 運気300で3.5倍
                     goldDropped = Math.floor(baseGoldFromEnemy * luckBonusMultiplier);
                     goldMessage = `+${goldDropped}G`;
                 }
