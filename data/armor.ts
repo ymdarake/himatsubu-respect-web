@@ -487,4 +487,16 @@ export const ARMOR_MASTER_DATA: EquipmentMaster[] = [
   { masterId: 'arm_behemoth_plate', name: 'ベヒーモスメイル', type: 'armor', baseStats: { physicalDefense: 68, maxHp: 130 }, basePrice: 3808, statGrowth: { physicalDefense: 34, maxHp: 65 }, priceGrowth: 918 },
   { masterId: 'arm_celestial_garb', name: '天上の衣', type: 'armor', baseStats: { physicalDefense: 58, magicalDefense: 58 }, basePrice: 5824, statGrowth: { physicalDefense: 29, magicalDefense: 29 }, priceGrowth: 1389 },
   { masterId: 'arm_chaos_armor', name: 'カオスアーマー', type: 'armor', baseStats: { physicalDefense: 72, physicalAttack: 15 }, basePrice: 5152, statGrowth: { physicalDefense: 36, physicalAttack: 8 }, priceGrowth: 1210 },
+
+  // --- ギャンブラー防具（運気依存） ---
+  {
+    masterId: 'arm_gamblers_coat',
+    name: 'ギャンブラーコート',
+    type: 'armor',
+    baseStats: { physicalDefense: 12, magicalDefense: 8, luckValue: 15 },
+    basePrice: 45,
+    statGrowth: { physicalDefense: 6, magicalDefense: 4, luckValue: 8 },
+    priceGrowth: 14,
+    description: '運気値の100%を物理/魔法防御力に変換する（チート級）'
+  },
 ];

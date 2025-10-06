@@ -603,4 +603,16 @@ export const WEAPON_MASTER_DATA: EquipmentMaster[] = [
   { masterId: 'wpn_save_the_queen', name: 'セイブザクィーン', type: 'weapon', baseStats: { physicalAttack: 92, physicalDefense: 25 }, basePrice: 1120, statGrowth: { physicalAttack: 46, physicalDefense: 12 }, priceGrowth: 260 },
   { masterId: 'wpn_heavenly_axis', name: '天之尾羽張', type: 'weapon', baseStats: { physicalAttack: 98, speed: 25 }, basePrice: 1210, statGrowth: { physicalAttack: 49, speed: 8 }, priceGrowth: 278 },
   { masterId: 'wpn_apocalypse', name: 'アポカリプス', type: 'weapon', baseStats: { physicalAttack: 105, magicalDefense: 30 }, basePrice: 1434, statGrowth: { physicalAttack: 52, magicalDefense: 15 }, priceGrowth: 340, elementalDamages: { '火': 150 }, elementalDamageGrowth: { '火': 75 } },
+
+  // --- ギャンブラー武器（運気依存） ---
+  {
+    masterId: 'wpn_gamblers_dice',
+    name: 'ギャンブラーダイス',
+    type: 'weapon',
+    baseStats: { physicalAttack: 15, luckValue: 20 },
+    basePrice: 50,
+    statGrowth: { physicalAttack: 8, luckValue: 10 },
+    priceGrowth: 15,
+    description: '運気値の200%を物理攻撃力に変換する（チート級）'
+  },
 ];

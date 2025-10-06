@@ -450,4 +450,16 @@ export const ACCESSORY_MASTER_DATA: EquipmentMaster[] = [
   { masterId: 'acc_ultima_pendant', name: 'アルテマペンダント', type: 'accessory', baseStats: { maxHp: 200, physicalDefense: 15, magicalDefense: 15 }, basePrice: 806, statGrowth: { maxHp: 100, physicalDefense: 8, magicalDefense: 8 }, priceGrowth: 986 },
   { masterId: 'acc_luna_crest', name: 'ルナクレスト', type: 'accessory', baseStats: { magicalAttack: 25, speed: 25 }, basePrice: 672, statGrowth: { magicalAttack: 12, speed: 12 }, priceGrowth: 829 },
   { masterId: 'acc_valkyrie_profile', name: '戦乙女の髪飾り', type: 'accessory', baseStats: { physicalAttack: 20, maxHp: 150 }, basePrice: 2912, statGrowth: { physicalAttack: 10, maxHp: 75 }, priceGrowth: 717 },
+
+  // --- ギャンブラーアクセサリー（運気特化） ---
+  {
+    masterId: 'acc_lucky_coin',
+    name: 'ラッキーコイン',
+    type: 'accessory',
+    baseStats: { luckValue: 30 },
+    basePrice: 40,
+    statGrowth: { luckValue: 15 },
+    priceGrowth: 12,
+    description: '運気を大幅に強化する'
+  },
 ];

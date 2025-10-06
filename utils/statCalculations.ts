@@ -23,6 +23,23 @@ export const calculateDerivedStats = (player: PlayerType): Record<DerivedStat, n
           }
       }
   }
+
+  // ギャンブラー装備ボーナス: 運気値を攻撃力・防御力に変換（チート級）
+  const hasGamblersWeapon = player.equipment.weapon?.masterId === 'wpn_gamblers_dice';
+  const hasGamblersArmor = player.equipment.armor?.masterId === 'arm_gamblers_coat';
+
+  if (hasGamblersWeapon) {
+    // 運気値の200%を物理攻撃力に追加（腕力1=攻撃+2と同等）
+    derived.physicalAttack += Math.floor(derived.luckValue * 2.0);
+  }
+
+  if (hasGamblersArmor) {
+    // 運気値の100%を物理防御力と魔法防御力に追加
+    const defenseBonus = Math.floor(derived.luckValue * 1.0);
+    derived.physicalDefense += defenseBonus;
+    derived.magicalDefense += defenseBonus;
+  }
+
   return derived;
 };
 
