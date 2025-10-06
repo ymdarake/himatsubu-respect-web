@@ -155,8 +155,23 @@ export const useGameLogic = () => {
             }
         }
     }
+
+    // ギャンブラー3点セットボーナス: 全属性付与（レベル比例）
+    const hasGamblersSet =
+      player.equipment.weapon?.masterId === 'wpn_gamblers_dice' &&
+      player.equipment.armor?.masterId === 'arm_gamblers_coat' &&
+      player.equipment.accessory?.masterId === 'acc_lucky_coin';
+
+    if (hasGamblersSet) {
+      const elementalPower = player.level; // レベルに比例
+      const allElements: Element[] = ['火', '水', '風', '土', '光', '闇'];
+      for (const element of allElements) {
+        totals[element] = (totals[element] || 0) + elementalPower;
+      }
+    }
+
     return totals;
-  }, [player.equipment]);
+  }, [player.equipment, player.level]);
 
   // ギャンブラー装備判定
   const hasGamblersSet = useMemo(() => {

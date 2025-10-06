@@ -41,9 +41,11 @@ export const calculateDerivedStats = (player: PlayerType): Record<DerivedStat, n
     derived.magicalDefense += defenseBonus;
   }
 
-  // ギャンブラー3点セットボーナス: 移動速度2倍
+  // ギャンブラー3点セットボーナス: 移動速度2倍、魔攻も物攻と同等に上昇
   if (hasGamblersWeapon && hasGamblersArmor && hasGamblersAccessory) {
     derived.speed *= 2;
+    // 魔攻も運気値の200%を追加（物攻と同じ）
+    derived.magicalAttack += Math.floor(derived.luckValue * 2.0);
   }
 
   return derived;
