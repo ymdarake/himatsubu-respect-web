@@ -12,7 +12,20 @@ const EnemySprite: React.FC<EnemySpriteProps> = ({ enemyName, isBoss }) => {
         className: "w-full h-full",
         shapeRendering: "crispEdges" as const
      }
-     switch (enemyName) {
+
+     // 動的生成されたボス名の場合、ベース名を取得
+     let displayName = enemyName;
+     if (isBoss && !['ゴブリンキング', 'フォレストタイラント', 'ストーンコロッサス', 'ボルケーノロード', 'ナイトメアキング', 'カオスエンペラー'].includes(enemyName)) {
+         const baseBossNames = ['ゴブリンキング', 'フォレストタイラント', 'ストーンコロッサス', 'ボルケーノロード', 'ナイトメアキング', 'カオスエンペラー'];
+         for (const baseName of baseBossNames) {
+             if (enemyName.startsWith(baseName)) {
+                 displayName = baseName;
+                 break;
+             }
+         }
+     }
+
+     switch (displayName) {
         case 'スライム':
             return (
                 <svg {...svgProps}>

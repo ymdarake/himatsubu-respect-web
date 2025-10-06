@@ -1,6 +1,8 @@
 import { Area } from '../types';
+import { generateBossName } from './enemies';
 
-export const AREAS: Area[] = [
+// 基本エリア定義（6種類）
+const BASE_AREAS: Area[] = [
     { name: '草原', bgColor: 'bg-sky-400', groundColor: 'bg-green-700', enemyTypes: ['スライム', 'ゴブリン', 'ホーネット', 'マッドパピー', 'ジャイアントワーム', 'ワイルドボア', 'マンドラゴラ', 'キラービー', 'ファンガス', 'ピクシー'], bossName: 'ゴブリンキング' },
     { name: '暗い森', bgColor: 'bg-indigo-900', groundColor: 'bg-emerald-950', enemyTypes: ['ウルフ', 'バット', 'トレント', 'スケルトン', 'ゴースト', 'ダークエルフ', 'ウィスプ', 'グール', 'ジャイアントスパイダー', 'ウッドゴーレム'], bossName: 'フォレストタイラント' },
     { name: '埃の洞窟', bgColor: 'bg-yellow-800', groundColor: 'bg-yellow-950', enemyTypes: ['オーク', 'ロック・スパイダー', 'ゴーレム', 'リザードマン', 'コボルト', 'トロル', 'サンドワーム', 'ジャイアントアント', 'マインフレイヤー', 'アースエレメンタル'], bossName: 'ストーンコロッサス' },
@@ -8,6 +10,28 @@ export const AREAS: Area[] = [
     { name: '城の門', bgColor: 'bg-gray-600', groundColor: 'bg-gray-800', enemyTypes: ['ゴーレム', 'オーク', 'ドラゴン', 'ミノタウロス', 'ウィザード', 'デュラハン', 'アイアンゴーレム', 'オーガ', 'ダークナイト', 'ワイバーン'], bossName: 'ナイトメアキング' },
     { name: '玉座', bgColor: 'bg-purple-800', groundColor: 'bg-purple-950', enemyTypes: ['バット', 'ファイア・エレメンタル', 'ドラゴン', 'ハーピー', 'キマイラ', 'アークデーモン', 'セラフィム', 'マスターウィザード', 'キングゴースト', 'エンシェントドラゴン'], bossName: 'カオスエンペラー' },
 ];
+
+// 100エリア分を動的生成
+export const AREAS: Area[] = Array.from({ length: 100 }, (_, i) => {
+    const baseArea = BASE_AREAS[i % 6];
+    const tier = Math.floor(i / 6) + 1;
+    const suffix = tier > 1 ? ` ${tier}` : '';
+
+    return {
+        ...baseArea,
+        name: `${baseArea.name}${suffix}`,
+        bossName: generateBossName(i)
+    };
+});
+
+// 101エリア目：感謝メッセージエリア
+AREAS.push({
+    name: 'エンドレス',
+    bgColor: 'bg-gradient-to-b from-purple-900 to-blue-900',
+    groundColor: 'bg-slate-800',
+    enemyTypes: [], // 敵なし
+    bossName: undefined
+});
 
 export const SCENERY_CONFIG: Record<string, { type: string; density: number; variants: any[] }[]> = {
     '草原': [

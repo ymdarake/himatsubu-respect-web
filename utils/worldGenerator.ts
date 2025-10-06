@@ -2,7 +2,7 @@ import React from 'react';
 import { Structure, SceneryObject, Enemy } from '../types';
 import { calculateEnemyStats } from './statCalculations';
 import { AREAS, SCENERY_CONFIG } from '../data/areas';
-import { ENEMY_DATA } from '../data/enemies';
+import { ENEMY_DATA, generateBossName } from '../data/enemies';
 import { INITIAL_PLAYER } from '../constants/player';
 import { PIXELS_PER_METER, SHOP_TYPES, STAGE_LENGTH, GEM_SLIME_SPAWN_CHANCE } from '../constants/game';
 
@@ -163,7 +163,15 @@ export const spawnEnemiesForStage = (
             }
         }
 
-        const enemyData = ENEMY_DATA[randomEnemyName];
+        // ボス名が動的生成の場合、ベースボスデータを使用
+        let enemyData = ENEMY_DATA[randomEnemyName];
+        if (!enemyData && isBossStage) {
+            // 動的生成されたボス名の場合、ベースボス名を取得
+            const baseBossNames = ['ゴブリンキング', 'フォレストタイラント', 'ストーンコロッサス', 'ボルケーノロード', 'ナイトメアキング', 'カオスエンペラー'];
+            const baseBossName = baseBossNames[currentAreaIndex % 6];
+            const baseData = ENEMY_DATA[baseBossName];
+            enemyData = { ...baseData, name: randomEnemyName };
+        }
         
         const enemyLevel = 1 + stageIndex;
         const { scaledBaseStats, derivedStats } = calculateEnemyStats(enemyData, enemyLevel);

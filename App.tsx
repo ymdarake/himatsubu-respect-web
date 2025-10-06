@@ -127,7 +127,15 @@ const App: React.FC = () => {
             </>
           )}
 
-          <div className={`absolute top-0 left-0 w-full h-[70%] transition-colors duration-1000 ${currentArea.bgColor}`}></div>
+          <div className={`absolute top-0 left-0 w-full h-[70%] transition-colors duration-1000 ${currentArea.bgColor}`}>
+            {currentArea.name === 'エンドレス' && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <p className="text-4xl sm:text-6xl font-bold text-white drop-shadow-[0_0_20px_rgba(0,0,0,0.9)] tracking-wider text-center px-4">
+                  ここまで遊んでくれてありがとう
+                </p>
+              </div>
+            )}
+          </div>
           <div className={`absolute bottom-0 left-0 w-full h-[30%] transition-colors duration-1000 ${currentArea.groundColor}`}></div>
           
           <div className="absolute top-0 left-0 h-full w-full" style={{ transform: `translateX(${worldOffset}px)` }}>

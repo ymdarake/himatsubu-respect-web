@@ -73,11 +73,19 @@ export const ENEMY_DATA: Record<string, EnemyBaseData> = {
   'ゴールドスライム': { name: 'ゴールドスライム', baseStats: { strength: 2, stamina: 10, intelligence: 1, speedAgility: 15, luck: 20 }, element: '光', color: 'bg-amber-400', shape: 'circle', xpValue: 10, goldValue: 100, attackPrepareTime: 2000, attackAnimationTime: 400 },
   'ヒーリングスライム': { name: 'ヒーリングスライム', baseStats: { strength: 2, stamina: 10, intelligence: 10, speedAgility: 8, luck: 10 }, element: '光', color: 'bg-pink-400', shape: 'circle', xpValue: 20, goldValue: 5, attackPrepareTime: 1800, attackAnimationTime: 400 },
 
-  // ボス
+  // ボス（100エリア分）
   'ゴブリンキング': { name: 'ゴブリンキング', baseStats: { strength: 12, stamina: 10, intelligence: 4, speedAgility: 8, luck: 5 }, element: '土', color: 'bg-emerald-700', shape: 'square', xpValue: 120, goldValue: 20, attackPrepareTime: 900, attackAnimationTime: 300, isBoss: true },
   'フォレストタイラント': { name: 'フォレストタイラント', baseStats: { strength: 18, stamina: 16, intelligence: 6, speedAgility: 6, luck: 4 }, element: '闇', color: 'bg-emerald-950', shape: 'square', xpValue: 250, goldValue: 40, attackPrepareTime: 1200, attackAnimationTime: 400, isBoss: true },
   'ストーンコロッサス': { name: 'ストーンコロッサス', baseStats: { strength: 20, stamina: 24, intelligence: 4, speedAgility: 4, luck: 3 }, element: '土', color: 'bg-amber-900', shape: 'square', xpValue: 400, goldValue: 60, attackPrepareTime: 2000, attackAnimationTime: 600, isBoss: true },
   'ボルケーノロード': { name: 'ボルケーノロード', baseStats: { strength: 24, stamina: 20, intelligence: 18, speedAgility: 12, luck: 8 }, element: '火', color: 'bg-rose-900', shape: 'square', xpValue: 600, goldValue: 80, attackPrepareTime: 1500, attackAnimationTime: 500, isBoss: true },
   'ナイトメアキング': { name: 'ナイトメアキング', baseStats: { strength: 26, stamina: 22, intelligence: 16, speedAgility: 16, luck: 6 }, element: '闇', color: 'bg-zinc-950', shape: 'square', xpValue: 800, goldValue: 100, attackPrepareTime: 1300, attackAnimationTime: 450, isBoss: true },
   'カオスエンペラー': { name: 'カオスエンペラー', baseStats: { strength: 30, stamina: 28, intelligence: 28, speedAgility: 22, luck: 12 }, element: '闇', color: 'bg-purple-950', shape: 'square', xpValue: 1200, goldValue: 150, attackPrepareTime: 1600, attackAnimationTime: 600, isBoss: true },
+};
+
+// ボス名を動的に生成する関数（エリア7以降用）
+export const generateBossName = (areaIndex: number): string => {
+  const bossNames = ['ゴブリンキング', 'フォレストタイラント', 'ストーンコロッサス', 'ボルケーノロード', 'ナイトメアキング', 'カオスエンペラー'];
+  const baseName = bossNames[areaIndex % 6];
+  const tier = Math.floor(areaIndex / 6) + 1;
+  return tier === 1 ? baseName : `${baseName}${tier}`;
 };
