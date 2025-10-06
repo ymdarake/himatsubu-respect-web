@@ -5,7 +5,7 @@ import { equipmentFactory } from './equipmentFactory';
 // Defines which items are available in which area tier.
 // Higher tiers include items from lower tiers to increase variety.
 const ITEM_POOLS: Record<string, string[]> = {
-    wpn_t0: ['wpn_short_sword', 'wpn_hand_axe', 'wpn_dagger', 'wpn_fire_rod', 'wpn_club', 'wpn_staff', 'wpn_water_knife'],
+    wpn_t0: ['wpn_short_sword', 'wpn_hand_axe', 'wpn_dagger', 'wpn_fire_rod', 'wpn_club', 'wpn_staff', 'wpn_water_knife', 'wpn_gamblers_dice'],
     wpn_t1: ['wpn_long_sword', 'wpn_saber', 'wpn_spear', 'wpn_wind_spear', 'wpn_iron_axe', 'wpn_mace', 'wpn_light_wand', 'wpn_gladius', 'wpn_javelin'],
     wpn_t2: ['wpn_broadsword', 'wpn_battle_axe', 'wpn_main_gauche', 'wpn_heavy_lance', 'wpn_ice_brand', 'wpn_claymore', 'wpn_flail', 'wpn_rock_hammer', 'wpn_scimitar', 'wpn_dark_rod', 'wpn_zweihander', 'wpn_cutlass'],
     wpn_t3: ['wpn_mithril_sword', 'wpn_estoc', 'wpn_earth_hammer', 'wpn_thunder_staff', 'wpn_warhammer', 'wpn_poison_dagger', 'wpn_silver_sword', 'wpn_trident', 'wpn_partisan', 'wpn_shamshir'],
@@ -13,7 +13,7 @@ const ITEM_POOLS: Record<string, string[]> = {
     wpn_t5: ['wpn_vorpal_sword', 'wpn_executioner', 'wpn_assassins_knife', 'wpn_dark_scythe', 'wpn_staff_of_wisdom', 'wpn_masamune', 'wpn_defender', 'wpn_magus_rod', 'wpn_blood_sword', 'wpn_gothic_rod', 'wpn_zwill_blade', 'wpn_titans_glove', 'wpn_deathbringer'],
     wpn_t6: ['wpn_excalibur', 'wpn_gungnir', 'wpn_mjolnir', 'wpn_ragnarok', 'wpn_ultima_weapon', 'wpn_muramasa', 'wpn_staff_of_the_magi', 'wpn_dragon_whisker', 'wpn_holy_rod', 'wpn_kaiser_knuckle', 'wpn_chaos_blade', 'wpn_lightbringer', 'wpn_save_the_queen', 'wpn_heavenly_axis', 'wpn_apocalypse'],
 
-    arm_t0: ['arm_leather_vest', 'arm_cloth_robe', 'arm_hard_leather', 'arm_copper_plate', 'arm_wind_mantle', 'arm_student_uniform', 'arm_travelers_garb'],
+    arm_t0: ['arm_leather_vest', 'arm_cloth_robe', 'arm_hard_leather', 'arm_copper_plate', 'arm_wind_mantle', 'arm_student_uniform', 'arm_travelers_garb', 'arm_gamblers_coat'],
     arm_t1: ['arm_chain_mail', 'arm_iron_plate', 'arm_ring_mail', 'arm_mage_robe', 'arm_silk_robe', 'arm_kenpo_gi', 'arm_flame_mail', 'arm_ice_armor', 'arm_bone_mail', 'arm_black_robe'],
     arm_t2: ['arm_bronze_armor', 'arm_scale_mail', 'arm_silver_plate', 'arm_ninja_suit', 'arm_earth_garb', 'arm_sorcerers_robe', 'arm_plate_mail', 'arm_viking_mail'],
     arm_t3: ['arm_steel_armor', 'arm_mithril_chain', 'arm_elemental_garb', 'arm_wyvern_mail', 'arm_white_robe', 'arm_black_garb', 'arm_golden_armor', 'arm_gaia_gear', 'arm_red_jacket'],
@@ -21,7 +21,7 @@ const ITEM_POOLS: Record<string, string[]> = {
     arm_t5: ['arm_shadow_garb', 'arm_dragon_mail', 'arm_crystal_armor', 'arm_holy_armor', 'arm_mirror_mail', 'arm_carabineer_mail', 'arm_judges_robe', 'arm_force_armor', 'arm_demon_mail', 'arm_goddess_gown'],
     arm_t6: ['arm_robe_of_lords', 'arm_adamant_armor', 'arm_maximillian', 'arm_aegis_shield', 'arm_grand_armor', 'arm_minerva_bustier', 'arm_dragon_lord_armor', 'arm_behemoth_plate', 'arm_celestial_garb', 'arm_chaos_armor'],
 
-    acc_t0: ['acc_speed_ring', 'acc_power_wrist', 'acc_vitality_charm', 'acc_magic_earring', 'acc_leather_gloves', 'acc_flame_ring', 'acc_tough_ring', 'acc_buckler', 'acc_sandals'],
+    acc_t0: ['acc_speed_ring', 'acc_power_wrist', 'acc_vitality_charm', 'acc_magic_earring', 'acc_leather_gloves', 'acc_flame_ring', 'acc_tough_ring', 'acc_buckler', 'acc_sandals', 'acc_lucky_coin'],
     acc_t1: ['acc_lucky_clover', 'acc_talisman', 'acc_gauntlet', 'acc_battle_boots', 'acc_aqua_pendant', 'acc_gale_charm', 'acc_iron_bangle', 'acc_earring'],
     acc_t2: ['acc_power_glove', 'acc_mithril_bangle', 'acc_silver_spectacles', 'acc_amulet', 'acc_circlet', 'acc_stone_belt', 'acc_shadow_orb', 'acc_warrior_ring', 'acc_glass_tiara', 'acc_thieves_armlet'],
     acc_t3: ['acc_sages_ring', 'acc_hermes_sandals', 'acc_barrier_ring', 'acc_giant_belt', 'acc_berserkers_ring', 'acc_mage_gloves', 'acc_running_shoes', 'acc_holy_symbol', 'acc_titans_belt', 'acc_mythril_gloves'],
@@ -86,15 +86,30 @@ export const generateRandomEquipment = (stageIndex: number): Equipment => {
     return newItem || equipmentFactory('wpn_short_sword', 0)!;
 };
 
+// ギャンブラー装備の出現率を下げる（レア化）
+const RARE_ITEMS = new Set(['wpn_gamblers_dice', 'arm_gamblers_coat', 'acc_lucky_coin']);
+const RARE_ITEM_SPAWN_CHANCE = 0.15; // 15%の確率で出現
+
 export const generateShopItems = (shopType: ShopType, stageIndex: number): Equipment[] => {
     const items: Equipment[] = [];
     const areaIndex = Math.floor(stageIndex / 10);
     const availableMasterItems = getAvailableItemsForArea(areaIndex, shopType);
 
-    // Shuffle and pick up to 5 unique items to display
-    const shuffled = availableMasterItems.sort(() => 0.5 - Math.random());
-    const itemsToGenerate = shuffled.slice(0, 5);
-    
+    // ギャンブラー装備とそれ以外に分ける
+    const rareItems = availableMasterItems.filter(item => RARE_ITEMS.has(item.masterId));
+    const normalItems = availableMasterItems.filter(item => !RARE_ITEMS.has(item.masterId));
+
+    // 通常アイテムをシャッフル
+    const shuffled = normalItems.sort(() => 0.5 - Math.random());
+    let itemsToGenerate = shuffled.slice(0, 5);
+
+    // ギャンブラー装備を低確率で1つ追加（通常アイテムの1つと入れ替え）
+    if (rareItems.length > 0 && Math.random() < RARE_ITEM_SPAWN_CHANCE && itemsToGenerate.length > 0) {
+        const randomRareItem = rareItems[Math.floor(Math.random() * rareItems.length)];
+        const replaceIndex = Math.floor(Math.random() * itemsToGenerate.length);
+        itemsToGenerate[replaceIndex] = randomRareItem;
+    }
+
     for (const masterItem of itemsToGenerate) {
         const level = stageIndex;
         const newItem = equipmentFactory(masterItem.masterId, level);
@@ -102,7 +117,7 @@ export const generateShopItems = (shopType: ShopType, stageIndex: number): Equip
             items.push(newItem);
         }
     }
-    
+
     // Fallback if shop is empty
     if (items.length === 0) {
         const defaultMasterId = shopType === 'weapon_shop' ? 'wpn_short_sword' : shopType === 'armor_shop' ? 'arm_leather_vest' : 'acc_speed_ring';
