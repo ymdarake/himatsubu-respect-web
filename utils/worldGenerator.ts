@@ -78,8 +78,11 @@ export const spawnEnemiesForStage = (
 
     const currentAreaIndex = Math.floor(stageIndex / 10);
     const currentArea = AREAS[Math.min(currentAreaIndex, AREAS.length - 1)];
+    const stageInArea = stageIndex % 10;
+    const isBossStage = stageInArea === 9;
 
-    const numberOfEnemies = 4 + Math.floor(Math.random() * 2); // 4-5 enemies per stage
+    // ボスステージは1体のみ、通常ステージは4-5体
+    const numberOfEnemies = isBossStage ? 1 : (4 + Math.floor(Math.random() * 2));
 
     const ENEMY_WIDTH = 128;
     const MIN_ENEMY_SEPARATION = ENEMY_WIDTH + 20;
@@ -131,20 +134,26 @@ export const spawnEnemiesForStage = (
     // Now, iterate through the deterministically found spawn positions
     for (const spawnPosition of spawnPositions) {
         let randomEnemyName: string;
-        const roll = Math.random();
-        const HEALING_SLIME_SPAWN_CHANCE = 0.03;
 
-        if (roll < 0.01) { // 1% chance for Gold Slime
-            randomEnemyName = 'ゴールドスライム';
-        } else if (roll < 0.01 + HEALING_SLIME_SPAWN_CHANCE) { // 3% chance for Healing Slime
-            randomEnemyName = 'ヒーリングスライム';
-        } else if (roll < 0.01 + HEALING_SLIME_SPAWN_CHANCE + GEM_SLIME_SPAWN_CHANCE) { // 5% chance for Gem Slime
-            randomEnemyName = 'ジェムスライム';
+        // ボスステージの場合はボスを配置
+        if (isBossStage && currentArea.bossName) {
+            randomEnemyName = currentArea.bossName;
         } else {
-            const availableEnemyNames = currentArea.enemyTypes;
-            randomEnemyName = availableEnemyNames[Math.floor(Math.random() * availableEnemyNames.length)];
+            const roll = Math.random();
+            const HEALING_SLIME_SPAWN_CHANCE = 0.03;
+
+            if (roll < 0.01) { // 1% chance for Gold Slime
+                randomEnemyName = 'ゴールドスライム';
+            } else if (roll < 0.01 + HEALING_SLIME_SPAWN_CHANCE) { // 3% chance for Healing Slime
+                randomEnemyName = 'ヒーリングスライム';
+            } else if (roll < 0.01 + HEALING_SLIME_SPAWN_CHANCE + GEM_SLIME_SPAWN_CHANCE) { // 5% chance for Gem Slime
+                randomEnemyName = 'ジェムスライム';
+            } else {
+                const availableEnemyNames = currentArea.enemyTypes;
+                randomEnemyName = availableEnemyNames[Math.floor(Math.random() * availableEnemyNames.length)];
+            }
         }
-        
+
         const enemyData = ENEMY_DATA[randomEnemyName];
         
         const enemyLevel = 1 + stageIndex;
@@ -174,6 +183,7 @@ export const spawnEnemiesForStage = (
             goldValue: enemyData.goldValue,
             attackPrepareTime: enemyData.attackPrepareTime,
             attackAnimationTime: enemyData.attackAnimationTime,
+            isBoss: enemyData.isBoss || false,
         };
         enemies.push(newEnemy);
     }

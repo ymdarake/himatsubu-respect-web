@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { GameState, Enemy, Player as PlayerType, Structure, ShopType, Equipment, AllocatableStat, BaseStats, Gem, SceneryObject, PlayStats, Element, DamageInstance, DamageInfo } from '../types';
-import { playSound, resumeAudioContext, playBGM, stopBGM, setMutedState, playGamblersBGM, playAreaBGM } from '../utils/audio';
+import { playSound, resumeAudioContext, playBGM, stopBGM, setMutedState, playGamblersBGM, playAreaBGM, playBossBGM } from '../utils/audio';
 import { calculateDerivedStats } from '../utils/statCalculations';
 import { generateRandomEquipment, generateShopItems } from '../utils/itemGenerator';
 import { spawnStructuresForStage, spawnSceneryForStage, spawnEnemiesForStage } from '../utils/worldGenerator';
@@ -125,6 +125,7 @@ export const useGameLogic = () => {
   const [hasSaveData, setHasSaveData] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [bossEncounter, setBossEncounter] = useState<{name: string, show: boolean} | null>(null);
 
   const rightArrowPressed = useRef(false);
   const leftArrowPressed = useRef(false);
@@ -165,15 +166,23 @@ export const useGameLogic = () => {
   }, [player.equipment]);
 
   // BGM control based on area and gamblers set
+  // ボスとの戦闘中はボスBGMを優先
+  const isBossBattle = useMemo(() => {
+    const engaged = activeEnemies.find(e => e.id === engagedEnemyId);
+    return engaged?.isBoss || false;
+  }, [activeEnemies, engagedEnemyId]);
+
   useEffect(() => {
     if (gameState === GameState.PLAYING) {
-        if (hasGamblersSet) {
+        if (isBossBattle) {
+            playBossBGM();
+        } else if (hasGamblersSet) {
             playGamblersBGM();
         } else {
             playAreaBGM(currentAreaIndex);
         }
     }
-  }, [currentAreaIndex, gameState, hasGamblersSet]);
+  }, [currentAreaIndex, gameState, hasGamblersSet, isBossBattle]);
 
   // Load mute state on initial mount
   useEffect(() => {
@@ -705,6 +714,16 @@ export const useGameLogic = () => {
                 updatedEnemy.attackStateTimer = now + updatedEnemy.attackAnimationTime;
             } else if (updatedEnemy.attackState === 'attacking' && now >= updatedEnemy.attackStateTimer) {
                 updatedEnemy.attackState = 'idle';
+
+                // ボスは攻撃後にプレイヤー方向へ少し移動
+                if (updatedEnemy.isBoss) {
+                    const moveAmount = 5; // 5ピクセルずつ移動
+                    if (updatedEnemy.x > playerUpdate.x) {
+                        updatedEnemy.x = Math.max(playerUpdate.x, updatedEnemy.x - moveAmount);
+                    } else {
+                        updatedEnemy.x = Math.min(playerUpdate.x, updatedEnemy.x + moveAmount);
+                    }
+                }
             }
 
             if (updatedEnemy.id === engagedEnemyId && updatedEnemy.attackState === 'idle') {
@@ -868,6 +887,14 @@ export const useGameLogic = () => {
         const newTarget = currentActiveEnemies.sort((a,b) => Math.abs(a.x - playerUpdate.x) - Math.abs(b.x - playerUpdate.x))[0];
         setEngagedEnemyId(newTarget.id);
         currentEngagedEnemy = newTarget;
+
+        // ボスとのエンカウンター処理（まだ表示中でない場合のみ）
+        if (newTarget.isBoss && (!bossEncounter || !bossEncounter.show)) {
+            setBossEncounter({ name: newTarget.name, show: true });
+            setTimeout(() => {
+                setBossEncounter(prev => prev ? { ...prev, show: false } : null);
+            }, 2500);
+        }
     }
     
     let enemyToAttack: Enemy | undefined = undefined;
@@ -989,5 +1016,6 @@ export const useGameLogic = () => {
     toggleMute,
     handleTeleport,
     onCloseTeleporter,
+    bossEncounter,
   };
 };

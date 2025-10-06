@@ -208,7 +208,14 @@ const BGM_GAMBLERS = {
     bass: [ 'C3', REST, 'E3', REST, 'G3', REST, 'C3', REST, 'F3', REST, 'A3', REST, 'F3', REST, 'C3', REST, 'C3', REST, 'E3', REST, 'G3', REST, 'C3', REST, 'F3', REST, 'A3', REST, 'F3', REST, 'G3', 'C3' ],
 };
 
-const ALL_BGM_SONGS = [BGM_GRASSLAND, BGM_FOREST, BGM_CAVE, BGM_VOLCANO, BGM_CASTLE, BGM_THRONE, BGM_GAMBLERS];
+// Boss Theme: Epic & Intense
+const BGM_BOSS = {
+    tempo: 150,
+    melody: [ 'D4', 'D4', 'D4', 'F4', 'A4', REST, 'A4', 'G4', 'F4', 'E4', 'D4', 'E4', 'F4', REST, 'F4', 'E4', 'D4', 'D4', 'D4', 'F4', 'A4', REST, 'A4', 'B4', 'C5', 'B4', 'A4', 'G4', 'A4', REST, REST, REST ],
+    bass: [ 'D2', 'D2', 'D3', 'D2', 'F2', 'F2', 'F3', 'F2', 'G2', 'G2', 'G3', 'G2', 'A2', 'A2', 'A3', 'A2', 'D2', 'D2', 'D3', 'D2', 'F2', 'F2', 'F3', 'F2', 'G2', 'G2', 'G3', 'G2', 'D2', 'D3', 'A2', 'D2' ],
+};
+
+const ALL_BGM_SONGS = [BGM_GRASSLAND, BGM_FOREST, BGM_CAVE, BGM_VOLCANO, BGM_CASTLE, BGM_THRONE, BGM_GAMBLERS, BGM_BOSS];
 
 let noteIndex = 0;
 
@@ -284,6 +291,11 @@ export const stopBGM = () => {
 // ギャンブラー専用BGM（インデックス6）を再生
 export const playGamblersBGM = () => {
     playBGM(6); // BGM_GAMBLERSのインデックス
+};
+
+// ボス専用BGM（インデックス7）を再生
+export const playBossBGM = () => {
+    playBGM(7); // BGM_BOSSのインデックス
 };
 
 // 通常のエリアBGMに戻す

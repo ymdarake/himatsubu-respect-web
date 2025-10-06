@@ -103,7 +103,7 @@ export interface Enemy {
   speed: number;
   luckValue: number;
   element: Element;
-  
+
   color: string;
   shape: 'square' | 'circle';
   x: number; // World position
@@ -113,6 +113,7 @@ export interface Enemy {
   attackAnimationTime: number;
   attackState: 'idle' | 'preparing' | 'attacking';
   attackStateTimer: number;
+  isBoss: boolean;
 }
 
 export interface Area {
@@ -120,6 +121,7 @@ export interface Area {
     bgColor: string;
     groundColor: string;
     enemyTypes: string[];
+    bossName?: string;
 }
 
 export type ShopType = 'weapon_shop' | 'armor_shop' | 'accessory_shop';

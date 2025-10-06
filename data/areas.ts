@@ -1,12 +1,12 @@
 import { Area } from '../types';
 
 export const AREAS: Area[] = [
-    { name: '草原', bgColor: 'bg-sky-400', groundColor: 'bg-green-700', enemyTypes: ['スライム', 'ゴブリン', 'ホーネット', 'マッドパピー', 'ジャイアントワーム', 'ワイルドボア', 'マンドラゴラ', 'キラービー', 'ファンガス', 'ピクシー'] },
-    { name: '暗い森', bgColor: 'bg-indigo-900', groundColor: 'bg-emerald-950', enemyTypes: ['ウルフ', 'バット', 'トレント', 'スケルトン', 'ゴースト', 'ダークエルフ', 'ウィスプ', 'グール', 'ジャイアントスパイダー', 'ウッドゴーレム'] },
-    { name: '埃の洞窟', bgColor: 'bg-yellow-800', groundColor: 'bg-yellow-950', enemyTypes: ['オーク', 'ロック・スパイダー', 'ゴーレム', 'リザードマン', 'コボルト', 'トロル', 'サンドワーム', 'ジャイアントアント', 'マインフレイヤー', 'アースエレメンタル'] },
-    { name: '火山', bgColor: 'bg-red-700', groundColor: 'bg-stone-800', enemyTypes: ['ファイア・エレメンタル', 'ドラゴン', 'ガーゴイル', 'サラマンダー', 'イフリート', 'ヘルハウンド', 'ボム', 'フレイムドラゴン', 'マグマスライム', 'パイロデーモン'] },
-    { name: '城の門', bgColor: 'bg-gray-600', groundColor: 'bg-gray-800', enemyTypes: ['ゴーレム', 'オーク', 'ドラゴン', 'ミノタウロス', 'ウィザード', 'デュラハン', 'アイアンゴーレム', 'オーガ', 'ダークナイト', 'ワイバーン'] },
-    { name: '玉座', bgColor: 'bg-purple-800', groundColor: 'bg-purple-950', enemyTypes: ['バット', 'ファイア・エレメンタル', 'ドラゴン', 'ハーピー', 'キマイラ', 'アークデーモン', 'セラフィム', 'マスターウィザード', 'キングゴースト', 'エンシェントドラゴン'] },
+    { name: '草原', bgColor: 'bg-sky-400', groundColor: 'bg-green-700', enemyTypes: ['スライム', 'ゴブリン', 'ホーネット', 'マッドパピー', 'ジャイアントワーム', 'ワイルドボア', 'マンドラゴラ', 'キラービー', 'ファンガス', 'ピクシー'], bossName: 'ゴブリンキング' },
+    { name: '暗い森', bgColor: 'bg-indigo-900', groundColor: 'bg-emerald-950', enemyTypes: ['ウルフ', 'バット', 'トレント', 'スケルトン', 'ゴースト', 'ダークエルフ', 'ウィスプ', 'グール', 'ジャイアントスパイダー', 'ウッドゴーレム'], bossName: 'フォレストタイラント' },
+    { name: '埃の洞窟', bgColor: 'bg-yellow-800', groundColor: 'bg-yellow-950', enemyTypes: ['オーク', 'ロック・スパイダー', 'ゴーレム', 'リザードマン', 'コボルト', 'トロル', 'サンドワーム', 'ジャイアントアント', 'マインフレイヤー', 'アースエレメンタル'], bossName: 'ストーンコロッサス' },
+    { name: '火山', bgColor: 'bg-red-700', groundColor: 'bg-stone-800', enemyTypes: ['ファイア・エレメンタル', 'ドラゴン', 'ガーゴイル', 'サラマンダー', 'イフリート', 'ヘルハウンド', 'ボム', 'フレイムドラゴン', 'マグマスライム', 'パイロデーモン'], bossName: 'ボルケーノロード' },
+    { name: '城の門', bgColor: 'bg-gray-600', groundColor: 'bg-gray-800', enemyTypes: ['ゴーレム', 'オーク', 'ドラゴン', 'ミノタウロス', 'ウィザード', 'デュラハン', 'アイアンゴーレム', 'オーガ', 'ダークナイト', 'ワイバーン'], bossName: 'ナイトメアキング' },
+    { name: '玉座', bgColor: 'bg-purple-800', groundColor: 'bg-purple-950', enemyTypes: ['バット', 'ファイア・エレメンタル', 'ドラゴン', 'ハーピー', 'キマイラ', 'アークデーモン', 'セラフィム', 'マスターウィザード', 'キングゴースト', 'エンシェントドラゴン'], bossName: 'カオスエンペラー' },
 ];
 
 export const SCENERY_CONFIG: Record<string, { type: string; density: number; variants: any[] }[]> = {

@@ -19,6 +19,7 @@ import TouchControls from './components/TouchControls';
 import TeleporterStructure from './components/TeleporterStructure';
 import TeleporterModal from './components/TeleporterModal';
 import { BaseStatsPanel, DerivedStatsPanel } from './components/PlayerStatsPanels';
+import BossEncounter from './components/BossEncounter';
 
 const App: React.FC = () => {
   const {
@@ -65,6 +66,7 @@ const App: React.FC = () => {
     toggleMute,
     handleTeleport,
     onCloseTeleporter,
+    bossEncounter,
   } = useGameLogic();
 
   return (
@@ -346,6 +348,12 @@ const App: React.FC = () => {
           currentStageIndex={stageIndex}
           onTeleport={handleTeleport}
           onClose={onCloseTeleporter}
+        />
+      )}
+      {bossEncounter && bossEncounter.show && (
+        <BossEncounter
+          bossName={bossEncounter.name}
+          onAnimationEnd={() => {}}
         />
       )}
     </div>
