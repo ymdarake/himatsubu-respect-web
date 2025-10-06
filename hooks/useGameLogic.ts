@@ -569,7 +569,7 @@ export const useGameLogic = () => {
                 if (e.id === engagedEnemyId) setEngagedEnemyId(null);
                 if (e.id === displayedEnemyId) setDisplayedEnemyId(null);
 
-                const xpGained = Math.floor(e.xpValue * (1 + stageIndex * 0.05));
+                const xpGained = Math.floor(e.xpValue * Math.pow(1.09, stageIndex / 5));
                 playerUpdate.xp += xpGained;
                 setPlayStats(prev => ({ ...prev, totalXpGained: prev.totalXpGained + xpGained }));
 
