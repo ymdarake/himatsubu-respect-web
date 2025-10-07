@@ -730,10 +730,10 @@ export const useGameLogic = () => {
             } else if (updatedEnemy.attackState === 'attacking' && now >= updatedEnemy.attackStateTimer) {
                 updatedEnemy.attackState = 'idle';
 
-                // ボスは攻撃後にプレイヤー方向へ少し移動
-                // 20回の攻撃で画面端まで追い詰める（約450px ÷ 20 = 22.5px）
+                // ボスは攻撃後にプレイヤー方向へ移動
+                // 約4回の攻撃で画面端まで追い詰める（約450px ÷ 4 = 110px）
                 if (updatedEnemy.isBoss) {
-                    const moveAmount = 22;
+                    const moveAmount = 110;
                     if (updatedEnemy.x > playerUpdate.x) {
                         updatedEnemy.x = Math.max(playerUpdate.x, updatedEnemy.x - moveAmount);
                     } else {
