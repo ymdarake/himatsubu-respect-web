@@ -16,30 +16,30 @@
 ## Phase 1: 戦闘計算ロジックの抽出（ユーティリティ化）
 
 ### 1-1. ダメージ計算ロジックを関数化
-- [ ] `utils/combatCalculations.ts`を新規作成
-- [ ] プレイヤーの物理ダメージ計算を関数化: `calculatePlayerPhysicalDamage()`
-- [ ] プレイヤーの魔法ダメージ計算を関数化: `calculatePlayerMagicalDamage()`
-- [ ] プレイヤーのクリティカル判定を関数化: `calculateCriticalHit()`
-- [ ] 既存のテストがあれば実行、なければ手動で動作確認
+- [x] `utils/combatCalculations.ts`を新規作成
+- [x] プレイヤーの物理ダメージ計算を関数化: `calculatePlayerPhysicalDamage()`
+- [x] プレイヤーの魔法ダメージ計算を関数化: `calculatePlayerMagicalDamage()`
+- [x] プレイヤーのクリティカル判定を関数化: `calculateCriticalHit()`
+- [x] 既存のテストがあれば実行、なければ手動で動作確認
 
 **依存関係**:
 - 入力: プレイヤーステータス、敵ステータス、装備の属性ダメージ
 - 出力: ダメージ値、クリティカルフラグ
 
 ### 1-2. 敵の攻撃計算ロジックを関数化
-- [ ] 敵の物理ダメージ計算を関数化: `calculateEnemyPhysicalDamage()`
-- [ ] 敵の魔法ダメージ計算を関数化: `calculateEnemyMagicalDamage()`
-- [ ] 既存のテストがあれば実行、なければ手動で動作確認
+- [x] 敵の物理ダメージ計算を関数化: `calculateEnemyPhysicalDamage()`
+- [x] 敵の魔法ダメージ計算を関数化: `calculateEnemyMagicalDamage()`
+- [x] 既存のテストがあれば実行、なければ手動で動作確認
 
 **依存関係**:
 - 入力: 敵ステータス、プレイヤーステータス
 - 出力: ダメージ値
 
 ### 1-3. 攻撃速度・クールダウン計算を関数化
-- [ ] 攻撃速度レベル判定を関数化: `getAttackSpeedLevel()`
-- [ ] プレイヤーの攻撃クールダウン計算を関数化: `calculatePlayerAttackCooldown()`
-- [ ] 敵の攻撃クールダウン計算を関数化: `calculateEnemyAttackCooldown()`
-- [ ] 既存のテストがあれば実行、なければ手動で動作確認
+- [x] 攻撃速度レベル判定を関数化: `getAttackSpeedLevel()`
+- [x] プレイヤーの攻撃クールダウン計算を関数化: `calculatePlayerAttackCooldown()`
+- [x] 敵の攻撃クールダウン計算を関数化: `calculateEnemyAttackCooldown()`
+- [x] 既存のテストがあれば実行、なければ手動で動作確認
 
 **依存関係**:
 - 入力: プレイヤー速度、敵速度
@@ -50,29 +50,29 @@
 ## Phase 2: 報酬計算ロジックの抽出
 
 ### 2-1. 経験値計算を関数化
-- [ ] `utils/rewardCalculations.ts`を新規作成
-- [ ] 敵撃破時のXP計算を関数化: `calculateXpReward()`
+- [x] `utils/rewardCalculations.ts`を新規作成
+- [x] 敵撃破時のXP計算を関数化: `calculateXpReward()`
   - 入力: 敵のxpValue、現在のステージ、目標レベル
   - 出力: 獲得XP
-- [ ] 既存のテストがあれば実行、なければ手動で動作確認
+- [x] 既存のテストがあれば実行、なければ手動で動作確認
 
 ### 2-2. ゴールド計算を関数化
-- [ ] 通常敵のゴールド計算を関数化: `calculateGoldReward()`
+- [x] 通常敵のゴールド計算を関数化: `calculateGoldReward()`
   - 入力: 敵のgoldValue、プレイヤーの運気
   - 出力: 獲得ゴールド
-- [ ] ゴールドスライム特殊処理を関数化: `calculateGoldSlimeReward()`
+- [x] ゴールドスライム特殊処理を関数化: `calculateGoldSlimeReward()`
   - 入力: ステージ番号
   - 出力: 獲得ゴールド
-- [ ] 既存のテストがあれば実行、なければ手動で動作確認
+- [x] 既存のテストがあれば実行、なければ手動で動作確認
 
 ### 2-3. アイテムドロップ判定を関数化
-- [ ] ドロップ率計算を関数化: `calculateDropChance()`
+- [x] ドロップ率計算を関数化: `calculateDropChance()`
   - 入力: プレイヤーの運気
   - 出力: ドロップ率
-- [ ] ジェムスライムのジェムドロップを関数化: `generateGemDrops()`
+- [x] ジェムスライムのジェムドロップを関数化: `generateGemDrops()`
   - 入力: なし
   - 出力: ドロップしたジェムのリスト
-- [ ] 既存のテストがあれば実行、なければ手動で動作確認
+- [x] 既存のテストがあれば実行、なければ手動で動作確認
 
 ---
 
