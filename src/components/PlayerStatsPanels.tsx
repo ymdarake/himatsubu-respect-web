@@ -44,6 +44,11 @@ export const BaseStatsPanel: React.FC<BaseStatsPanelProps> = ({ player, toggleSt
                     </button>
                 )}
             </div>
+            {variant === 'mobile' && !player.isStatAllocationLocked && (
+                <div className="-mt-2 mb-2 text-[11px] text-gray-500">
+                    一度割り振ると固定可
+                </div>
+            )}
             <div className={`space-y-1 flex-grow ${textSize}`}>
                 {Object.entries(player.baseStats).map(([stat, value]) => (
                     <div key={stat} className="flex justify-between">
