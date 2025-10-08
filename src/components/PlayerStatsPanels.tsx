@@ -25,8 +25,24 @@ export const BaseStatsPanel: React.FC<BaseStatsPanelProps> = ({ player, toggleSt
 
     return (
         <div className={`p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 flex flex-col ${className}`}>
-            <div className="text-center mb-2 border-b border-gray-700 pb-1">
+            <div className="mb-2 border-b border-gray-700 pb-1 flex items-center justify-between sm:justify-center">
                 <span className={`font-bold ${levelTextSize}`}>レベル {player.level}</span>
+                {variant === 'mobile' && (
+                    <button
+                        type="button"
+                        role="switch"
+                        aria-label="ステ振り固定"
+                        aria-checked={player.isStatAllocationLocked}
+                        onClick={toggleStatAllocationLock}
+                        disabled={!player.lastStatAllocation}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${player.isStatAllocationLocked ? 'bg-yellow-500' : 'bg-gray-600'} ${!player.lastStatAllocation ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                        title={!player.lastStatAllocation ? "一度レベルアップしてステータスを割り振ると有効になります" : "ステータス割り振りを固定する"}
+                    >
+                        <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${player.isStatAllocationLocked ? 'translate-x-5' : 'translate-x-1'}`}
+                        />
+                    </button>
+                )}
             </div>
             <div className={`space-y-1 flex-grow ${textSize}`}>
                 {Object.entries(player.baseStats).map(([stat, value]) => (
@@ -36,23 +52,25 @@ export const BaseStatsPanel: React.FC<BaseStatsPanelProps> = ({ player, toggleSt
                     </div>
                 ))}
             </div>
-            <div className="mt-2 pt-2 border-t border-gray-700">
-                <label className={`flex items-center space-x-2 cursor-pointer select-none ${textSize}`} title={!player.lastStatAllocation ? "一度レベルアップしてステータスを割り振ると有効になります" : "ステータス割り振りを固定する"}>
-                    <button
-                        type="button"
-                        role="switch"
-                        aria-checked={player.isStatAllocationLocked}
-                        onClick={toggleStatAllocationLock}
-                        disabled={!player.lastStatAllocation}
-                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${player.isStatAllocationLocked ? 'bg-yellow-500' : 'bg-gray-600'} ${!player.lastStatAllocation ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                    >
-                        <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${player.isStatAllocationLocked ? 'translate-x-5' : 'translate-x-1'}`}
-                        />
-                    </button>
-                    <span className={player.lastStatAllocation ? '' : 'text-gray-500'}>ステ振り固定</span>
-                </label>
-            </div>
+            {variant !== 'mobile' && (
+                <div className="mt-2 pt-2 border-t border-gray-700">
+                    <label className={`flex items-center space-x-2 cursor-pointer select-none ${textSize}`} title={!player.lastStatAllocation ? "一度レベルアップしてステータスを割り振ると有効になります" : "ステータス割り振りを固定する"}>
+                        <button
+                            type="button"
+                            role="switch"
+                            aria-checked={player.isStatAllocationLocked}
+                            onClick={toggleStatAllocationLock}
+                            disabled={!player.lastStatAllocation}
+                            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${player.isStatAllocationLocked ? 'bg-yellow-500' : 'bg-gray-600'} ${!player.lastStatAllocation ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                        >
+                            <span
+                                className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${player.isStatAllocationLocked ? 'translate-x-5' : 'translate-x-1'}`}
+                            />
+                        </button>
+                        <span className={player.lastStatAllocation ? '' : 'text-gray-500'}>ステ振り固定</span>
+                    </label>
+                </div>
+            )}
         </div>
     );
 };
