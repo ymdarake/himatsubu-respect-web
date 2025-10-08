@@ -1,11 +1,12 @@
 import React from 'react';
+import { formatCompactNumber } from '../utils/format';
 import { PlayStats, Player, AllocatableStat } from '../types';
 import { GEM_COLORS } from '../constants/ui';
 import { EQUIPMENT_MASTER_DATA } from '../data/equipmentMaster';
 
 interface PlayStatsPanelProps {
-  playStats: PlayStats;
-  player: Player;
+    playStats: PlayStats;
+    player: Player;
 }
 
 const formatPlayTime = (seconds: number) => {
@@ -24,9 +25,9 @@ const PlayStatsPanel: React.FC<PlayStatsPanelProps> = ({ playStats, player }) =>
             <div className="space-y-1 text-sm">
                 <div className="flex justify-between"><span>プレイ時間</span><span className="font-bold">{formatPlayTime(playStats.playTime)}</span></div>
                 <div className="flex justify-between"><span>倒した魔物の数</span><span className="font-bold">{playStats.enemiesDefeated}</span></div>
-                <div className="flex justify-between"><span>最高到達点</span><span className="font-bold">{Math.floor(playStats.farthestDistance)}m</span></div>
+                <div className="flex justify-between"><span>最高到達点</span><span className="font-bold">{formatCompactNumber(playStats.farthestDistance)}m</span></div>
                 <div className="flex justify-between"><span>所持G</span><span className="font-bold text-yellow-400">{player.gold} G</span></div>
-                <div className="flex justify-between"><span>総獲得EXP</span><span className="font-bold">{playStats.totalXpGained}</span></div>
+                <div className="flex justify-between"><span>総獲得EXP</span><span className="font-bold">{formatCompactNumber(playStats.totalXpGained)}</span></div>
                 <div className="flex justify-between"><span>次のレベルまで EXP</span><span className="font-bold">{player.xpToNextLevel - player.xp}</span></div>
                 <div className="flex justify-between">
                     <span>装備品収集率</span>
@@ -34,16 +35,16 @@ const PlayStatsPanel: React.FC<PlayStatsPanelProps> = ({ playStats, player }) =>
                 </div>
             </div>
             <div>
-                 <p className="text-xs text-center text-gray-400 mb-1 border-t border-gray-700 pt-1">ジェム収集</p>
-                 <div className="grid grid-cols-5 gap-1">
-                     {Object.entries(playStats.gemCollection).map(([stat, count]) => (
-                         <div key={stat} className={`rounded-sm p-1 text-center ${GEM_COLORS[stat as AllocatableStat]}`}>
+                <p className="text-xs text-center text-gray-400 mb-1 border-t border-gray-700 pt-1">ジェム収集</p>
+                <div className="grid grid-cols-5 gap-1">
+                    {Object.entries(playStats.gemCollection).map(([stat, count]) => (
+                        <div key={stat} className={`rounded-sm p-1 text-center ${GEM_COLORS[stat as AllocatableStat]}`}>
                             <span className="text-xs font-bold text-white mix-blend-difference">
                                 {(count as number) > 0 ? count : ''}
                             </span>
-                         </div>
-                     ))}
-                 </div>
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     );

@@ -2,6 +2,7 @@
 import React from 'react';
 import { Player, AllocatableStat, DerivedStat, Element } from '../types';
 import { DERIVED_STAT_NAMES } from '../types';
+import { formatCompactNumber } from '../utils/format';
 import { ELEMENT_COLORS } from '../constants/ui';
 
 const baseStatNames: Record<AllocatableStat, string> = {
@@ -97,7 +98,7 @@ export const DerivedStatsPanel: React.FC<DerivedStatsPanelProps> = ({ calculated
                 {Object.entries(calculatedStats).map(([stat, value]) => (
                     <div key={stat} className="flex justify-between">
                         <span>{DERIVED_STAT_NAMES[stat as keyof typeof DERIVED_STAT_NAMES]}</span>
-                        <span className="font-bold">{Math.floor(value as number)}</span>
+                        <span className="font-bold">{formatCompactNumber(value as number)}</span>
                     </div>
                 ))}
                 {Object.entries(totalElementalDamages).map(([element, value]) => (
