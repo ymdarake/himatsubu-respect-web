@@ -5,6 +5,8 @@
  * 提案係数: 0.005, 0.01
  */
 
+// just: for create pr
+
 // 敵のgoldValue（ステージごとの代表的な敵）
 const enemyGoldByStage = {
   0: 2,    // スライム (ステージ1)
@@ -48,8 +50,8 @@ console.log('━━━━━━━━━━━━━━━━━━━━━━�
 // 各係数での結果を計算
 Object.entries(coefficients).forEach(([name, coefficient]) => {
   const displayName = name === 'current' ? '現在 (0.0025)' :
-                      name === 'proposed1' ? '提案1 (0.005)' :
-                      '提案2 (0.00833 = 運気300で3.5倍)';
+    name === 'proposed1' ? '提案1 (0.005)' :
+      '提案2 (0.00833 = 運気300で3.5倍)';
 
   console.log(`\n【${displayName}】`);
   console.log('─'.repeat(80));
