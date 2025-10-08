@@ -237,7 +237,7 @@ const App: React.FC = () => {
 
                 {/* Right Column */}
                 <div className="col-span-3 flex flex-col gap-2">
-                  <div className="flex-grow h-36">
+                  <div className="flex-grow min-h-44 max-h-72 overflow-y-auto">
                     {displayedEnemy ? (
                       <EnemyStatusPanel enemy={displayedEnemy} />
                     ) : (
