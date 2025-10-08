@@ -588,7 +588,8 @@ export const useGameLogic = () => {
       }
 
       if (damageInfos.length > 0) {
-        const newInstance: DamageInstance = { id: nextDamageInstanceId.current++, x: enemyToAttack.x + (Math.random() - 0.5) * 20, damages: damageInfos };
+        const horizontalBias = attackDirection === 'right' ? 30 : -30;
+        const newInstance: DamageInstance = { id: nextDamageInstanceId.current++, x: enemyToAttack.x + horizontalBias + (Math.random() - 0.5) * 20, damages: damageInfos };
         setDamageInstances(prev => [...prev, newInstance]);
         setTimeout(() => setDamageInstances(prev => prev.filter(d => d.id !== newInstance.id)), 1200);
       }

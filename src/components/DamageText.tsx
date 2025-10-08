@@ -18,7 +18,7 @@ const DamageTextComponent: React.FC<DamageTextProps> = ({ instance }) => {
         }
       `}</style>
       <div
-        className="absolute bottom-[120px] flex flex-col items-center animate-damage-group pointer-events-none"
+        className="absolute bottom-[30px] flex flex-col items-center animate-damage-group pointer-events-none"
         style={{
           left: `${instance.x}px`,
           zIndex: 100,
