@@ -22,12 +22,12 @@ interface BaseStatsPanelProps {
 
 export const BaseStatsPanel: React.FC<BaseStatsPanelProps> = ({ player, toggleStatAllocationLock, className = '', variant = 'desktop' }) => {
     const textSize = variant === 'mobile' ? 'text-xs' : 'text-sm';
-    const levelTextSize = variant === 'mobile' ? 'text-base' : 'text-lg';
+    const levelTextSize = variant === 'mobile' ? 'text-small' : 'text-lg';
 
     return (
         <div className={`p-3 bg-gray-900 bg-opacity-50 rounded border-2 border-gray-600 flex flex-col ${className}`}>
             <div className="mb-2 border-b border-gray-700 pb-1 flex items-center justify-between sm:justify-center">
-                <span className={`font-bold ${levelTextSize}`}>レベル {player.level}</span>
+                <span className={`font-bold ${levelTextSize}`}>Lv. {player.level}</span>
                 {variant === 'mobile' && (
                     <button
                         type="button"

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { GameState, Enemy, Player as PlayerType, Structure, ShopType, Equipment, AllocatableStat, BaseStats, Gem, SceneryObject, PlayStats, Element, DamageInstance, DamageInfo } from '../types';
 import { playSound, resumeAudioContext, playBGM, stopBGM, setMutedState, playGamblersBGM, playAreaBGM, playBossBGM } from '../utils/audio';
 import { calculateDerivedStats } from '../utils/statCalculations';
+import { formatCompactNumber } from '../utils/format';
 import { generateRandomEquipment, generateShopItems } from '../utils/itemGenerator';
 import { spawnStructuresForStage, spawnSceneryForStage, spawnEnemiesForStage } from '../utils/worldGenerator';
 import { AREAS } from '../data/areas';
@@ -27,45 +28,45 @@ const SAVE_KEY = 'sidescroll-quest-savegame';
 const MUTE_KEY = 'sidescroll-quest-muted';
 
 const addEquipmentToPlayer = (player: PlayerType, newItem: Equipment, trackEquipment: (item: Equipment) => void, logFn: (msg: string) => void): PlayerType => {
-    const allPlayerItems = [
-        ...player.inventory,
-        ...Object.values(player.equipment).filter((e): e is Equipment => e !== null)
-    ];
+  const allPlayerItems = [
+    ...player.inventory,
+    ...Object.values(player.equipment).filter((e): e is Equipment => e !== null)
+  ];
 
-    const existingVersions = allPlayerItems.filter(i => i.masterId === newItem.masterId);
-    const maxExistingLevel = existingVersions.reduce((max, item) => Math.max(max, item.level), -1);
+  const existingVersions = allPlayerItems.filter(i => i.masterId === newItem.masterId);
+  const maxExistingLevel = existingVersions.reduce((max, item) => Math.max(max, item.level), -1);
 
-    if (newItem.level <= maxExistingLevel) {
-        logFn(`${newItem.name}はすでに同等以上のものを持っているため、処分した。`);
-        return player;
-    }
-    
-    trackEquipment(newItem);
-    const newPlayerState = { ...player };
+  if (newItem.level <= maxExistingLevel) {
+    logFn(`${newItem.name}はすでに同等以上のものを持っているため、処分した。`);
+    return player;
+  }
 
-    newPlayerState.inventory = player.inventory.filter(i => i.masterId !== newItem.masterId);
+  trackEquipment(newItem);
+  const newPlayerState = { ...player };
 
-    const equippedSlot = (Object.keys(player.equipment) as Array<keyof typeof player.equipment>)
-        .find(slot => player.equipment[slot]?.masterId === newItem.masterId);
-    
-    if (equippedSlot) {
-        newPlayerState.equipment = { ...player.equipment, [equippedSlot]: newItem };
-        logFn(`✨ ${newItem.name}を入手し、古いものと交換して装備した！`);
-    } else {
-        newPlayerState.inventory.push(newItem);
-        logFn(`✨ ${newItem.name}を見つけて持ち物に追加した！`);
-    }
-    
-    return newPlayerState;
+  newPlayerState.inventory = player.inventory.filter(i => i.masterId !== newItem.masterId);
+
+  const equippedSlot = (Object.keys(player.equipment) as Array<keyof typeof player.equipment>)
+    .find(slot => player.equipment[slot]?.masterId === newItem.masterId);
+
+  if (equippedSlot) {
+    newPlayerState.equipment = { ...player.equipment, [equippedSlot]: newItem };
+    logFn(`✨ ${newItem.name}を入手し、古いものと交換して装備した！`);
+  } else {
+    newPlayerState.inventory.push(newItem);
+    logFn(`✨ ${newItem.name}を見つけて持ち物に追加した！`);
+  }
+
+  return newPlayerState;
 };
 
 export const useGameLogic = () => {
   const [gameState, setGameState] = useState<GameState>(GameState.START);
-  const { 
-    player, 
-    setPlayer, 
-    resetPlayer, 
-    resetPlayerForDeath, 
+  const {
+    player,
+    setPlayer,
+    resetPlayer,
+    resetPlayerForDeath,
     loadPlayer,
     handleHeal: playerHeal,
     handleBuyItem: playerBuyItem,
@@ -115,17 +116,17 @@ export const useGameLogic = () => {
   const [playerAction, setPlayerAction] = useState<'attack' | 'hit' | undefined>(undefined);
   const [playerAttackDirection, setPlayerAttackDirection] = useState<'left' | 'right'>('right');
   const [log, setLog] = useState<string[]>([]);
-  const [shopData, setShopData] = useState<{type: ShopType, items: Equipment[]} | null>(null);
+  const [shopData, setShopData] = useState<{ type: ShopType, items: Equipment[] } | null>(null);
   const [shopPrompt, setShopPrompt] = useState<boolean>(false);
   const [housePrompt, setHousePrompt] = useState<boolean>(false);
   const [teleporterPrompt, setTeleporterPrompt] = useState<boolean>(false);
   const [playStats, setPlayStats] = useState<PlayStats>(INITIAL_PLAY_STATS);
-  const [goldDrops, setGoldDrops] = useState<{id: number, x: number}[]>([]);
+  const [goldDrops, setGoldDrops] = useState<{ id: number, x: number }[]>([]);
   const [damageInstances, setDamageInstances] = useState<DamageInstance[]>([]);
   const [hasSaveData, setHasSaveData] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [bossEncounter, setBossEncounter] = useState<{name: string, show: boolean} | null>(null);
+  const [bossEncounter, setBossEncounter] = useState<{ name: string, show: boolean } | null>(null);
 
   const rightArrowPressed = useRef(false);
   const leftArrowPressed = useRef(false);
@@ -140,20 +141,20 @@ export const useGameLogic = () => {
   }, []);
 
   const calculatedStats = useMemo(() => calculateDerivedStats(player), [player]);
-  
+
   const totalElementalDamages = useMemo(() => {
     const totals: Partial<Record<Element, number>> = {};
     const equipmentList = [player.equipment.weapon, player.equipment.armor, player.equipment.accessory];
 
     for (const item of equipmentList) {
-        if (item && item.elementalDamages) {
-            for (const [element, power] of Object.entries(item.elementalDamages)) {
-                if (power) {
-                    const elemKey = element as Element;
-                    totals[elemKey] = (totals[elemKey] || 0) + Number(power);
-                }
-            }
+      if (item && item.elementalDamages) {
+        for (const [element, power] of Object.entries(item.elementalDamages)) {
+          if (power) {
+            const elemKey = element as Element;
+            totals[elemKey] = (totals[elemKey] || 0) + Number(power);
+          }
         }
+      }
     }
 
     // ギャンブラー3点セットボーナス: 全属性付与（レベル比例）
@@ -176,8 +177,8 @@ export const useGameLogic = () => {
   // ギャンブラー装備判定
   const hasGamblersSet = useMemo(() => {
     return player.equipment.weapon?.masterId === 'wpn_gamblers_dice' &&
-           player.equipment.armor?.masterId === 'arm_gamblers_coat' &&
-           player.equipment.accessory?.masterId === 'acc_lucky_coin';
+      player.equipment.armor?.masterId === 'arm_gamblers_coat' &&
+      player.equipment.accessory?.masterId === 'acc_lucky_coin';
   }, [player.equipment]);
 
   // BGM control based on area and gamblers set
@@ -189,13 +190,13 @@ export const useGameLogic = () => {
 
   useEffect(() => {
     if (gameState === GameState.PLAYING) {
-        if (isBossBattle) {
-            playBossBGM();
-        } else if (hasGamblersSet) {
-            playGamblersBGM();
-        } else {
-            playAreaBGM(currentAreaIndex);
-        }
+      if (isBossBattle) {
+        playBossBGM();
+      } else if (hasGamblersSet) {
+        playGamblersBGM();
+      } else {
+        playAreaBGM(currentAreaIndex);
+      }
     }
   }, [currentAreaIndex, gameState, hasGamblersSet, isBossBattle]);
 
@@ -203,9 +204,9 @@ export const useGameLogic = () => {
   useEffect(() => {
     const savedMute = localStorage.getItem(MUTE_KEY);
     if (savedMute) {
-        const initialMute = JSON.parse(savedMute);
-        setIsMuted(initialMute);
-        setMutedState(initialMute);
+      const initialMute = JSON.parse(savedMute);
+      setIsMuted(initialMute);
+      setMutedState(initialMute);
     }
   }, []);
 
@@ -226,37 +227,37 @@ export const useGameLogic = () => {
   useEffect(() => {
     const savedData = localStorage.getItem(SAVE_KEY);
     if (savedData) {
-        try {
-            JSON.parse(savedData);
-            setHasSaveData(true);
-        } catch {
-            localStorage.removeItem(SAVE_KEY);
-        }
+      try {
+        JSON.parse(savedData);
+        setHasSaveData(true);
+      } catch {
+        localStorage.removeItem(SAVE_KEY);
+      }
     }
   }, []);
 
   const saveCurrentGame = useCallback(() => {
     if (gameState !== GameState.PLAYING) return;
     try {
-        const saveData = {
-            player,
-            stageIndex,
-            playStats: {
-                ...playStats,
-                collectedEquipment: Array.from(playStats.collectedEquipment),
-            },
-        };
-        localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
-        setHasSaveData(true);
+      const saveData = {
+        player,
+        stageIndex,
+        playStats: {
+          ...playStats,
+          collectedEquipment: Array.from(playStats.collectedEquipment),
+        },
+      };
+      localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+      setHasSaveData(true);
     } catch (error) {
-        console.error("Failed to save game:", error);
+      console.error("Failed to save game:", error);
     }
   }, [gameState, player, stageIndex, playStats]);
 
   const saveAndExit = useCallback(() => {
     if (gameState === GameState.PLAYING) {
-        addLog('ゲームをセーブしてタイトルに戻ります。');
-        saveCurrentGame();
+      addLog('ゲームをセーブしてタイトルに戻ります。');
+      saveCurrentGame();
     }
     stopBGM();
     setLog([]);
@@ -270,36 +271,36 @@ export const useGameLogic = () => {
   // Autosave interval and save on unload
   useEffect(() => {
     if (gameState !== GameState.PLAYING) {
-        return;
+      return;
     }
 
     const intervalId = setInterval(saveCurrentGame, 10000); // Save every 10 seconds
     window.addEventListener('beforeunload', saveCurrentGame);
 
     return () => {
-        clearInterval(intervalId);
-        window.removeEventListener('beforeunload', saveCurrentGame);
+      clearInterval(intervalId);
+      window.removeEventListener('beforeunload', saveCurrentGame);
     };
   }, [gameState, saveCurrentGame]);
 
   useEffect(() => {
     if (isTransitioning) {
-        if (stageIndex === 0) {
-            resetEnemyIdCounter();
-            resetSceneryIdCounter();
-        }
-        const newStructures = spawnStructuresForStage(stageIndex);
-        setStructures(newStructures);
-        const newScenery = spawnSceneryForStage(stageIndex, nextSceneryId);
-        setScenery(newScenery);
+      if (stageIndex === 0) {
+        resetEnemyIdCounter();
+        resetSceneryIdCounter();
+      }
+      const newStructures = spawnStructuresForStage(stageIndex);
+      setStructures(newStructures);
+      const newScenery = spawnSceneryForStage(stageIndex, nextSceneryId);
+      setScenery(newScenery);
 
-        const newEnemies = spawnEnemiesForStage(stageIndex, nextEnemyId, newStructures);
-        setEnemies(newEnemies);
+      const newEnemies = spawnEnemiesForStage(stageIndex, nextEnemyId, newStructures);
+      setEnemies(newEnemies);
 
-        setEngagedEnemyId(null);
-        setDisplayedEnemyId(null);
+      setEngagedEnemyId(null);
+      setDisplayedEnemyId(null);
 
-        setIsTransitioning(false); // Transition complete
+      setIsTransitioning(false); // Transition complete
     }
   }, [isTransitioning, stageIndex, resetEnemyIdCounter, resetSceneryIdCounter, setEnemies, setEngagedEnemyId, setDisplayedEnemyId, setStructures, setScenery, nextSceneryId, nextEnemyId]);
 
@@ -309,41 +310,41 @@ export const useGameLogic = () => {
     if (!savedDataString) return;
 
     try {
-        const savedData = JSON.parse(savedDataString);
-        let loadedPlayer: PlayerType = savedData.player;
-        const loadedStageIndex: number = savedData.stageIndex;
-        const loadedPlayStats: PlayStats = {
-            ...savedData.playStats,
-            collectedEquipment: new Set(savedData.playStats.collectedEquipment),
-            startTime: Date.now(), // Reset start time, continue with saved playTime
-        };
-        
-        // Reset player position to the start of the saved stage
-        const stageStartX = INITIAL_PLAYER.x + loadedStageIndex * STAGE_LENGTH * PIXELS_PER_METER;
-        loadedPlayer = {
-            ...loadedPlayer,
-            x: stageStartX,
-        };
-        
-        loadPlayer(loadedPlayer);
-        setStageIndex(loadedStageIndex);
-        setPlayStats(loadedPlayStats);
-        
-        // Player is at the start of the stage, so distance within stage is 0.
-        setDistance(0);
+      const savedData = JSON.parse(savedDataString);
+      let loadedPlayer: PlayerType = savedData.player;
+      const loadedStageIndex: number = savedData.stageIndex;
+      const loadedPlayStats: PlayStats = {
+        ...savedData.playStats,
+        collectedEquipment: new Set(savedData.playStats.collectedEquipment),
+        startTime: Date.now(), // Reset start time, continue with saved playTime
+      };
 
-        addLog(`中断したところから再開しました。ステージ${loadedStageIndex + 1}の最初から始まります。`);
+      // Reset player position to the start of the saved stage
+      const stageStartX = INITIAL_PLAYER.x + loadedStageIndex * STAGE_LENGTH * PIXELS_PER_METER;
+      loadedPlayer = {
+        ...loadedPlayer,
+        x: stageStartX,
+      };
 
-        resumeAudioContext().then(() => {
-            const areaIndex = Math.floor(loadedStageIndex / 10);
-            playBGM(areaIndex);
-            setIsTransitioning(true); // Trigger stage load
-            setGameState(GameState.PLAYING);
-        });
+      loadPlayer(loadedPlayer);
+      setStageIndex(loadedStageIndex);
+      setPlayStats(loadedPlayStats);
+
+      // Player is at the start of the stage, so distance within stage is 0.
+      setDistance(0);
+
+      addLog(`中断したところから再開しました。ステージ${loadedStageIndex + 1}の最初から始まります。`);
+
+      resumeAudioContext().then(() => {
+        const areaIndex = Math.floor(loadedStageIndex / 10);
+        playBGM(areaIndex);
+        setIsTransitioning(true); // Trigger stage load
+        setGameState(GameState.PLAYING);
+      });
     } catch (error) {
-        console.error("Failed to load game:", error);
-        localStorage.removeItem(SAVE_KEY);
-        setHasSaveData(false);
+      console.error("Failed to load game:", error);
+      localStorage.removeItem(SAVE_KEY);
+      setHasSaveData(false);
     }
   }, [addLog, loadPlayer]);
 
@@ -351,38 +352,38 @@ export const useGameLogic = () => {
     localStorage.removeItem(SAVE_KEY);
     setHasSaveData(false);
     resumeAudioContext().then(() => {
-        playBGM(0);
-        setLog([]);
-        resetPlayer();
-        setPlayStats({ ...INITIAL_PLAY_STATS, startTime: Date.now(), collectedEquipment: new Set() });
-        setDistance(0);
-        
-        setStageIndex(0);
-        setIsTransitioning(true); // Trigger stage load
-        setGameState(GameState.PLAYING);
+      playBGM(0);
+      setLog([]);
+      resetPlayer();
+      setPlayStats({ ...INITIAL_PLAY_STATS, startTime: Date.now(), collectedEquipment: new Set() });
+      setDistance(0);
+
+      setStageIndex(0);
+      setIsTransitioning(true); // Trigger stage load
+      setGameState(GameState.PLAYING);
     });
   }, [resetPlayer]);
-  
+
   useEffect(() => {
-    let timer: ReturnType<typeof setInterval> | undefined;
+    let timer: number | undefined;
     if (gameState === GameState.PLAYING) {
-        timer = window.setInterval(() => {
-            setPlayStats(prev => ({
-                ...prev,
-                playTime: prev.playTime + 1,
-            }));
-        }, 1000);
+      timer = window.setInterval(() => {
+        setPlayStats(prev => ({
+          ...prev,
+          playTime: prev.playTime + 1,
+        }));
+      }, 1000);
     }
-    return () => clearInterval(timer);
+    return () => { if (timer !== undefined) window.clearInterval(timer); };
   }, [gameState]);
-  
+
   const enterHouse = useCallback(() => {
     setGameState(GameState.IN_HOUSE);
     setHousePrompt(false);
   }, []);
 
   const onCloseHouse = useCallback(() => {
-      setGameState(GameState.PLAYING);
+    setGameState(GameState.PLAYING);
   }, []);
 
   const handleHeal = useCallback(() => {
@@ -391,16 +392,16 @@ export const useGameLogic = () => {
 
   const triggerAction = useCallback(() => {
     if (shopTarget.current) {
-        const shopType = shopTarget.current.type as ShopType;
-        const items = generateShopItems(shopType, stageIndex);
-        setShopData({ type: shopType, items });
-        setGameState(GameState.SHOPPING);
-        setShopPrompt(false);
+      const shopType = shopTarget.current.type as ShopType;
+      const items = generateShopItems(shopType, stageIndex);
+      setShopData({ type: shopType, items });
+      setGameState(GameState.SHOPPING);
+      setShopPrompt(false);
     } else if (houseTarget.current) {
-        enterHouse();
+      enterHouse();
     } else if (teleporterTarget.current) {
-        setGameState(GameState.TELEPORTING);
-        setTeleporterPrompt(false);
+      setGameState(GameState.TELEPORTING);
+      setTeleporterPrompt(false);
     }
   }, [stageIndex, enterHouse]);
 
@@ -414,26 +415,26 @@ export const useGameLogic = () => {
   }, []);
 
   const handleTeleport = useCallback((targetStageIndex: number) => {
-      const cost = Math.abs(targetStageIndex - stageIndex) * 7;
-      if (player.gold < cost) {
-          addLog("ゴールドが足りません！");
-          return;
-      }
+    const cost = Math.abs(targetStageIndex - stageIndex) * 7;
+    if (player.gold < cost) {
+      addLog("ゴールドが足りません！");
+      return;
+    }
 
-      const areaIndex = Math.floor(targetStageIndex / 10);
-      const area = AREAS[Math.min(areaIndex, AREAS.length - 1)];
-      const stageInArea = (targetStageIndex % 10) + 1;
+    const areaIndex = Math.floor(targetStageIndex / 10);
+    const area = AREAS[Math.min(areaIndex, AREAS.length - 1)];
+    const stageInArea = (targetStageIndex % 10) + 1;
 
-      addLog(`${area.name} ${stageInArea} へ転送します... (-${cost}G)`);
-      
-      setPlayer(p => ({
-          ...p,
-          gold: p.gold - cost,
-          x: INITIAL_PLAYER.x + targetStageIndex * STAGE_LENGTH * PIXELS_PER_METER,
-      }));
-      setStageIndex(targetStageIndex);
-      setIsTransitioning(true); // Trigger stage load on teleport
-      setGameState(GameState.PLAYING);
+    addLog(`${area.name} ${stageInArea} へ転送します... (-${cost}G)`);
+
+    setPlayer(p => ({
+      ...p,
+      gold: p.gold - cost,
+      x: INITIAL_PLAYER.x + targetStageIndex * STAGE_LENGTH * PIXELS_PER_METER,
+    }));
+    setStageIndex(targetStageIndex);
+    setIsTransitioning(true); // Trigger stage load on teleport
+    setGameState(GameState.PLAYING);
   }, [player.gold, stageIndex, addLog]);
 
   useEffect(() => {
@@ -445,14 +446,14 @@ export const useGameLogic = () => {
       }
 
       if (e.code === 'Space') {
-          e.preventDefault();
-          if (gameState === GameState.PLAYING) {
-              if (shopTarget.current || houseTarget.current || teleporterTarget.current) {
-                triggerAction();
-              }
-          } else if (gameState === GameState.SHOPPING) onCloseShop();
-          else if (gameState === GameState.IN_HOUSE) onCloseHouse();
-          else if (gameState === GameState.TELEPORTING) onCloseTeleporter();
+        e.preventDefault();
+        if (gameState === GameState.PLAYING) {
+          if (shopTarget.current || houseTarget.current || teleporterTarget.current) {
+            triggerAction();
+          }
+        } else if (gameState === GameState.SHOPPING) onCloseShop();
+        else if (gameState === GameState.IN_HOUSE) onCloseHouse();
+        else if (gameState === GameState.TELEPORTING) onCloseTeleporter();
       }
 
       if (gameState === GameState.PLAYING) {
@@ -473,7 +474,7 @@ export const useGameLogic = () => {
       window.removeEventListener('keyup', handleKeyUp);
     };
   }, [gameState, triggerAction, onCloseHouse, onCloseShop, onCloseTeleporter]);
-  
+
   useEffect(() => {
     if (gameViewRef.current) {
       const observer = new ResizeObserver(entries => {
@@ -489,40 +490,40 @@ export const useGameLogic = () => {
   const totalDistance = stageIndex * STAGE_LENGTH + distance;
   useEffect(() => {
     if (totalDistance > playStats.farthestDistance) {
-        setPlayStats(prev => ({ ...prev, farthestDistance: totalDistance }));
+      setPlayStats(prev => ({ ...prev, farthestDistance: totalDistance }));
     }
   }, [totalDistance, playStats.farthestDistance]);
 
   useEffect(() => {
     if (gameState === GameState.PLAYER_DEAD) {
-        stopBGM();
-        const timer = setTimeout(() => {
-            resetPlayerForDeath();
-            setDistance(0);
-            
-            resumeAudioContext().then(() => {
-                playBGM(0);
-                setStageIndex(0);
-                setIsTransitioning(true); // Trigger stage 0 load
-                setGameState(GameState.PLAYING);
-            });
-        }, 2000);
+      stopBGM();
+      const timer = setTimeout(() => {
+        resetPlayerForDeath();
+        setDistance(0);
 
-        return () => clearTimeout(timer);
+        resumeAudioContext().then(() => {
+          playBGM(0);
+          setStageIndex(0);
+          setIsTransitioning(true); // Trigger stage 0 load
+          setGameState(GameState.PLAYING);
+        });
+      }, 2000);
+
+      return () => clearTimeout(timer);
     }
   }, [gameState, resetPlayerForDeath]);
 
   const trackEquipmentCollection = useCallback((item: Equipment) => {
-      setPlayStats(prev => {
-          if (prev.collectedEquipment.has(item.masterId)) {
-              return prev;
-          }
-          const newSet = new Set(prev.collectedEquipment);
-          newSet.add(item.masterId);
-          return { ...prev, collectedEquipment: newSet };
-      });
+    setPlayStats(prev => {
+      if (prev.collectedEquipment.has(item.masterId)) {
+        return prev;
+      }
+      const newSet = new Set(prev.collectedEquipment);
+      newSet.add(item.masterId);
+      return { ...prev, collectedEquipment: newSet };
+    });
   }, []);
-    
+
   const handleBuyItem = useCallback((itemToBuy: Equipment) => {
     playerBuyItem(itemToBuy, trackEquipmentCollection, addLog);
   }, [playerBuyItem, trackEquipmentCollection, addLog]);
@@ -534,344 +535,346 @@ export const useGameLogic = () => {
 
   const updateGameLogic = useCallback((deltaTime: number) => {
     if (gameState !== GameState.PLAYING || isTransitioning) return;
-    
+
     let playerUpdate = { ...player };
     let newEnemies = [...enemies];
     const currentCalculatedStats = calculatedStats;
     const now = Date.now();
 
     const processPlayerAttack = (enemyToAttack: Enemy): Enemy[] => {
-        if (!playerAttackReady.current) return newEnemies;
+      if (!playerAttackReady.current) return newEnemies;
 
-        playerAttackReady.current = false;
-        const playerSpeed = currentCalculatedStats.speed;
-        const enemySpeed = enemyToAttack.speed;
-        const speedRatio = playerSpeed > 0 && enemySpeed > 0 ? playerSpeed / enemySpeed : 1;
-        const speedLevel = ATTACK_SPEED_LEVELS.find(level => speedRatio <= level.ratio) || ATTACK_SPEED_LEVELS[3];
-        setTimeout(() => { playerAttackReady.current = true; }, speedLevel.cooldown);
+      playerAttackReady.current = false;
+      const playerSpeed = currentCalculatedStats.speed;
+      const enemySpeed = enemyToAttack.speed;
+      const speedRatio = playerSpeed > 0 && enemySpeed > 0 ? playerSpeed / enemySpeed : 1;
+      const speedLevel = ATTACK_SPEED_LEVELS.find(level => speedRatio <= level.ratio) || ATTACK_SPEED_LEVELS[3];
+      setTimeout(() => { playerAttackReady.current = true; }, speedLevel.cooldown);
 
-        playSound('playerAttack');
+      playSound('playerAttack');
 
-        const attackDirection = enemyToAttack.x > playerUpdate.x ? 'right' : 'left';
-        setPlayerAttackDirection(attackDirection);
-        setPlayerAction('attack');
-        setTimeout(() => setPlayerAction(undefined), 300);
+      const attackDirection = enemyToAttack.x > playerUpdate.x ? 'right' : 'left';
+      setPlayerAttackDirection(attackDirection);
+      setPlayerAction('attack');
+      setTimeout(() => setPlayerAction(undefined), 300);
 
-        let totalDamage = 0;
-        const damageInfos: DamageInfo[] = [];
+      let totalDamage = 0;
+      const damageInfos: DamageInfo[] = [];
 
-        const basePhysicalAttack = currentCalculatedStats.physicalAttack;
-        const effectiveDefense = enemyToAttack.physicalDefense;
-        const totalStat = basePhysicalAttack + effectiveDefense;
-        const damageMultiplier = totalStat > 0 ? basePhysicalAttack / totalStat : 1;
-        let rawPhysicalDamage = basePhysicalAttack * damageMultiplier * (0.9 + Math.random() * 0.2);
+      const basePhysicalAttack = currentCalculatedStats.physicalAttack;
+      const effectiveDefense = enemyToAttack.physicalDefense;
+      const totalStat = basePhysicalAttack + effectiveDefense;
+      const damageMultiplier = totalStat > 0 ? basePhysicalAttack / totalStat : 1;
+      let rawPhysicalDamage = basePhysicalAttack * damageMultiplier * (0.9 + Math.random() * 0.2);
 
-        const criticalChance = Math.min(0.75, currentCalculatedStats.luckValue / 400);
-        const isCritical = Math.random() < criticalChance;
-        if (isCritical) rawPhysicalDamage *= 1.5;
+      const criticalChance = Math.min(0.75, currentCalculatedStats.luckValue / 400);
+      const isCritical = Math.random() < criticalChance;
+      if (isCritical) rawPhysicalDamage *= 1.5;
 
-        const finalPhysicalDamage = Math.max(1, Math.floor(rawPhysicalDamage));
-        totalDamage += finalPhysicalDamage;
-        damageInfos.push({ text: `${finalPhysicalDamage}${isCritical ? '!' : ''}`, color: isCritical ? '#fde047' : '#FFFFFF' });
+      const finalPhysicalDamage = Math.max(1, Math.floor(rawPhysicalDamage));
+      totalDamage += finalPhysicalDamage;
+      const formattedPhysical = formatCompactNumber(finalPhysicalDamage);
+      damageInfos.push({ text: `${formattedPhysical}${isCritical ? '!' : ''}`, color: isCritical ? '#fde047' : '#FFFFFF' });
 
-        for (const [element, power] of Object.entries(totalElementalDamages)) {
-            const affinityMultiplier = ELEMENTAL_AFFINITY[element as Element][enemyToAttack.element];
-            const baseMagicalDamage = (currentCalculatedStats.magicalAttack * 1.5) * (1 + (power as number) / 100);
-            const rawMagicalDamage = Math.floor(baseMagicalDamage * (0.9 + Math.random() * 0.2));
-            const effectiveMagicalDamage = rawMagicalDamage * affinityMultiplier;
-            const finalMagicalDamage = Math.max(1, Math.floor(effectiveMagicalDamage) - enemyToAttack.magicalDefense);
-            totalDamage += finalMagicalDamage;
-            damageInfos.push({ text: `${finalMagicalDamage}`, color: ELEMENT_HEX_COLORS[element as Element] });
-        }
+      for (const [element, power] of Object.entries(totalElementalDamages)) {
+        const affinityMultiplier = ELEMENTAL_AFFINITY[element as Element][enemyToAttack.element];
+        const baseMagicalDamage = (currentCalculatedStats.magicalAttack * 1.5) * (1 + (power as number) / 100);
+        const rawMagicalDamage = Math.floor(baseMagicalDamage * (0.9 + Math.random() * 0.2));
+        const effectiveMagicalDamage = rawMagicalDamage * affinityMultiplier;
+        const finalMagicalDamage = Math.max(1, Math.floor(effectiveMagicalDamage) - enemyToAttack.magicalDefense);
+        totalDamage += finalMagicalDamage;
+        const formattedMagical = formatCompactNumber(finalMagicalDamage);
+        damageInfos.push({ text: `${formattedMagical}`, color: ELEMENT_HEX_COLORS[element as Element] });
+      }
 
-        if (damageInfos.length > 0) {
-          const newInstance: DamageInstance = { id: nextDamageInstanceId.current++, x: enemyToAttack.x + (Math.random() - 0.5) * 20, damages: damageInfos };
-          setDamageInstances(prev => [...prev, newInstance]);
-          setTimeout(() => setDamageInstances(prev => prev.filter(d => d.id !== newInstance.id)), 1200);
-        }
+      if (damageInfos.length > 0) {
+        const newInstance: DamageInstance = { id: nextDamageInstanceId.current++, x: enemyToAttack.x + (Math.random() - 0.5) * 20, damages: damageInfos };
+        setDamageInstances(prev => [...prev, newInstance]);
+        setTimeout(() => setDamageInstances(prev => prev.filter(d => d.id !== newInstance.id)), 1200);
+      }
 
-        return newEnemies.map(e => {
-            if (e.id !== enemyToAttack.id) return e;
+      return newEnemies.map(e => {
+        if (e.id !== enemyToAttack.id) return e;
 
-            const previousHp = e.currentHp;
-            if (previousHp <= 0) return e;
+        const previousHp = e.currentHp;
+        if (previousHp <= 0) return e;
 
-            playSound('enemyHit');
-            const newHp = Math.max(0, previousHp - totalDamage);
+        playSound('enemyHit');
+        const newHp = Math.max(0, previousHp - totalDamage);
 
-            if (previousHp > 0 && newHp <= 0) {
-                setPlayStats(prev => ({ ...prev, enemiesDefeated: prev.enemiesDefeated + 1 }));
-                if (e.id === engagedEnemyId) setEngagedEnemyId(null);
-                if (e.id === displayedEnemyId) setDisplayedEnemyId(null);
+        if (previousHp > 0 && newHp <= 0) {
+          setPlayStats(prev => ({ ...prev, enemiesDefeated: prev.enemiesDefeated + 1 }));
+          if (e.id === engagedEnemyId) setEngagedEnemyId(null);
+          if (e.id === displayedEnemyId) setDisplayedEnemyId(null);
 
-                // ステージNを2周（10体撃破）でレベルN→N+1にレベルアップする設計
-                // ステージの目標レベル = ステージ番号 + 1
-                const targetLevel = stageIndex + 1;
+          // ステージNを2周（10体撃破）でレベルN→N+1にレベルアップする設計
+          // ステージの目標レベル = ステージ番号 + 1
+          const targetLevel = stageIndex + 1;
 
-                // そのレベルに必要なXPを計算
-                let requiredXPForTargetLevel = 50; // 初期値
-                for (let i = 1; i < targetLevel; i++) {
-                    requiredXPForTargetLevel = Math.floor(requiredXPForTargetLevel * XP_FOR_NEXT_LEVEL_MULTIPLIER);
-                }
+          // そのレベルに必要なXPを計算
+          let requiredXPForTargetLevel = 50; // 初期値
+          for (let i = 1; i < targetLevel; i++) {
+            requiredXPForTargetLevel = Math.floor(requiredXPForTargetLevel * XP_FOR_NEXT_LEVEL_MULTIPLIER);
+          }
 
-                // 10体で達成できるように敵1体のXPを設定（敵の基礎xpValueを掛ける）
-                const baseXpPerEnemy = Math.floor(requiredXPForTargetLevel / 10);
-                const xpGained = Math.floor(baseXpPerEnemy * (e.xpValue / 20)); // xpValue平均20で正規化
+          // 10体で達成できるように敵1体のXPを設定（敵の基礎xpValueを掛ける）
+          const baseXpPerEnemy = Math.floor(requiredXPForTargetLevel / 10);
+          const xpGained = Math.floor(baseXpPerEnemy * (e.xpValue / 20)); // xpValue平均20で正規化
 
-                playerUpdate.xp += xpGained;
-                setPlayStats(prev => ({ ...prev, totalXpGained: prev.totalXpGained + xpGained }));
+          playerUpdate.xp += xpGained;
+          setPlayStats(prev => ({ ...prev, totalXpGained: prev.totalXpGained + xpGained }));
 
-                let goldDropped = 0;
-                let goldMessage = '';
-                if (e.name === 'ゴールドスライム') {
-                    goldDropped = (stageIndex + 1) * 100;
-                    goldMessage = `💰 なんと ${goldDropped}G を手に入れた！`;
-                } else {
-                    const baseGoldFromEnemy = e.goldValue * (0.8 + Math.random() * 0.4);
-                    const luckBonusMultiplier = 1 + (currentCalculatedStats.luckValue * 0.00833); // 運気300で3.5倍
-                    goldDropped = Math.floor(baseGoldFromEnemy * luckBonusMultiplier);
-                    goldMessage = `+${goldDropped}G`;
-                }
-                playerUpdate.gold += goldDropped;
+          let goldDropped = 0;
+          let goldMessage = '';
+          if (e.name === 'ゴールドスライム') {
+            goldDropped = (stageIndex + 1) * 100;
+            goldMessage = `💰 なんと ${goldDropped}G を手に入れた！`;
+          } else {
+            const baseGoldFromEnemy = e.goldValue * (0.8 + Math.random() * 0.4);
+            const luckBonusMultiplier = 1 + (currentCalculatedStats.luckValue * 0.00833); // 運気300で3.5倍
+            goldDropped = Math.floor(baseGoldFromEnemy * luckBonusMultiplier);
+            goldMessage = `+${goldDropped}G`;
+          }
+          playerUpdate.gold += goldDropped;
 
-                addLog(`${e.name} レベル${e.level}を倒した！ ${goldMessage}, +${xpGained}XP`);
+          addLog(`${e.name} レベル${e.level}を倒した！ ${goldMessage}, +${xpGained}XP`);
 
-                if (e.name === 'ヒーリングスライム') {
-                    playerUpdate.currentHp = currentCalculatedStats.maxHp;
-                    addLog('💖 体力が全回復した！');
-                }
+          if (e.name === 'ヒーリングスライム') {
+            playerUpdate.currentHp = currentCalculatedStats.maxHp;
+            addLog('💖 体力が全回復した！');
+          }
 
-                const newDrop = { id: nextGoldDropId.current++, x: e.x + 10 };
-                setGoldDrops(prev => [...prev, newDrop]);
-                setTimeout(() => setGoldDrops(prev => prev.filter(d => d.id !== newDrop.id)), 1000);
+          const newDrop = { id: nextGoldDropId.current++, x: e.x + 10 };
+          setGoldDrops(prev => [...prev, newDrop]);
+          setTimeout(() => setGoldDrops(prev => prev.filter(d => d.id !== newDrop.id)), 1000);
 
-                if (e.name === 'ジェムスライム') {
-                    const numberOfGems = Math.floor(Math.random() * 3) + 3;
-                    const allStats: AllocatableStat[] = ['strength', 'stamina', 'intelligence', 'speedAgility', 'luck'];
-                    const droppedGemsCount: Partial<Record<AllocatableStat, number>> = {};
+          if (e.name === 'ジェムスライム') {
+            const numberOfGems = Math.floor(Math.random() * 3) + 3;
+            const allStats: AllocatableStat[] = ['strength', 'stamina', 'intelligence', 'speedAgility', 'luck'];
+            const droppedGemsCount: Partial<Record<AllocatableStat, number>> = {};
 
-                    for (let i = 0; i < numberOfGems; i++) {
-                        const randomStat = allStats[Math.floor(Math.random() * allStats.length)];
-                        droppedGemsCount[randomStat] = (droppedGemsCount[randomStat] || 0) + 1;
-                    }
-
-                    setPlayStats(prev => {
-                        const newCollection = { ...prev.gemCollection };
-                        for (const [stat, count] of Object.entries(droppedGemsCount)) {
-                           if (count) {
-                                newCollection[stat as AllocatableStat] += count;
-                           }
-                        }
-                        return { ...prev, gemCollection: newCollection };
-                    });
-
-                    const logMessages = Object.entries(droppedGemsCount)
-                        .filter(([, count]) => count && count > 0)
-                        .map(([stat, count]) => `${baseStatNames[stat as AllocatableStat]}のジェムx${count}`);
-
-                    if(logMessages.length > 0) {
-                      addLog(`💎 ジェムを${numberOfGems}個手に入れた！ (${logMessages.join(', ')})`);
-                    }
-                } else {
-                    const dropChance = BASE_DROP_CHANCE + currentCalculatedStats.luckValue * LUCK_TO_DROP_CHANCE_MULTIPLIER;
-                    if (Math.random() < dropChance) {
-                        const droppedItem = generateRandomEquipment(stageIndex);
-                        playerUpdate = addEquipmentToPlayer(playerUpdate, droppedItem, trackEquipmentCollection, addLog);
-                    }
-                }
-            } else if (newHp > 0) {
-                 setEnemyHits(prev => ({...prev, [enemyToAttack.id]: true}));
-                 setTimeout(() => setEnemyHits(prev => ({...prev, [enemyToAttack.id]: false })), 300);
+            for (let i = 0; i < numberOfGems; i++) {
+              const randomStat = allStats[Math.floor(Math.random() * allStats.length)];
+              droppedGemsCount[randomStat] = (droppedGemsCount[randomStat] || 0) + 1;
             }
-            return { ...e, currentHp: newHp };
-        });
+
+            setPlayStats(prev => {
+              const newCollection = { ...prev.gemCollection };
+              for (const [stat, count] of Object.entries(droppedGemsCount)) {
+                if (count) {
+                  newCollection[stat as AllocatableStat] += count;
+                }
+              }
+              return { ...prev, gemCollection: newCollection };
+            });
+
+            const logMessages = Object.entries(droppedGemsCount)
+              .filter(([, count]) => count && count > 0)
+              .map(([stat, count]) => `${baseStatNames[stat as AllocatableStat]}のジェムx${count}`);
+
+            if (logMessages.length > 0) {
+              addLog(`💎 ジェムを${numberOfGems}個手に入れた！ (${logMessages.join(', ')})`);
+            }
+          } else {
+            const dropChance = BASE_DROP_CHANCE + currentCalculatedStats.luckValue * LUCK_TO_DROP_CHANCE_MULTIPLIER;
+            if (Math.random() < dropChance) {
+              const droppedItem = generateRandomEquipment(stageIndex);
+              playerUpdate = addEquipmentToPlayer(playerUpdate, droppedItem, trackEquipmentCollection, addLog);
+            }
+          }
+        } else if (newHp > 0) {
+          setEnemyHits(prev => ({ ...prev, [enemyToAttack.id]: true }));
+          setTimeout(() => setEnemyHits(prev => ({ ...prev, [enemyToAttack.id]: false })), 300);
+        }
+        return { ...e, currentHp: newHp };
+      });
     };
 
     const processEnemyAIAndAttacks = (currentEnemies: Enemy[]) => {
-        let totalPlayerDamageThisFrame = 0;
-        let lastAttackingEnemy: Enemy | null = null;
+      let totalPlayerDamageThisFrame = 0;
+      let lastAttackingEnemy: Enemy | null = null;
 
-        const updatedEnemies = currentEnemies.map(enemy => {
-            if (enemy.currentHp <= 0) return enemy;
-            const updatedEnemy = { ...enemy };
-            if (updatedEnemy.attackState === 'preparing' && now >= updatedEnemy.attackStateTimer) {
-                playSound('enemyAttack');
-                const playerWidth = 64;
-                const enemyWidth = 128;
-                const distanceBetweenCenters = Math.abs((playerUpdate.x + playerWidth / 2) - (updatedEnemy.x + enemyWidth / 2));
-                if (distanceBetweenCenters <= (playerWidth / 2) + (enemyWidth / 2) + ATTACK_RANGE) {
-                    const damageInfos: DamageInfo[] = [];
-                    const enemyAttack = updatedEnemy.physicalAttack;
-                    const playerDefense = currentCalculatedStats.physicalDefense;
-                    const totalStat = enemyAttack + playerDefense;
-                    const damageMultiplier = totalStat > 0 ? enemyAttack / totalStat : 1;
-                    let rawPhysicalDamage = enemyAttack * damageMultiplier * (0.9 + Math.random() * 0.2);
-                    const finalPhysicalDamage = Math.max(1, Math.floor(rawPhysicalDamage));
-                    totalPlayerDamageThisFrame += finalPhysicalDamage;
-                    damageInfos.push({ text: `${finalPhysicalDamage}`, color: '#FFFFFF' });
-                    
-                    if (updatedEnemy.magicalAttack > updatedEnemy.physicalAttack) {
-                        const power = updatedEnemy.baseStats.intelligence;
-                        const baseMagicalDamage = (updatedEnemy.magicalAttack * 1.5) * (1 + power / 100);
-                        const finalMagicalDamage = Math.max(1, Math.floor(baseMagicalDamage) - currentCalculatedStats.magicalDefense);
-                        totalPlayerDamageThisFrame += finalMagicalDamage;
-                        damageInfos.push({ text: `${finalMagicalDamage}`, color: ELEMENT_HEX_COLORS[updatedEnemy.element] });
-                    }
+      const updatedEnemies = currentEnemies.map(enemy => {
+        if (enemy.currentHp <= 0) return enemy;
+        const updatedEnemy = { ...enemy };
+        if (updatedEnemy.attackState === 'preparing' && now >= updatedEnemy.attackStateTimer) {
+          playSound('enemyAttack');
+          const playerWidth = 64;
+          const enemyWidth = 128;
+          const distanceBetweenCenters = Math.abs((playerUpdate.x + playerWidth / 2) - (updatedEnemy.x + enemyWidth / 2));
+          if (distanceBetweenCenters <= (playerWidth / 2) + (enemyWidth / 2) + ATTACK_RANGE) {
+            const damageInfos: DamageInfo[] = [];
+            const enemyAttack = updatedEnemy.physicalAttack;
+            const playerDefense = currentCalculatedStats.physicalDefense;
+            const totalStat = enemyAttack + playerDefense;
+            const damageMultiplier = totalStat > 0 ? enemyAttack / totalStat : 1;
+            let rawPhysicalDamage = enemyAttack * damageMultiplier * (0.9 + Math.random() * 0.2);
+            const finalPhysicalDamage = Math.max(1, Math.floor(rawPhysicalDamage));
+            totalPlayerDamageThisFrame += finalPhysicalDamage;
+            damageInfos.push({ text: `${finalPhysicalDamage}`, color: '#FFFFFF' });
 
-                    if (damageInfos.length > 0) {
-                        lastAttackingEnemy = updatedEnemy;
-                        const damageInstance: DamageInstance = { id: nextDamageInstanceId.current++, x: playerUpdate.x + 16, damages: damageInfos };
-                        setDamageInstances(prev => [...prev, damageInstance]);
-                        setTimeout(() => setDamageInstances(prev => prev.filter(di => di.id !== damageInstance.id)), 1200);
-                    }
-                }
-                updatedEnemy.attackState = 'attacking';
-                updatedEnemy.attackStateTimer = now + updatedEnemy.attackAnimationTime;
-            } else if (updatedEnemy.attackState === 'attacking' && now >= updatedEnemy.attackStateTimer) {
-                updatedEnemy.attackState = 'idle';
-
-                // ボスは攻撃後にプレイヤー方向へ移動
-                // 約4回の攻撃で画面端まで追い詰める（約450px ÷ 4 = 110px）
-                if (updatedEnemy.isBoss) {
-                    const moveAmount = 110;
-                    if (updatedEnemy.x > playerUpdate.x) {
-                        updatedEnemy.x = Math.max(playerUpdate.x, updatedEnemy.x - moveAmount);
-                    } else {
-                        updatedEnemy.x = Math.min(playerUpdate.x, updatedEnemy.x + moveAmount);
-                    }
-                }
+            if (updatedEnemy.magicalAttack > updatedEnemy.physicalAttack) {
+              const power = updatedEnemy.baseStats.intelligence;
+              const baseMagicalDamage = (updatedEnemy.magicalAttack * 1.5) * (1 + power / 100);
+              const finalMagicalDamage = Math.max(1, Math.floor(baseMagicalDamage) - currentCalculatedStats.magicalDefense);
+              totalPlayerDamageThisFrame += finalMagicalDamage;
+              damageInfos.push({ text: `${finalMagicalDamage}`, color: ELEMENT_HEX_COLORS[updatedEnemy.element] });
             }
 
-            if (updatedEnemy.id === engagedEnemyId && updatedEnemy.attackState === 'idle') {
-                const lastAttackTime = enemyAttackTimers.current[updatedEnemy.id] || 0;
-                const playerSpeed = currentCalculatedStats.speed;
-                const enemySpeed = updatedEnemy.speed;
-                const speedRatio = playerSpeed > 0 && enemySpeed > 0 ? playerSpeed / enemySpeed : 1;
-                const speedLevel = ATTACK_SPEED_LEVELS.find(level => speedRatio <= level.ratio) || ATTACK_SPEED_LEVELS[3];
-                const engagedEnemyCooldown = Math.max(200, speedLevel.cooldown / speedRatio);
-
-                if (now - lastAttackTime > engagedEnemyCooldown) {
-                    updatedEnemy.attackState = 'preparing';
-                    updatedEnemy.attackStateTimer = now + updatedEnemy.attackPrepareTime;
-                    enemyAttackTimers.current[updatedEnemy.id] = now;
-                }
+            if (damageInfos.length > 0) {
+              lastAttackingEnemy = updatedEnemy;
+              const damageInstance: DamageInstance = { id: nextDamageInstanceId.current++, x: playerUpdate.x + 16, damages: damageInfos };
+              setDamageInstances(prev => [...prev, damageInstance]);
+              setTimeout(() => setDamageInstances(prev => prev.filter(di => di.id !== damageInstance.id)), 1200);
             }
-            return updatedEnemy;
-        });
+          }
+          updatedEnemy.attackState = 'attacking';
+          updatedEnemy.attackStateTimer = now + updatedEnemy.attackAnimationTime;
+        } else if (updatedEnemy.attackState === 'attacking' && now >= updatedEnemy.attackStateTimer) {
+          updatedEnemy.attackState = 'idle';
 
-        return { updatedEnemies, totalPlayerDamageThisFrame, lastAttackingEnemy };
+          // ボスは攻撃後にプレイヤー方向へ移動
+          // 約4回の攻撃で画面端まで追い詰める（約450px ÷ 4 = 110px）
+          if (updatedEnemy.isBoss) {
+            const moveAmount = 110;
+            if (updatedEnemy.x > playerUpdate.x) {
+              updatedEnemy.x = Math.max(playerUpdate.x, updatedEnemy.x - moveAmount);
+            } else {
+              updatedEnemy.x = Math.min(playerUpdate.x, updatedEnemy.x + moveAmount);
+            }
+          }
+        }
+
+        if (updatedEnemy.id === engagedEnemyId && updatedEnemy.attackState === 'idle') {
+          const lastAttackTime = enemyAttackTimers.current[updatedEnemy.id] || 0;
+          const playerSpeed = currentCalculatedStats.speed;
+          const enemySpeed = updatedEnemy.speed;
+          const speedRatio = playerSpeed > 0 && enemySpeed > 0 ? playerSpeed / enemySpeed : 1;
+          const speedLevel = ATTACK_SPEED_LEVELS.find(level => speedRatio <= level.ratio) || ATTACK_SPEED_LEVELS[3];
+          const engagedEnemyCooldown = Math.max(200, speedLevel.cooldown / speedRatio);
+
+          if (now - lastAttackTime > engagedEnemyCooldown) {
+            updatedEnemy.attackState = 'preparing';
+            updatedEnemy.attackStateTimer = now + updatedEnemy.attackPrepareTime;
+            enemyAttackTimers.current[updatedEnemy.id] = now;
+          }
+        }
+        return updatedEnemy;
+      });
+
+      return { updatedEnemies, totalPlayerDamageThisFrame, lastAttackingEnemy };
     };
 
     const applyPlayerDamageAndCheckDeath = (damage: number, attacker: Enemy | null): boolean => {
-        if (damage <= 0) return false;
-        playSound('playerHit');
-        playerUpdate.currentHp = Math.max(0, playerUpdate.currentHp - damage);
-        setPlayerAction('hit');
-        setTimeout(() => setPlayerAction(undefined), 300);
-        if (playerUpdate.currentHp === 0) {
-            playSound('playerDeath');
-            addLog(attacker ? `${attacker.name} Lv.${attacker.level}にやられた…` : '力尽きた…');
-            setGameState(GameState.PLAYER_DEAD);
-            return true;
-        }
-        return false;
+      if (damage <= 0) return false;
+      playSound('playerHit');
+      playerUpdate.currentHp = Math.max(0, playerUpdate.currentHp - damage);
+      setPlayerAction('hit');
+      setTimeout(() => setPlayerAction(undefined), 300);
+      if (playerUpdate.currentHp === 0) {
+        playSound('playerDeath');
+        addLog(attacker ? `${attacker.name} Lv.${attacker.level}にやられた…` : '力尽きた…');
+        setGameState(GameState.PLAYER_DEAD);
+        return true;
+      }
+      return false;
     };
-    
+
     const handlePlayerLevelUp = (): boolean => {
-        if (playerUpdate.xp < playerUpdate.xpToNextLevel) {
-            return false;
-        }
-
-        const startingLevel = playerUpdate.level;
-        let accumulatedStatPoints = 0;
-        let accumulatedHpChange = 0;
-        let tempBaseStats = { ...playerUpdate.baseStats };
-
-        while (playerUpdate.xp >= playerUpdate.xpToNextLevel) {
-            const xpRequired = playerUpdate.xpToNextLevel;
-            playerUpdate.level += 1;
-            playerUpdate.xp -= xpRequired;
-            playerUpdate.xpToNextLevel = Math.floor(playerUpdate.xpToNextLevel * XP_FOR_NEXT_LEVEL_MULTIPLIER);
-
-            if (playerUpdate.isStatAllocationLocked && playerUpdate.lastStatAllocation) {
-                const lastAllocation = playerUpdate.lastStatAllocation;
-                for (const [stat, value] of Object.entries(lastAllocation)) {
-                    tempBaseStats[stat as AllocatableStat] += Number(value);
-                }
-                accumulatedHpChange += 10 + (Number(lastAllocation.stamina) || 0) * 10 + (Number(lastAllocation.strength) || 0) * 2;
-            } else {
-                accumulatedStatPoints += STAT_POINTS_PER_LEVEL;
-            }
-        }
-        
-        const levelsGained = playerUpdate.level - startingLevel;
-        if (levelsGained > 0) {
-            playSound('levelUp');
-            addLog(`レベル ${playerUpdate.level} になった！ (+${levelsGained} レベル)`);
-
-            if (playerUpdate.isStatAllocationLocked) {
-                playerUpdate.baseStats = tempBaseStats;
-                playerUpdate.currentHp += accumulatedHpChange;
-                addLog('ステータスが自動的に割り振られました。');
-            } else {
-                playerUpdate.statPoints = (playerUpdate.statPoints || 0) + accumulatedStatPoints;
-                return true;
-            }
-        }
+      if (playerUpdate.xp < playerUpdate.xpToNextLevel) {
         return false;
+      }
+
+      const startingLevel = playerUpdate.level;
+      let accumulatedStatPoints = 0;
+      let accumulatedHpChange = 0;
+      let tempBaseStats = { ...playerUpdate.baseStats };
+
+      while (playerUpdate.xp >= playerUpdate.xpToNextLevel) {
+        const xpRequired = playerUpdate.xpToNextLevel;
+        playerUpdate.level += 1;
+        playerUpdate.xp -= xpRequired;
+        playerUpdate.xpToNextLevel = Math.floor(playerUpdate.xpToNextLevel * XP_FOR_NEXT_LEVEL_MULTIPLIER);
+
+        if (playerUpdate.isStatAllocationLocked && playerUpdate.lastStatAllocation) {
+          const lastAllocation = playerUpdate.lastStatAllocation;
+          for (const [stat, value] of Object.entries(lastAllocation)) {
+            tempBaseStats[stat as AllocatableStat] += Number(value);
+          }
+          accumulatedHpChange += 10 + (Number(lastAllocation.stamina) || 0) * 10 + (Number(lastAllocation.strength) || 0) * 2;
+        } else {
+          accumulatedStatPoints += STAT_POINTS_PER_LEVEL;
+        }
+      }
+
+      const levelsGained = playerUpdate.level - startingLevel;
+      if (levelsGained > 0) {
+        playSound('levelUp');
+        addLog(`レベル ${playerUpdate.level} になった！ (+${levelsGained} レベル)`);
+
+        if (playerUpdate.isStatAllocationLocked) {
+          playerUpdate.baseStats = tempBaseStats;
+          playerUpdate.currentHp += accumulatedHpChange;
+          addLog('ステータスが自動的に割り振られました。');
+        } else {
+          playerUpdate.statPoints = (playerUpdate.statPoints || 0) + accumulatedStatPoints;
+          return true;
+        }
+      }
+      return false;
     };
 
     const handlePlayerMovementAndStageChanges = (currentEngagedEnemy: Enemy | undefined) => {
-        let dx = 0;
-        // ギャンブラー3点セットボーナス: 移動速度10倍
-        const hasGamblersSet =
-            playerUpdate.equipment.weapon?.masterId === 'wpn_gamblers_dice' &&
-            playerUpdate.equipment.armor?.masterId === 'arm_gamblers_coat' &&
-            playerUpdate.equipment.accessory?.masterId === 'acc_lucky_coin';
-        const speedMultiplier = hasGamblersSet ? 10 : 1;
-        const PLAYER_MOVE_SPEED_PPS = GAME_SPEED * 20 * speedMultiplier;
-        if (rightArrowPressed.current) dx += PLAYER_MOVE_SPEED_PPS * deltaTime;
-        if (leftArrowPressed.current) dx -= PLAYER_MOVE_SPEED_PPS * deltaTime;
+      let dx = 0;
+      // ギャンブラー3点セットボーナス: 移動速度10倍
+      const hasGamblersSet =
+        playerUpdate.equipment.weapon?.masterId === 'wpn_gamblers_dice' &&
+        playerUpdate.equipment.armor?.masterId === 'arm_gamblers_coat' &&
+        playerUpdate.equipment.accessory?.masterId === 'acc_lucky_coin';
+      const speedMultiplier = hasGamblersSet ? 10 : 1;
+      const PLAYER_MOVE_SPEED_PPS = GAME_SPEED * 20 * speedMultiplier;
+      if (rightArrowPressed.current) dx += PLAYER_MOVE_SPEED_PPS * deltaTime;
+      if (leftArrowPressed.current) dx -= PLAYER_MOVE_SPEED_PPS * deltaTime;
 
-        // すべての生きている敵との衝突判定（エンゲージ中でなくても）
-        const playerWidth = 64;
-        const enemyWidth = 128;
-        const playerFutureX = playerUpdate.x + dx;
+      // すべての生きている敵との衝突判定（エンゲージ中でなくても）
+      const playerWidth = 64;
+      const enemyWidth = 128;
+      const playerFutureX = playerUpdate.x + dx;
 
-        for (const enemy of newEnemies) {
-            if (enemy.currentHp <= 0) continue; // 死んでいる敵は無視
+      for (const enemy of newEnemies) {
+        if (enemy.currentHp <= 0) continue; // 死んでいる敵は無視
 
-            // 右に移動しようとして敵にぶつかる場合
-            if (dx > 0 && (playerUpdate.x + playerWidth) <= enemy.x && (playerFutureX + playerWidth) > enemy.x) {
-                dx = enemy.x - (playerUpdate.x + playerWidth);
-            }
-            // 左に移動しようとして敵にぶつかる場合
-            else if (dx < 0 && playerUpdate.x >= (enemy.x + enemyWidth) && playerFutureX < (enemy.x + enemyWidth)) {
-                dx = (enemy.x + enemyWidth) - playerUpdate.x;
-            }
+        // 右に移動しようとして敵にぶつかる場合
+        if (dx > 0 && (playerUpdate.x + playerWidth) <= enemy.x && (playerFutureX + playerWidth) > enemy.x) {
+          dx = enemy.x - (playerUpdate.x + playerWidth);
         }
-        if (playerUpdate.x + dx < INITIAL_PLAYER.x) dx = INITIAL_PLAYER.x - playerUpdate.x;
-        playerUpdate.x += dx;
-        playerUpdate.isWalking = dx !== 0;
-        if (dx > 0) setPlayStats(prev => ({ ...prev, totalDistanceTraveled: prev.totalDistanceTraveled + (dx / PIXELS_PER_METER) }));
-        const currentStagePixelLength = STAGE_LENGTH * PIXELS_PER_METER;
-        let nextStageIndex = stageIndex;
-        const currentStageStartX = INITIAL_PLAYER.x + nextStageIndex * currentStagePixelLength;
-        if (playerUpdate.x > currentStageStartX + currentStagePixelLength) {
-            nextStageIndex++;
-            setStageIndex(nextStageIndex);
-            setIsTransitioning(true);
-            playerUpdate.x = INITIAL_PLAYER.x + nextStageIndex * currentStagePixelLength;
-        } else if (playerUpdate.x < currentStageStartX && nextStageIndex > 0) {
-            nextStageIndex--;
-            setStageIndex(nextStageIndex);
-            setIsTransitioning(true);
-            playerUpdate.x = INITIAL_PLAYER.x + nextStageIndex * currentStagePixelLength + currentStagePixelLength - 64;
+        // 左に移動しようとして敵にぶつかる場合
+        else if (dx < 0 && playerUpdate.x >= (enemy.x + enemyWidth) && playerFutureX < (enemy.x + enemyWidth)) {
+          dx = (enemy.x + enemyWidth) - playerUpdate.x;
         }
-        const totalPixelsInCurrentStage = Math.max(0, playerUpdate.x - (INITIAL_PLAYER.x + stageIndex * currentStagePixelLength));
-        setDistance(Math.min(STAGE_LENGTH, Math.floor(totalPixelsInCurrentStage / PIXELS_PER_METER)));
+      }
+      if (playerUpdate.x + dx < INITIAL_PLAYER.x) dx = INITIAL_PLAYER.x - playerUpdate.x;
+      playerUpdate.x += dx;
+      playerUpdate.isWalking = dx !== 0;
+      if (dx > 0) setPlayStats(prev => ({ ...prev, totalDistanceTraveled: prev.totalDistanceTraveled + (dx / PIXELS_PER_METER) }));
+      const currentStagePixelLength = STAGE_LENGTH * PIXELS_PER_METER;
+      let nextStageIndex = stageIndex;
+      const currentStageStartX = INITIAL_PLAYER.x + nextStageIndex * currentStagePixelLength;
+      if (playerUpdate.x > currentStageStartX + currentStagePixelLength) {
+        nextStageIndex++;
+        setStageIndex(nextStageIndex);
+        setIsTransitioning(true);
+        playerUpdate.x = INITIAL_PLAYER.x + nextStageIndex * currentStagePixelLength;
+      } else if (playerUpdate.x < currentStageStartX && nextStageIndex > 0) {
+        nextStageIndex--;
+        setStageIndex(nextStageIndex);
+        setIsTransitioning(true);
+        playerUpdate.x = INITIAL_PLAYER.x + nextStageIndex * currentStagePixelLength + currentStagePixelLength - 64;
+      }
+      const totalPixelsInCurrentStage = Math.max(0, playerUpdate.x - (INITIAL_PLAYER.x + stageIndex * currentStagePixelLength));
+      setDistance(Math.min(STAGE_LENGTH, Math.floor(totalPixelsInCurrentStage / PIXELS_PER_METER)));
     };
-    
+
     houseTarget.current = structures.find(s => s.type === 'house' && Math.abs(s.x - playerUpdate.x) < HEALING_HOUSE_RANGE) || null;
     setHousePrompt(!!houseTarget.current);
     shopTarget.current = structures.find(s => s.type.includes('_shop') && Math.abs(s.x - playerUpdate.x) < SHOP_RANGE) || null;
@@ -887,32 +890,32 @@ export const useGameLogic = () => {
 
     // Update displayed enemy if needed
     if (!isDisplayedEnemyInRange && currentActiveEnemies.length > 0) {
-        const closest = currentActiveEnemies
-            .map(e => ({ e, d: Math.abs(e.x - playerUpdate.x) }))
-            .filter(d => d.d <= ENEMY_PANEL_DISPLAY_RANGE)
-            .sort((a, b) => a.d - b.d)[0];
-        if (closest) {
-            setDisplayedEnemyId(closest.e.id);
-        } else {
-            setDisplayedEnemyId(null);
-        }
+      const closest = currentActiveEnemies
+        .map(e => ({ e, d: Math.abs(e.x - playerUpdate.x) }))
+        .filter(d => d.d <= ENEMY_PANEL_DISPLAY_RANGE)
+        .sort((a, b) => a.d - b.d)[0];
+      if (closest) {
+        setDisplayedEnemyId(closest.e.id);
+      } else {
+        setDisplayedEnemyId(null);
+      }
     }
 
     let currentEngagedEnemy = currentActiveEnemies.find(e => e.id === engagedEnemyId);
     if (!currentEngagedEnemy && currentActiveEnemies.length > 0) {
-        const newTarget = currentActiveEnemies.sort((a,b) => Math.abs(a.x - playerUpdate.x) - Math.abs(b.x - playerUpdate.x))[0];
-        setEngagedEnemyId(newTarget.id);
-        currentEngagedEnemy = newTarget;
+      const newTarget = currentActiveEnemies.sort((a, b) => Math.abs(a.x - playerUpdate.x) - Math.abs(b.x - playerUpdate.x))[0];
+      setEngagedEnemyId(newTarget.id);
+      currentEngagedEnemy = newTarget;
 
-        // ボスとのエンカウンター処理（まだ表示中でない場合のみ）
-        if (newTarget.isBoss && (!bossEncounter || !bossEncounter.show)) {
-            setBossEncounter({ name: newTarget.name, show: true });
-            setTimeout(() => {
-                setBossEncounter(prev => prev ? { ...prev, show: false } : null);
-            }, 2500);
-        }
+      // ボスとのエンカウンター処理（まだ表示中でない場合のみ）
+      if (newTarget.isBoss && (!bossEncounter || !bossEncounter.show)) {
+        setBossEncounter({ name: newTarget.name, show: true });
+        setTimeout(() => {
+          setBossEncounter(prev => prev ? { ...prev, show: false } : null);
+        }, 2500);
+      }
     }
-    
+
     let enemyToAttack: Enemy | undefined = undefined;
     if (currentEngagedEnemy) {
       const distanceBetweenCenters = Math.abs((playerUpdate.x + 32) - (currentEngagedEnemy.x + 64));
@@ -922,7 +925,7 @@ export const useGameLogic = () => {
     }
 
     if (enemyToAttack && enemyToAttack.currentHp > 0) {
-        newEnemies = processPlayerAttack(enemyToAttack);
+      newEnemies = processPlayerAttack(enemyToAttack);
     }
 
     const { updatedEnemies, totalPlayerDamageThisFrame, lastAttackingEnemy } = processEnemyAIAndAttacks(newEnemies);
@@ -947,12 +950,12 @@ export const useGameLogic = () => {
   useEffect(() => {
     savedCallback.current = updateGameLogic;
   }, [updateGameLogic]);
-    
+
   useEffect(() => {
     if (gameState !== GameState.PLAYING) {
-        return;
+      return;
     }
-    
+
     const FPS = 60;
     const interval = 1000 / FPS;
     const deltaTime = interval / 1000;
@@ -965,14 +968,14 @@ export const useGameLogic = () => {
       clearInterval(gameLoopInterval);
     };
   }, [gameState]);
-  
+
   const currentStagePixelLength = STAGE_LENGTH * PIXELS_PER_METER;
   const currentStageStartX = INITIAL_PLAYER.x + stageIndex * currentStagePixelLength;
   const currentStageEndX = currentStageStartX + currentStagePixelLength;
-  let targetScrollX = player.x - 150; 
+  let targetScrollX = player.x - 150;
   const scrollX = Math.max(currentStageStartX - INITIAL_PLAYER.x, Math.min(targetScrollX, currentStageEndX - gameViewWidth));
   const worldOffset = -scrollX;
-  
+
   const handlePointerDown = (direction: 'left' | 'right') => {
     if (direction === 'left') leftArrowPressed.current = true;
     if (direction === 'right') rightArrowPressed.current = true;
@@ -982,7 +985,7 @@ export const useGameLogic = () => {
     leftArrowPressed.current = false;
     rightArrowPressed.current = false;
   };
-  
+
   const handleActionPress = () => {
     triggerAction();
   };
